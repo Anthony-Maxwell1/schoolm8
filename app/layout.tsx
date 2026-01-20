@@ -2,7 +2,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/authContext";
 
 export const metadata = {
-    title: "norwestbuddy",
+    title: "schoolm8",
     description: "Centralized student tool",
 };
 
