@@ -1,3 +1,6 @@
+import { NextResponse } from "next/server";
+import { auth, db } from "@/lib/firebaseAdmin";
+
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization");
@@ -19,14 +22,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing url, username or password" }, { status: 400 });
     }
     const result = await fetch(url, {
-      method = "GET",
-      headers = {
-        'Authorization': `Basic ${btoa(`{username}:{password}`)}`
+      method: "GET",
+      headers: {
+        'Authorization': `Basic ${btoa(`${username}:${password}`)}`
       }
     })
     if (!result.ok) {
-      const error = result.json()
-      throw new Error(`Verification failed: {error}`)
+      const error = await result.json()
+      throw new Error(`Verification failed: ${error}`)
     }
     await userRef.set(
       {
