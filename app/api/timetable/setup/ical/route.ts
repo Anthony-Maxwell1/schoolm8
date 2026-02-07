@@ -33,7 +33,8 @@ export async function POST(req: Request) {
     }
     await userRef.set(
       {
-        ical: {
+        timetable: {
+          type: "ical",
           url,
           username,
           password

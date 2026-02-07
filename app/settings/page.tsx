@@ -14,11 +14,25 @@ export default function SettingsPage() {
   const router = useRouter();
   const [canvasInstance, setCanvasInstance] = useState("");
   const [canvasToken, setCanvasToken] = useState("");
+  const [iCalUrl, setICalUrl] = useState("");
+  const [iCalUsername, setICalUsername] = useState("");
+  const [iCalPassword, setICalPassword] = useState("");
+  const [icalConnected, setIcalConnected] = useState(false);
+
+  useEffect(() => {
+    console.log("EFFECT RUNNING");
+    fetch("/api/canvas/connect", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  }, []);
 
   const disconnectCanvas = async () => {
     if (!user) return;
     try {
       const res = await fetch(`/api/canvas/disconnect`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -29,7 +43,7 @@ export default function SettingsPage() {
       }
       setCanvasConnected(false);
       alert("Canvas disconnected successfully.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       alert("Error disconnecting Canvas: " + err.message);
     }
@@ -55,7 +69,7 @@ export default function SettingsPage() {
       }
       setCanvasConnected(true);
       alert("Canvas connected successfully.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       alert("Error connecting Canvas: " + err.message);
     }
@@ -76,9 +90,57 @@ export default function SettingsPage() {
       }
 
       alert("Canvas sync initiated successfully.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       alert("Error syncing Canvas: " + err.message);
+    }
+  };
+
+  const setupICal = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/timetable/setup/ical`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          url: iCalUrl,
+          username: iCalUsername,
+          password: iCalPassword,
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to set up iCal timetable");
+      }
+      alert("iCal timetable set up successfully.");
+    } catch (err: any) {
+      console.error(err);
+      alert("Error setting up iCal timetable: " + err.message);
+    }
+  };
+  
+  const disconnectICal = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/timetable/disconnect/ical`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to disconnect iCal timetable");
+      }
+      setIcalConnected(false);
+      alert("iCal timetable disconnected successfully.");
+    } catch (err: any) {
+      console.error(err);
+      alert("Error disconnecting iCal timetable: " + err.message);
     }
   };
 
@@ -114,9 +176,28 @@ export default function SettingsPage() {
       }
     };
 
+    const checkIcal = async () => {
+      try {
+        const res = await fetch(`/api/timetable/fetch`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (data.timetable && data.timetable.length > 0) {
+          setIcalConnected(true);
+        } else {
+          setIcalConnected(false);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     const checkConnections = async () => {
       await checkOneDrive();
       await checkCanvas();
+      await checkIcal();
       setChecking(false);
     };
 
@@ -216,6 +297,46 @@ export default function SettingsPage() {
                   className="border p-2 rounded w-full"
                 />
                 <Button onClick={connectCanvas}>Connect Canvas</Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+        <Card className="bg-white shadow-md">
+        <CardHeader>
+          <CardTitle>iCal Timetable</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Set up your iCal timetable integration here.</p>
+          <div className="flex flex-col gap-2 mt-2">
+            {icalConnected ? (<div>
+              <p>iCal timetable is set up and connected. ✅</p>
+              <Button variant="destructive" onClick={disconnectICal}>
+              Disconnect
+              </Button>
+            </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="iCal URL"
+                  onChange={(e) => setICalUrl(e.target.value)}
+                  className="border p-2 rounded w-full"
+                />
+                <input
+                  type="text"
+                  placeholder="Username (if required)"
+                  onChange={(e) => setICalUsername(e.target.value)}
+                  className="border p-2 rounded w-full"
+                />
+                <input
+                  type="password"
+                  placeholder="Password (if required)"
+                  onChange={(e) => setICalPassword(e.target.value)}
+                  className="border p-2 rounded w-full"
+                />
+                <Button onClick={setupICal}>Set Up iCal Timetable</Button>
               </div>
             )}
           </div>
