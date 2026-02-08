@@ -1,11 +1,8 @@
-'use client';
-import dynamic from 'next/dynamic';
+"use client";
+import dynamic from "next/dynamic";
 
-const TextEditor = dynamic(
-  () => import('@/components/tinyMCE'),
-  { ssr: false }
-);
+const TextEditor = dynamic(() => import("@/components/tinyMCE"), { ssr: false });
 
 export default function Page() {
-  return <TextEditor />;
+    return <TextEditor />;
 }

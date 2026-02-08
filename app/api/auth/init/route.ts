@@ -22,6 +22,7 @@ export async function POST(req: Request) {
                     verificationStatus: "unverified",
                     canvasBaseUrl: null,
                 },
+                timetable: {},
                 data: userDataTemplate,
             });
 

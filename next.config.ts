@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "100mb",
     },
   },
+  images: {
+    remotePatterns: [new URL("https://picsum.photos/**")],
+  },
 };
 
 export default nextConfig;
