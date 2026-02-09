@@ -1,0 +1,5 @@
+Warning:
+- The items in this folder usually use YOUR credentials, for example to sign into your account on your behalf.
+- These will get pushed to github next time you commit.
+- You should move your file into DONOTCOMMIT/___, and it will be excluded (.gitignore).
+- If you do it right, both the file and the folder it's in should be greyed out.
