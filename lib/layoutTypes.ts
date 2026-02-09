@@ -1,34 +1,30 @@
-// context/layoutTypes.ts
-import { ClassKey } from "@/lib/themeClasses";
+export type Anchor = "left" | "right" | "top" | "bottom";
 
-export type Anchor = "top" | "left" | "right" | "bottom";
-
-export type Tile = {
+export type TileInstance = {
     id: string;
-    classKey: ClassKey; // connects to themeClasses
-    // position as ratios (0-1)
-    xStart: number;
-    yStart: number;
-    xEnd: number;
-    yEnd: number;
+    registryId: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    props: Record<string, any>;
 };
 
-export type Panel = {
+export type PanelInstance = {
     id: string;
+    registryId: string;
     anchor: Anchor;
-    size: number; // size as ratio (0-1)
-};
-
-export type MainArea = {
-    id: string;
-    content: React.ReactNode;
+    size: number;
+    props: Record<string, any>;
 };
 
 export type Page = {
     id: string;
-    tiles: Tile[];
-    panels: Panel[];
-    mainArea: MainArea;
+    tiles: TileInstance[];
+    panels: PanelInstance[];
 };
 
-export type GridSize = { cols: number; rows: number };
+export type GridSize = {
+    cols: number;
+    rows: number;
+};

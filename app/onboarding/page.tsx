@@ -1,11 +1,12 @@
 "use client";
 
-import backgroundImage from "@/public/backgrounds/builtin/onboarding.png";
 import Image from "next/image";
 import { useState } from "react";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
+
+const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function Onboarding() {
     const { user, token, loading } = useAuth();
@@ -168,7 +169,8 @@ export default function Onboarding() {
     return (
         <div
             className="relative min-h-screen bg-cover bg-center"
-            style={{ backgroundImage: `url(${backgroundImage.src})` }}
+            style={{ backgroundImage: `url(${backgroundImage})`,
+        backgroundAttachment: "fixed", }}
         >
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />

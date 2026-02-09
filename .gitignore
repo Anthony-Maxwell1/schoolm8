@@ -44,3 +44,7 @@ next-env.d.ts
 
 # TinyMCE
 /public/tinymce/
+
+/DONOTCOMMIT/*
+/DONOTCOMMIT/
+DONOTCOMMIT

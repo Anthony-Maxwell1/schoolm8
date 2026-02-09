@@ -1,11 +1,12 @@
 import Link from "next/link";
-import backgroundImage from "@/public/backgrounds/builtin/onboarding.png";
+
+const backgroundImage = "/imagesbackgrounds/builtin/onboarding.png";
 
 export default function Auth() {
     return (
         <div
             className="relative min-h-screen bg-cover bg-center"
-            style={{ backgroundImage: `url(${backgroundImage.src})` }}
+            style={{ backgroundImage: `url(${backgroundImage})` }}
         >
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
 
