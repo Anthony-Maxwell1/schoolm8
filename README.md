@@ -17,13 +17,14 @@
 - Canvas assignment submission directly through Schoolm8
 - Generic Timetable integration via iCal or third party.
 - Reverse engineered edumate, js script to auto auth.
+- Edumate integration built on reverse engineered login flow
 
 ### 🚧 In Progress
 - Onboarding (Nearly done)
-- Edumate integration built on reverse engineered login flow
 - Engage integration
 - Built-in editor suite
 - Schedule system
+- Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
 
 ### 🔮 Planned
 - AI assignment identification & classification
