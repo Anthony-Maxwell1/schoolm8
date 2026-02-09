@@ -15,17 +15,24 @@
   - Google Sign-In
 - Database with security rules
 - Canvas assignment submission directly through Schoolm8
+- Generic Timetable integration via iCal or third party.
+- Reverse engineered edumate, js script to auto auth.
 
 ### 🚧 In Progress
-- Edumate integration
+- Onboarding (Nearly done)
+- Edumate integration built on reverse engineered login flow
+- Engage integration
 - Built-in editor suite
 - Schedule system
 
-### 🔮 Planned / AI-Powered
+### 🔮 Planned
 - AI assignment identification & classification
 - Automatic schedule generation
 - Optimised study plan generation based on assessments
 - Adaptive testing to learn which study techniques work best for each student
+- Expanding LMS support
+- Expanding Timetable support
+- Adding support for teachers and administrators onto the platform to manage schools
 
 ---
 
