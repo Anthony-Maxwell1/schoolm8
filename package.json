@@ -10,6 +10,7 @@
         "postinstall": "node ./postinstall.js"
     },
     "dependencies": {
+        "@google-cloud/local-auth": "^3.0.1",
         "@radix-ui/react-label": "^2.1.8",
         "@radix-ui/react-scroll-area": "^1.2.10",
         "@radix-ui/react-select": "^2.2.6",
@@ -24,6 +25,7 @@
         "firebase-admin": "^13.6.0",
         "formdata-node": "^6.0.3",
         "formidable": "^3.5.4",
+        "googleapis": "^171.4.0",
         "html-to-text": "^9.0.5",
         "ical.js": "^2.2.1",
         "lucide-react": "^0.555.0",
