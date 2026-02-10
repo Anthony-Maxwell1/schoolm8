@@ -25,6 +25,8 @@ export async function GET(req: Request) {
     const scopeGroup = doc.data()?.currentState?.data?.scopeGroup;
     if (!scopeGroup) return new Response("Missing scope group", { status: 400 });
 
+    const redirectUrl = doc.data()?.currentState?.data?.redirectUrl ?? "/dashboard";
+
     try {
         const response = await getTokens(code);
 
@@ -44,5 +46,5 @@ export async function GET(req: Request) {
         console.error("Error getting tokens:", err);
         return new Response("OAuth failed", { status: 500 });
     }
-    redirect("/dashboard");
+    redirect(redirectUrl);
 }

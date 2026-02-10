@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
@@ -21,6 +21,8 @@ export default function Onboarding() {
     const [canvasBaseUrl, setCanvasBaseUrl] = useState("");
     const [canvasAccessToken, setCanvasAccessToken] = useState("");
     const [canvasConnected, setCanvasConnected] = useState(false);
+    // | -> Google Classroom
+    const [googleClassroomConnected, setGoogleClassroomConnected] = useState(false);
 
     // Method for linking timetable, e.g. ical url, file upload, third party etc.
     const [timetableMethod, setTimetableMethod] = useState("");
@@ -34,6 +36,11 @@ export default function Onboarding() {
     const [icalPassword, setIcalPassword] = useState("");
     // | | -> iCal File Upload
     const [icalData, setIcalData] = useState("");
+    // | -> Edumate
+    const [edumateConnected, setEdumateConnected] = useState(false);
+    const [edumateBaseUrl, setEdumateBaseUrl] = useState("");
+    const [edumateUsername, setEdumateUsername] = useState("");
+    const [edumatePassword, setEdumatePassword] = useState("");
 
     const steps = [
         { title: "Showcase features" },
@@ -166,6 +173,35 @@ export default function Onboarding() {
         }
     };
 
+    const connectEdumate = async () => {
+        if (!edumateBaseUrl || !edumateUsername || !edumatePassword) {
+            alert("Please enter the base URL, username, and password.");
+            return;
+        }
+        try {
+            const response = await fetch("/api/timetable/setup/edumate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    baseUrl: edumateBaseUrl,
+                    username: edumateUsername,
+                    password: edumatePassword,
+                }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to connect to Edumate");
+            }
+            setEdumateConnected(true);
+        } catch (err) {
+            console.error("Error connecting to Edumate:", err);
+            alert("Failed to connect to Edumate. Please check the console for details.");
+        }
+    }
+
     const setupGoogleClassroom = async () => {
         try {
             const response = await fetch("/api/auth/universalState", {
@@ -174,7 +210,10 @@ export default function Onboarding() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ scopeGroup: "classroom" }),
+                body: JSON.stringify({
+                    scopeGroup: "classroom",
+                    redirectUrl: `/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=${googleClassroomConnected}&genericTimetable=${genericConnected}&edumate=${edumateConnected}`,
+                }),
             });
             if (!response.ok) {
                 const errorData = await response.json();
@@ -187,6 +226,37 @@ export default function Onboarding() {
             alert("Failed to set up Google Classroom. Please check the console for details.");
         }
     };
+
+    useEffect(() => {
+        if (!loading && !user) {
+            // Redirect to login if not authenticated
+            window.location.href = "/login";
+        }
+    }, [user, loading]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has("oauthReturn")) return;
+
+        const toBool = (v: string | null) => v === "1" || v === "true";
+
+        // Connection flags
+        if (params.has("canvas")) setCanvasConnected(toBool(params.get("canvas")));
+        if (params.has("classroom")) setGoogleClassroomConnected(toBool(params.get("classroom")));
+        if (params.has("genericTimetable")) setGenericConnected(toBool(params.get("genericTimetable")));
+        if (params.has("edumate")) setEdumateConnected(toBool(params.get("edumate")));
+
+        // Step + carousel
+        if (params.has("step")) setStep(Number(params.get("step")));
+        if (params.has("carousel")) setCarouselIndex(Number(params.get("carousel")));
+
+        // Selections
+        if (params.has("lms")) setLms(params.get("lms") || "");
+        if (params.has("timetable")) setTimetable(params.get("timetable") || "");
+        if (params.has("timetableMethod")) setTimetableMethod(params.get("timetableMethod") || "");
+    }, []);
 
     return (
         <div
@@ -368,6 +438,11 @@ export default function Onboarding() {
                                     </div>
                                 ))}
                             {lms && lms == "google-classroom" && (
+                                googleClassroomConnected ? (
+                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                        <p>Google Classroom connected successfully!</p>
+                                    </div>
+                                ) : (
                                 <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
                                     <p>
                                         Click this button to proceed with setting up Google
@@ -382,7 +457,7 @@ export default function Onboarding() {
                                         Connect Google Classroom
                                     </button>
                                 </div>
-                            )}
+                            ))}
                         </div>
                     )}
                     {step === 3 && (
@@ -413,6 +488,76 @@ export default function Onboarding() {
                                 <option value="physical">Physical/unable to access online</option>
                                 <option value="generic">Generic</option>
                             </select>
+                            {timetable === "edumate" && (
+                                edumateConnected ? (
+                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                        <p>Edumate connected successfully!</p>
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                        <p>
+                                            We use a reverse engineered method to connect to Edumate using internal APIs. This can be unstable, so we recommend checking if your school supports iCal first. This would usually be in your school guide, Edumate handbook, etc. However some schools have it disabled.
+                                            <br />
+                                            You should use the Generic and iCal URL method for this. The URL is usually:{" "}
+                                            <code>
+                                            https://{`{school}`}.edumate.net/{`{school}`}4/cal.php/
+                                            calendar/{`{username}`}
+                                            </code>
+                                            , with your username and password.
+                                            However, if your school does not support iCal, you can still connect here, however this is unofficial and can break at any time.
+                                        </p>
+                                        <div className="mt-4">
+                                            <label className="block mb-2 font-medium">
+                                                Base URL
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 border border-green-400 rounded-lg"
+                                                placeholder="e.g. norwest.edumate.net"
+                                                value={edumateBaseUrl}
+                                                onChange={(e) => setEdumateBaseUrl(e.target.value)}
+                                            />
+                                            <p className="mt-2 text-sm text-green-700">
+                                                Your base url is the url before the first /, without https://. For example, if your Edumate URL is{" "}
+                                                <code>https://norwest.edumate.net/edumate4/cal.php/calendar/username</code>
+                                                , then your base URL would be{" "}
+                                                <code>norwest.edumate.net</code>.
+                                            </p>
+
+                                            <label className="block mt-4 mb-2 font-medium">
+                                                Username
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 border border-green-400 rounded-lg"
+                                                placeholder="Enter your username"
+                                                value={edumateUsername}
+                                                onChange={(e) =>
+                                                    setEdumateUsername(e.target.value)
+                                                }
+                                            />
+                                            <label className="block mt-4 mb-2 font-medium">
+                                                Password
+                                            </label>
+                                            <input
+                                                type="password"
+                                                className="w-full p-2 border border-green-400 rounded-lg"
+                                                placeholder="Enter your password"
+                                                value={edumatePassword}
+                                                onChange={(e) =>
+                                                    setEdumatePassword(e.target.value)
+                                                }
+                                            />
+                                            <button
+                                                className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 mt-4"
+                                                onClick={connectEdumate}
+                                            >
+                                                Connect
+                                            </button>
+                                        </div>
+                                    </div>
+                                )
+                            )}
                             {timetable === "generic" &&
                                 (genericConnected ? (
                                     <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
