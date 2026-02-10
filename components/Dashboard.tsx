@@ -23,7 +23,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     return (
         <div className="relative w-full h-full bg-gray-100">
             {/* Panels */}
-            {currentPage.panels.map(panel => {
+            {currentPage.panels.map((panel) => {
                 const def = findRegistry(panel.registryId, PanelRegistry);
                 if (!def?.component) return null;
                 const PanelComponent = def.component;
@@ -50,7 +50,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
             })}
 
             {/* Tiles */}
-            {currentPage.tiles.map(tile => {
+            {currentPage.tiles.map((tile) => {
                 const def = findRegistry(tile.registryId, TileRegistry);
                 if (!def?.component) return null;
                 const TileComponent = def.component;
@@ -64,11 +64,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                 };
 
                 return (
-                    <div
-                        key={tile.id}
-                        style={style}
-                        className="border bg-white shadow"
-                    >
+                    <div key={tile.id} style={style} className="border bg-white shadow">
                         {editable && (
                             <button
                                 className="absolute top-0 right-0 text-xs"

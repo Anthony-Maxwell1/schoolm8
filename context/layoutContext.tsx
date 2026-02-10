@@ -50,7 +50,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const currentPage = useMemo(
-        () => pages.find(p => p.id === currentPageId) ?? null,
+        () => pages.find((p) => p.id === currentPageId) ?? null,
         [pages, currentPageId],
     );
 
@@ -62,13 +62,13 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     /* Pages */
     const addPage = () => {
         const id = crypto.randomUUID();
-        setPages(p => [...p, { id, tiles: [], panels: [] }]);
+        setPages((p) => [...p, { id, tiles: [], panels: [] }]);
         setCurrentPageId(id);
         saveState();
     };
 
     const removePage = (id: string) => {
-        setPages(p => p.filter(pg => pg.id !== id));
+        setPages((p) => p.filter((pg) => pg.id !== id));
         if (currentPageId === id) setCurrentPageId(null);
         saveState();
     };
@@ -77,26 +77,20 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
     const addTile = (tile: TileInstance) => {
         if (!currentPage) return;
-        setPages(p =>
-            p.map(pg =>
-                pg.id === currentPage.id
-                    ? { ...pg, tiles: [...pg.tiles, tile] }
-                    : pg,
-            ),
+        setPages((p) =>
+            p.map((pg) => (pg.id === currentPage.id ? { ...pg, tiles: [...pg.tiles, tile] } : pg)),
         );
         saveState();
     };
 
     const updateTile = (tile: TileInstance) => {
         if (!currentPage) return;
-        setPages(p =>
-            p.map(pg =>
+        setPages((p) =>
+            p.map((pg) =>
                 pg.id === currentPage.id
                     ? {
                           ...pg,
-                          tiles: pg.tiles.map(t =>
-                              t.id === tile.id ? tile : t,
-                          ),
+                          tiles: pg.tiles.map((t) => (t.id === tile.id ? tile : t)),
                       }
                     : pg,
             ),
@@ -106,12 +100,12 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
     const removeTile = (id: string) => {
         if (!currentPage) return;
-        setPages(p =>
-            p.map(pg =>
+        setPages((p) =>
+            p.map((pg) =>
                 pg.id === currentPage.id
                     ? {
                           ...pg,
-                          tiles: pg.tiles.filter(t => t.id !== id),
+                          tiles: pg.tiles.filter((t) => t.id !== id),
                       }
                     : pg,
             ),
@@ -123,10 +117,10 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
     const addPanel = (panel: PanelInstance) => {
         if (!currentPage) return;
-        setPages(p =>
-            p.map(pg => {
+        setPages((p) =>
+            p.map((pg) => {
                 if (pg.id !== currentPage.id) return pg;
-                if (pg.panels.some(pn => pn.id === panel.id)) return pg;
+                if (pg.panels.some((pn) => pn.id === panel.id)) return pg;
                 return { ...pg, panels: [...pg.panels, panel] };
             }),
         );
@@ -135,12 +129,12 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
     const removePanel = (id: string) => {
         if (!currentPage) return;
-        setPages(p =>
-            p.map(pg =>
+        setPages((p) =>
+            p.map((pg) =>
                 pg.id === currentPage.id
                     ? {
                           ...pg,
-                          panels: pg.panels.filter(pn => pn.id !== id),
+                          panels: pg.panels.filter((pn) => pn.id !== id),
                       }
                     : pg,
             ),

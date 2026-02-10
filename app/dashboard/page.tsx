@@ -16,7 +16,6 @@ export default function DashboardPage() {
 
     return (
         <div className="h-screen flex">
-
             {/* Dashboard */}
             <main className="flex-1">
                 <Dashboard editable={false} />

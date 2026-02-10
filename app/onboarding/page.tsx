@@ -166,11 +166,32 @@ export default function Onboarding() {
         }
     };
 
+    const setupGoogleClassroom = async () => {
+        try {
+            const response = await fetch("/api/auth/universalState", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ scopeGroup: "classroom" }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to generate state");
+            }
+            const data = await response.json();
+            window.location.href = `/api/auth/google/auth?state=${data.state}&scope=classroom`;
+        } catch (err) {
+            console.error("Error setting up Google Classroom:", err);
+            alert("Failed to set up Google Classroom. Please check the console for details.");
+        }
+    };
+
     return (
         <div
             className="relative min-h-screen bg-cover bg-center"
-            style={{ backgroundImage: `url(${backgroundImage})`,
-        backgroundAttachment: "fixed", }}
+            style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
         >
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
@@ -289,9 +310,7 @@ export default function Onboarding() {
                                 <option value="blackboard" disabled>
                                     Blackboard
                                 </option>
-                                <option value="google-classroom" disabled>
-                                    Google Classroom
-                                </option>
+                                <option value="google-classroom">Google Classroom</option>
                             </select>
                             {lms === "canvas" &&
                                 (canvasConnected ? (
@@ -348,6 +367,22 @@ export default function Onboarding() {
                                         </button>
                                     </div>
                                 ))}
+                            {lms && lms == "google-classroom" && (
+                                <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
+                                    <p>
+                                        Click this button to proceed with setting up Google
+                                        Classroom. You will be redirected to Google's OAuth page,
+                                        where you can log in and grant permissions. After that,
+                                        you'll be redirected back here to finish the setup.
+                                    </p>
+                                    <button
+                                        className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700"
+                                        onClick={setupGoogleClassroom}
+                                    >
+                                        Connect Google Classroom
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                     {step === 3 && (

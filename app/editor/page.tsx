@@ -25,7 +25,11 @@ export const RegistryBrowser = ({
                             onStartDrag(n, { x: e.clientX, y: e.clientY });
                         }}
                     >
-                        {Component ? <Component /> : <span className="font-semibold">{n.label}</span>}
+                        {Component ? (
+                            <Component />
+                        ) : (
+                            <span className="font-semibold">{n.label}</span>
+                        )}
                     </div>
 
                     {n.children && n.children.length > 0 && (
@@ -38,14 +42,7 @@ export const RegistryBrowser = ({
 );
 
 export default function EditorPage() {
-    const {
-        pages,
-        currentPage,
-        addPage,
-        setCurrentPage,
-        addTile,
-        addPanel,
-    } = useLayout();
+    const { pages, currentPage, addPage, setCurrentPage, addTile, addPanel } = useLayout();
 
     const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -78,8 +75,8 @@ export default function EditorPage() {
                         addTile({
                             id: crypto.randomUUID(),
                             registryId: draggingNode.id,
-                            x: relativeX / rect.width * 20, // scale to grid
-                            y: relativeY / rect.height * 10,
+                            x: (relativeX / rect.width) * 20, // scale to grid
+                            y: (relativeY / rect.height) * 10,
                             w: 20 / 3,
                             h: 10 / 3,
                             props: draggingNode.defaultProps ?? {},
@@ -118,10 +115,7 @@ export default function EditorPage() {
         <div className="h-screen flex relative">
             {/* Pages */}
             <aside className="w-48 border-r p-2">
-                <button
-                    onClick={addPage}
-                    className="w-full mb-2 bg-blue-600 text-white p-1"
-                >
+                <button onClick={addPage} className="w-full mb-2 bg-blue-600 text-white p-1">
                     + Page
                 </button>
                 {pages.map((p) => (

@@ -1,36 +1,26 @@
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 
 export async function GET(req: Request) {
     try {
         const url = new URL(req.url);
-        const tokenParam = url.searchParams.get("token");
+        const state = url.searchParams.get("state");
+        if (!state) {
+            return new Response("State is required", { status: 400 });
+        }
+        const userId = state.split(".")[0];
+        if (!userId) {
+            return new Response("Invalid state", { status: 400 });
+        }
+        const userRef = db.collection("users").doc(userId);
+        const doc = await userRef.get();
+        if (!doc.exists) throw new Error("User not found");
 
-        if (!tokenParam) {
-            return NextResponse.json({ error: "Missing token" }, { status: 400 });
+        if (!doc.data()?.currentState || doc.data()?.currentState?.state !== state) {
+            return new Response("Invalid state", { status: 400 });
         }
 
-        // Decode the token (assuming it's JSON encoded)
-        let state: { uid: string; csrf?: string };
-        try {
-            state = JSON.parse(decodeURIComponent(tokenParam));
-        } catch (err) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 400 });
-        }
-
-        const { uid } = state;
-        if (!uid) {
-            return NextResponse.json({ error: "Missing uid in token" }, { status: 400 });
-        }
-
-        // Fetch user
-        const userRef = db.collection("users").doc(uid);
-        const userSnap = await userRef.get();
-        if (!userSnap.exists) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-        }
-
-        const userData = userSnap.data();
+        const userData = doc.data();
         const accessToken = userData?.onedrive?.token.access_token;
         if (!accessToken) {
             return NextResponse.json(

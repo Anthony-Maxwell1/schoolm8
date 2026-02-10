@@ -1,8 +1,7 @@
-import { generateAuthUrl, ScopeCategory } from "@/lib/googleClient";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/firebaseAdmin";
 
-export async function GET(req: Request) {
+export default async function GET(req: Request) {
     const url = new URL(req.url);
     const state = url.searchParams.get("state");
     if (!state) {
@@ -19,17 +18,15 @@ export async function GET(req: Request) {
     if (!doc.data()?.currentState || doc.data()?.currentState?.state !== state) {
         return new Response("Invalid state", { status: 400 });
     }
-    const scopeCategory = url.searchParams.get("scope");
 
-    if (!scopeCategory) {
-        return new Response("Scope category is required", { status: 400 });
-    }
+    const clientId = process.env.NEXT_PUBLIC_AZURE_CLIENT_ID;
+    const redirectUri = encodeURIComponent(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/onedrive/callback`,
+    );
+    const scope = encodeURIComponent("Files.ReadWrite offline_access User.Read");
+    const responseType = "code";
+    const responseMode = "query";
 
-    const redirectUrl = generateAuthUrl(scopeCategory as ScopeCategory, state);
-
-    if (!redirectUrl) {
-        return new Response("An error occurred", { status: 500 });
-    }
-
-    return redirect(redirectUrl);
+    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=${responseType}&redirect_uri=${redirectUri}&response_mode=${responseMode}&scope=${scope}&state=${state}`;
+    redirect(authUrl);
 }

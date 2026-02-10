@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { parseICalData } from "@/lib/ical";
+import { FetchTimetable, ObtainAuthCredentials } from "@/lib/edumateClient";
 
 export async function GET(req: Request) {
     try {
         const authHeader = req.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer "))
-        return NextResponse.json(
-            { error: "Missing or invalid Authorization header" },
-            { status: 401 },
-        );
+            return NextResponse.json(
+                { error: "Missing or invalid Authorization header" },
+                { status: 401 },
+            );
 
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
@@ -28,8 +29,8 @@ export async function GET(req: Request) {
             const result = await fetch(url, {
                 method: "GET",
                 headers: {
-                    'Authorization': `Basic ${btoa(`${username}:${password}`)}`
-                }
+                    Authorization: `Basic ${btoa(`${username}:${password}`)}`,
+                },
             });
             if (!result.ok) {
                 const error = await result.json();
@@ -38,6 +39,65 @@ export async function GET(req: Request) {
             const timetableData = await result.text(); // Assuming the iCal data is returned as text
             const parsedTimetable = parseICalData(timetableData);
             return NextResponse.json({ timetable: parsedTimetable });
+        } else if (timetableFetchData.type === "edumate") {
+            const { baseUrl, username, password, currentCookies } = timetableFetchData;
+            if (!baseUrl || !username || !password) {
+                return NextResponse.json(
+                    { error: "Missing baseUrl, username or password in stored timetable data" },
+                    { status: 400 },
+                );
+            }
+            if (currentCookies) {
+                try {
+                    const timetableData = await FetchTimetable(currentCookies);
+                    if (timetableData && typeof timetableData === "object")
+                        await userRef.set(
+                            {
+                                timetable: {
+                                    lastFetchedTimetable: timetableData,
+                                },
+                            },
+                            { merge: true },
+                        );
+                    return NextResponse.json({ timetable: timetableData });
+                } catch (err) {
+                    console.warn(
+                        "Failed to fetch timetable with stored cookies, attempting re-authentication:",
+                        err,
+                    );
+                }
+            } else {
+                console.warn(
+                    "No stored cookies found for Edumate timetable, attempting re-authentication",
+                );
+                try {
+                    const authCredentials = await ObtainAuthCredentials(
+                        baseUrl,
+                        username,
+                        password,
+                    );
+                    if (!authCredentials || authCredentials == "") {
+                        throw new Error(`Verification failed`);
+                    }
+                    const timetableData = await FetchTimetable(authCredentials);
+                    if (timetableData && typeof timetableData === "object") {
+                        await userRef.set(
+                            {
+                                timetable: {
+                                    currentCookies: authCredentials,
+                                    lastFetchedTimetable: timetableData,
+                                },
+                            },
+                            { merge: true },
+                        );
+                        return NextResponse.json({ timetable: timetableData });
+                    } else {
+                        throw new Error("Failed to fetch timetable after re-authentication");
+                    }
+                } catch {
+                    throw new Error("Failed to re-authenticate and fetch timetable");
+                }
+            }
         }
     } catch (err) {
         console.error(err);
