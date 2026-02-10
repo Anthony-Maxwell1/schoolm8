@@ -18,6 +18,7 @@
 - Generic Timetable integration via iCal or third party.
 - Reverse engineered edumate, js script to auto auth.
 - Edumate integration built on reverse engineered login flow
+- Onedrive integration
 
 ### 🚧 In Progress
 - Onboarding (Nearly done)
@@ -25,6 +26,8 @@
 - Built-in editor suite
 - Schedule system
 - Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
+- Google Classroom integration
+- Google Drive integration
 
 ### 🔮 Planned
 - AI assignment identification & classification
