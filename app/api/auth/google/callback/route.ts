@@ -42,6 +42,15 @@ export async function GET(req: Request) {
             },
             { merge: true },
         );
+
+        if (scopeGroup === "classroom") {
+            await userRef.set(
+                {
+                    lms: "googleclassroom",
+                },
+                { merge: true },
+            );
+        }
     } catch (err) {
         console.error("Error getting tokens:", err);
         return new Response("OAuth failed", { status: 500 });
