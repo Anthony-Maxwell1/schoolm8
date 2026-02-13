@@ -185,7 +185,11 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                 };
 
                 return (
-                    <div key={tile.id} style={style} className={classes?.TileOuter}>
+                    <div
+                        key={tile.id}
+                        style={style}
+                        className={classes?.TileOuter + " relative group"}
+                    >
                         {/* delete */}
                         {editable && (
                             <button
@@ -197,13 +201,13 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 <CircleX className="cursor-pointer" />
                             </button>
                         )}
-                        <div className={classes?.Tile || "border bg-white shadow group"}>
+                        <div className={classes?.Tile || "border bg-white shadow"}>
                             <TileComponent {...tile.props} />
                         </div>
                         {/* resize handle */}
                         {editable && (
                             <div
-                                className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize opacity-0 group-hover:opacity-100"
+                                className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize opacity-0"
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
@@ -213,7 +217,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         )}
                         {editable && (
                             <div
-                                className="absolute top-0 left-0 w-4 h-4 bg-gray-700 cursor-move opacity-0 group-hover:opacity-100"
+                                className="absolute top-0 left-0 w-8 h-8 cursor-move opacity-0"
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();

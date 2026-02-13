@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const backgroundImage = "/imagesbackgrounds/builtin/onboarding.png";
+const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function Auth() {
     return (
