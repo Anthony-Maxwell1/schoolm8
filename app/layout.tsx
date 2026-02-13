@@ -2,6 +2,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/authContext";
 import { LayoutProvider } from "@/context/layoutContext";
 import { DataProvider } from "@/context/dataContext";
+import { ThemeProvider } from "@/context/themeContext";
 
 export const metadata = {
     title: "schoolm8",
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body>
                 <DataProvider>
                     <LayoutProvider>
-                        <AuthProvider>{children}</AuthProvider>
+                        <ThemeProvider>
+                            <AuthProvider>{children}</AuthProvider>
+                        </ThemeProvider>
                     </LayoutProvider>
                 </DataProvider>
             </body>

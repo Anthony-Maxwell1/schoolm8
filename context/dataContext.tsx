@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useRef, useState, ReactNode } from "react";
 import { useAuth } from "@/context/authContext";
 

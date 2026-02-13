@@ -120,3 +120,15 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* globals.css */
+
+.font-mac {
+    font-family:
+        -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, Helvetica, Arial,
+        sans-serif;
+    -webkit-font-smoothing: antialiased; /* ✅ Safari/Chrome */
+    -moz-osx-font-smoothing: grayscale; /* ✅ Firefox macOS */
+    font-weight: 400;
+    letter-spacing: 0.015em; /* tiny adjustment for macOS look */
+}

@@ -21,7 +21,7 @@ const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null =>
 export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const { currentPage, gridSize, removeTile, updateTile, saveState, removePanel } = useLayout();
 
-    const { classes } = useTheme();
+    const { classes, topBar } = useTheme();
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [resizingTile, setResizingTile] = useState<string | null>(null);
@@ -117,7 +117,10 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     if (!currentPage) return <div className="p-4">No page selected</div>;
 
     return (
-        <div ref={containerRef} className="relative w-full h-full bg-gray-100 overflow-hidden">
+        <div
+            ref={containerRef}
+            className="relative w-full h-full overflow-hidden bg-[url('/images/backgrounds/builtin/0001.png')] bg-cover"
+        >
             {/* GRID */}
             {editable && (
                 <div
@@ -201,6 +204,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 <CircleX className="cursor-pointer" />
                             </button>
                         )}
+                        {topBar && <div dangerouslySetInnerHTML={{ __html: topBar }} />}
                         <div className={classes?.Tile || "border bg-white shadow"}>
                             <TileComponent {...tile.props} />
                         </div>
