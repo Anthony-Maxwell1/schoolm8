@@ -5,6 +5,7 @@ import { TileRegistry, PanelRegistry } from "@/lib/tiles";
 import { RegistryNode } from "@/lib/tiles";
 import { useState, useRef, useEffect } from "react";
 import { CircleX } from "lucide-react";
+import { useTheme } from "@/context/themeContext";
 
 const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null => {
     for (const n of nodes) {
@@ -19,6 +20,8 @@ const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null =>
 
 export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const { currentPage, gridSize, removeTile, updateTile, saveState, removePanel } = useLayout();
+
+    const { classes } = useTheme();
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [resizingTile, setResizingTile] = useState<string | null>(null);
@@ -182,7 +185,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                 };
 
                 return (
-                    <div key={tile.id} style={style} className="border bg-white shadow group">
+                    <div key={tile.id} style={style} className={classes?.TileOuter}>
                         {/* delete */}
                         {editable && (
                             <button
@@ -194,9 +197,9 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 <CircleX className="cursor-pointer" />
                             </button>
                         )}
-
-                        <TileComponent {...tile.props} />
-
+                        <div className={classes?.Tile || "border bg-white shadow group"}>
+                            <TileComponent {...tile.props} />
+                        </div>
                         {/* resize handle */}
                         {editable && (
                             <div

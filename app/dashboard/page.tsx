@@ -59,6 +59,7 @@ export default function DashboardPage() {
                             className="w-6 h-6 flex items-center justify-center cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation(); // prevent toggle
+                                window.location.href = "/dashboard/editor"; // navigate to editor
                                 console.log("Edit clicked");
                             }}
                         >

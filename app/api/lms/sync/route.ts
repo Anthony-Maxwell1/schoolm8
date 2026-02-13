@@ -21,6 +21,7 @@ export async function handler(req: NextRequest) {
         if (!userDoc.exists) throw new Error("User not found");
 
         const userData: any = userDoc.data();
+        console.log(userData);
 
         if (!userData.lms) throw new Error("No LMS linked to user");
 

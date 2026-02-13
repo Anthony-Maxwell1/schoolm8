@@ -29,6 +29,27 @@ export default function test() {
             >
                 Test LMS Sync
             </button>
+            <button
+                onClick={() => {
+                    fetch("http://localhost:3000/api/timetable/fetch", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    })
+                        .then((res) => res.json())
+                        .then((data) => {
+                            console.log("Timetable Sync Response:", data);
+                        })
+                        .catch((err) => {
+                            console.error("Timetable Sync Error:", err);
+                        });
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+                Test Timetable Sync
+            </button>
         </main>
     );
 }
