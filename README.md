@@ -51,25 +51,19 @@
 ### Frontend
 - Next.js
 - React
+- Tailwindcss
 
 ### Backend & Services
 - Firebase (Auth + Database)
 - Canvas API
-- Edumate API
+- Google OAuth API
+- Google Classroom API
 
 ### Tooling
 - Node.js
 - npm
 - create-next-app
 - VS Code
-
----
-
-## 🔐 Firebase Features Used
-- Email & Password Authentication
-- Google Authentication
-- Firestore Database
-- Database Security Rules
 
 ---
 
