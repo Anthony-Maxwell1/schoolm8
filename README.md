@@ -20,14 +20,20 @@
 - Edumate integration built on reverse engineered login flow
 - Onedrive integration
 
+### Almost finished/Testing
+- Google Classroom integration
+- Dashboard and dashboard editor
+
 ### 🚧 In Progress
 - Onboarding (Nearly done)
 - Engage integration
 - Built-in editor suite
 - Schedule system
 - Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
-- Google Classroom integration
 - Google Drive integration
+- Themes, styles and abstraction for users who don't want to enter in raw tailwindcss data for dashboard
+- Dashboard tiles
+- Actual frontend for things like LMS access and full timetable view
 
 ### 🔮 Planned
 - AI assignment identification & classification
