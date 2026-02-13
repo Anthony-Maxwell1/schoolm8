@@ -1,39 +1,45 @@
 import React, { createContext, useContext, useRef, useState, ReactNode } from "react";
 import { useAuth } from "@/context/authContext";
-type Timetable = any; // Replace with real type
+
+type Timetable = any;
 
 type DataContextType = {
-    timetable: Timetable | "__WAIT__" | null;
-    fetchTimetable: () => Promise<Timetable>;
+    fetchTimetableDay: (day: string) => Promise<Timetable>;
+    fetchTimetableWeek: (weekStart: string) => Promise<Timetable>;
+};
+
+type CacheEntry = {
+    data?: Timetable;
+    promise?: Promise<Timetable>;
 };
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-    const [timetable, setTimetable] = useState<Timetable | "__WAIT__" | null>(null);
-    const { user, token, loading } = useAuth();
+    const { token } = useAuth();
 
-    // Holds the active in-flight promise
-    const timetablePromiseRef = useRef<Promise<Timetable> | null>(null);
+    // Keyed cache: key -> { data, promise }
+    const cacheRef = useRef<Record<string, CacheEntry>>({});
 
-    const fetchTimetable = async (): Promise<Timetable> => {
-        // ✅ 1. If already loaded, return immediately
-        if (timetable && timetable !== "__WAIT__") {
-            return Promise.resolve(timetable);
+    const fetchWithCache = async (key: string, url: string): Promise<Timetable> => {
+        const cached = cacheRef.current[key];
+
+        // 1️⃣ Already has data
+        if (cached?.data) {
+            return cached.data;
         }
 
-        // ✅ 2. If request already running, wait for it
-        if (timetablePromiseRef.current) {
-            return timetablePromiseRef.current;
+        // 2️⃣ Already in-flight
+        if (cached?.promise) {
+            return cached.promise;
         }
 
-        // ✅ 3. Otherwise start new request
-        setTimetable("__WAIT__");
-
-        const fetchPromise = fetch("/api/timetable/fetch", {
+        // 3️⃣ Otherwise start fetch
+        const fetchPromise = fetch(url, {
             method: "GET",
             headers: {
-                Authorization: token,
+                Authorization: token ?? "",
+                "Cache-Control": "no-store", // prevent browser cache
             },
         })
             .then(async (res) => {
@@ -41,28 +47,30 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
                 return res.json();
             })
             .then((data) => {
-                setTimetable(data);
-                timetablePromiseRef.current = null;
+                cacheRef.current[key] = { data }; // store resolved data
                 return data;
             })
             .catch((err) => {
-                timetablePromiseRef.current = null;
-                setTimetable(null);
+                cacheRef.current[key] = {}; // clear entry on error
                 throw err;
             });
 
-        timetablePromiseRef.current = fetchPromise;
-
+        cacheRef.current[key] = { promise: fetchPromise };
         return fetchPromise;
     };
 
+    const fetchTimetableDay = (day: string) => {
+        const key = `timetable-day-${day}`;
+        return fetchWithCache(key, `/api/timetable/fetch?day=${day}`);
+    };
+
+    const fetchTimetableWeek = (weekStart: string) => {
+        const key = `timetable-week-${weekStart}`;
+        return fetchWithCache(key, `/api/timetable/fetch?week=${weekStart}`);
+    };
+
     return (
-        <DataContext.Provider
-            value={{
-                timetable,
-                fetchTimetable,
-            }}
-        >
+        <DataContext.Provider value={{ fetchTimetableDay, fetchTimetableWeek }}>
             {children}
         </DataContext.Provider>
     );
