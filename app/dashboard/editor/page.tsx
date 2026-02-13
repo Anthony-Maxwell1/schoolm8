@@ -19,9 +19,9 @@ export const RegistryBrowser = ({
             return (
                 <li key={n.id} className="mb-1">
                     <div
-                        className={`cursor-pointer p-1 rounded hover:bg-gray-200`}
+                        className="cursor-pointer p-1 rounded hover:bg-gray-200"
                         onMouseDown={(e) => {
-                            e.preventDefault(); // prevent text selection
+                            e.preventDefault();
                             onStartDrag(n, { x: e.clientX, y: e.clientY });
                         }}
                     >
@@ -32,9 +32,7 @@ export const RegistryBrowser = ({
                         )}
                     </div>
 
-                    {n.children && n.children.length > 0 && (
-                        <RegistryBrowser nodes={n.children} onStartDrag={onStartDrag} />
-                    )}
+                    {n.children && <RegistryBrowser nodes={n.children} onStartDrag={onStartDrag} />}
                 </li>
             );
         })}
@@ -42,15 +40,22 @@ export const RegistryBrowser = ({
 );
 
 export default function EditorPage() {
-    const { pages, currentPage, addPage, setCurrentPage, addTile, addPanel } = useLayout();
+    const { pages, currentPage, gridSize, addPage, setCurrentPage, addTile, addPanel, saveState } =
+        useLayout();
 
     const dashboardRef = useRef<HTMLDivElement>(null);
 
+    const [mounted, setMounted] = useState(false);
     const [draggingNode, setDraggingNode] = useState<RegistryNode | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [dragType, setDragType] = useState<"tile" | "panel" | null>(null);
 
-    // Track mouse while dragging
+    // prevent hydration mismatch
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // drag tracking
     useEffect(() => {
         if (!draggingNode) return;
 
@@ -59,37 +64,45 @@ export default function EditorPage() {
         };
 
         const handleMouseUp = (e: MouseEvent) => {
-            // Check if dropped inside dashboard
-            if (dashboardRef.current) {
-                const rect = dashboardRef.current.getBoundingClientRect();
-                if (
-                    e.clientX >= rect.left &&
-                    e.clientX <= rect.right &&
-                    e.clientY >= rect.top &&
-                    e.clientY <= rect.bottom
-                ) {
-                    const relativeX = e.clientX - rect.left;
-                    const relativeY = e.clientY - rect.top;
+            if (!dashboardRef.current) return;
 
-                    if (dragType === "tile") {
-                        addTile({
-                            id: crypto.randomUUID(),
-                            registryId: draggingNode.id,
-                            x: (relativeX / rect.width) * 20, // scale to grid
-                            y: (relativeY / rect.height) * 10,
-                            w: 20 / 3,
-                            h: 10 / 3,
-                            props: draggingNode.defaultProps ?? {},
-                        });
-                    } else if (dragType === "panel") {
-                        addPanel({
-                            id: crypto.randomUUID(),
-                            registryId: draggingNode.id,
-                            anchor: "left", // can implement snap-to-side
-                            size: 0.2,
-                            props: draggingNode.defaultProps ?? {},
-                        });
-                    }
+            const rect = dashboardRef.current.getBoundingClientRect();
+
+            const inside =
+                e.clientX >= rect.left &&
+                e.clientX <= rect.right &&
+                e.clientY >= rect.top &&
+                e.clientY <= rect.bottom;
+
+            if (inside) {
+                const relativeX = e.clientX - rect.left;
+                const relativeY = e.clientY - rect.top;
+
+                const col = Math.floor((relativeX / rect.width) * gridSize.cols);
+                const row = Math.floor((relativeY / rect.height) * gridSize.rows);
+
+                if (dragType === "tile") {
+                    addTile({
+                        id: crypto.randomUUID(),
+                        registryId: draggingNode.id,
+                        x: col,
+                        y: row,
+                        w: Math.max(1, Math.round(gridSize.cols / 4)),
+                        h: Math.max(1, Math.round(gridSize.rows / 4)),
+                        props: draggingNode.defaultProps ?? {},
+                    });
+                    saveState();
+                }
+
+                if (dragType === "panel") {
+                    addPanel({
+                        id: crypto.randomUUID(),
+                        registryId: draggingNode.id,
+                        anchor: "left",
+                        size: 0.25,
+                        props: draggingNode.defaultProps ?? {},
+                    });
+                    saveState();
                 }
             }
 
@@ -104,20 +117,44 @@ export default function EditorPage() {
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("mouseup", handleMouseUp);
         };
-    }, [draggingNode, dragType]);
+    }, [draggingNode, dragType, gridSize]);
+
+    if (!mounted) return null;
 
     const startDrag = (node: RegistryNode, type: "tile" | "panel") => {
         setDraggingNode(node);
         setDragType(type);
     };
 
+    // preview snapped to grid
+    let previewStyle: React.CSSProperties | undefined = undefined;
+
+    if (draggingNode && dashboardRef.current && dragType === "tile") {
+        const rect = dashboardRef.current.getBoundingClientRect();
+
+        const col = Math.floor((mousePos.x - rect.left) / (rect.width / gridSize.cols));
+        const row = Math.floor((mousePos.y - rect.top) / (rect.height / gridSize.rows));
+
+        const cellWidth = rect.width / gridSize.cols;
+        const cellHeight = rect.height / gridSize.rows;
+
+        previewStyle = {
+            position: "absolute",
+            left: rect.left + col * cellWidth,
+            top: rect.top + row * cellHeight,
+            width: cellWidth * Math.max(1, Math.round(gridSize.cols / 4)),
+            height: cellHeight * Math.max(1, Math.round(gridSize.rows / 4)),
+        };
+    }
+
     return (
         <div className="h-screen flex relative">
-            {/* Pages */}
+            {/* pages */}
             <aside className="w-48 border-r p-2">
                 <button onClick={addPage} className="w-full mb-2 bg-blue-600 text-white p-1">
                     + Page
                 </button>
+
                 {pages.map((p) => (
                     <button
                         key={p.id}
@@ -129,12 +166,12 @@ export default function EditorPage() {
                 ))}
             </aside>
 
-            {/* Dashboard */}
+            {/* dashboard */}
             <main className="flex-1 relative" ref={dashboardRef}>
                 <Dashboard editable />
             </main>
 
-            {/* Registry */}
+            {/* registry */}
             <aside className="w-64 border-l p-2 overflow-auto">
                 <h3 className="font-bold">Tiles</h3>
                 <RegistryBrowser
@@ -155,16 +192,11 @@ export default function EditorPage() {
                 />
             </aside>
 
-            {/* Drag preview */}
-            {draggingNode && (
+            {/* drag preview */}
+            {draggingNode && dragType === "tile" && previewStyle && (
                 <div
-                    className={`absolute pointer-events-none border-2 border-blue-500 bg-blue-200 opacity-50`}
-                    style={{
-                        top: dragType === "tile" ? mousePos.y : mousePos.y - 50,
-                        left: dragType === "tile" ? mousePos.x : mousePos.x - 100,
-                        width: dragType === "tile" ? window.innerWidth / 3 : 200,
-                        height: dragType === "tile" ? window.innerHeight / 3 : 100,
-                    }}
+                    className="absolute pointer-events-none border-2 border-blue-500 bg-blue-200 opacity-50"
+                    style={previewStyle}
                 >
                     {draggingNode.label}
                 </div>

@@ -19,6 +19,8 @@ type LayoutContextType = {
     addPanel(panel: PanelInstance): void;
     removePanel(id: string): void;
 
+    saveState(): void;
+
     gridSize: GridSize;
 };
 
@@ -100,17 +102,15 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
     const removeTile = (id: string) => {
         if (!currentPage) return;
-        setPages((p) =>
-            p.map((pg) =>
+        setPages((p) => {
+            const newPages = p.map((pg) =>
                 pg.id === currentPage.id
-                    ? {
-                          ...pg,
-                          tiles: pg.tiles.filter((t) => t.id !== id),
-                      }
+                    ? { ...pg, tiles: pg.tiles.filter((t) => t.id !== id) }
                     : pg,
-            ),
-        );
-        saveState();
+            );
+            localStorage.setItem("dashboard_pages", JSON.stringify(newPages));
+            return newPages;
+        });
     };
 
     /* Panels */
@@ -157,6 +157,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
                 addPanel,
                 removePanel,
                 gridSize,
+                saveState,
             }}
         >
             {children}
