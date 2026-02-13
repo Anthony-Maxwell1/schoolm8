@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
-import { ObtainAuthCredentials, FetchTimetable } from "@/lib/edumateClient";
+import { ObtainAuthCredentials, FetchTimetableDay } from "@/lib/edumateClient";
 
 export async function POST(req: Request) {
     try {
@@ -29,8 +29,8 @@ export async function POST(req: Request) {
         if (!authCredentials || authCredentials == "") {
             throw new Error(`Verification failed`);
         }
-        const timetableData = await FetchTimetable(authCredentials);
-        if (timetableData && typeof timetableData === "object")
+        const timetableData = await FetchTimetableDay(authCredentials, baseUrl, "today");
+        if (timetableData && typeof timetableData === "object") {
             await userRef.set(
                 {
                     timetable: {
@@ -39,12 +39,14 @@ export async function POST(req: Request) {
                         username,
                         password,
                         currentCookies: authCredentials,
-                        lastFetchedTimetable: timetableData,
                     },
                 },
                 { merge: true },
             );
-        return NextResponse.json({ message: "Edumate connected successfully" });
+            return NextResponse.json({ message: "Edumate connected successfully" });
+        } else {
+            return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        }
     } catch (err) {
         console.error(err);
         return NextResponse.json(

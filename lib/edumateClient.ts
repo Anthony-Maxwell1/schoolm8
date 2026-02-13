@@ -46,8 +46,9 @@ export async function ObtainAuthCredentials(
     USERNAME: string,
     PASSWORD: string,
 ) {
+    const schoolName = BASE_DOMAIN.split(".")[0];
     // STEP 1 — load login page
-    const loginPageRes = await fetch(`https://${BASE_DOMAIN}/norwest/web/app.php/login/`);
+    const loginPageRes = await fetch(`https://${BASE_DOMAIN}/${schoolName}/web/app.php/login/`);
     const loginHtml = await loginPageRes.text();
 
     const tokenHtml = loginHtml.match(/tokenHtml"\s*:\s*"([^"]+)"/)?.[1];
@@ -67,7 +68,7 @@ export async function ObtainAuthCredentials(
         da: "0",
     });
 
-    let loginRes = await fetch(`https://${BASE_DOMAIN}/norwest/web/app.php/login-check`, {
+    let loginRes = await fetch(`https://${BASE_DOMAIN}/${schoolName}/web/app.php/login-check`, {
         method: "POST",
         headers: {
             "content-type": "application/x-www-form-urlencoded",
@@ -87,7 +88,7 @@ export async function ObtainAuthCredentials(
             ? location
             : location.startsWith("/")
               ? `https://${BASE_DOMAIN}${location}`
-              : `https://${BASE_DOMAIN}/norwest/web/app.php/${location}`;
+              : `https://${BASE_DOMAIN}/${schoolName}/web/app.php/${location}`;
 
         const { res, mergedCookies, location: nextLoc } = await fetchWithRedirect(url, authCookies);
 
@@ -102,14 +103,15 @@ export async function ObtainAuthCredentials(
             break;
         }
     }
-
     console.log("✅ Fully authenticated cookies:", authCookies);
     return authCookies; // ready to use for any future requests
 }
 
-export async function FetchTimetable(authCookies: string) {
+export async function FetchTimetableDay(authCookies: string, BASE_DOMAIN: string, day: string) {
+    const schoolName = BASE_DOMAIN.split(".")[0];
+
     const res = await fetch(
-        "https://norwest.edumate.net/norwest/web/app.php/admin/get-day-calendar/today/current?page=1&start=0&limit=25",
+        `https://${BASE_DOMAIN}/${schoolName}/web/app.php/admin/get-day-calendar/${day}/current?page=1&start=0&limit=25`,
         {
             headers: {
                 cookie: authCookies,

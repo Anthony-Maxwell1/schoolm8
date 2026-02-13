@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { parseICalData } from "@/lib/ical";
-import { FetchTimetable, ObtainAuthCredentials } from "@/lib/edumateClient";
+import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
 
 export async function GET(req: Request) {
     try {
@@ -22,6 +22,14 @@ export async function GET(req: Request) {
         const timetableFetchData = doc.data()?.timetable;
         if (!timetableFetchData) {
             return NextResponse.json({ timetable: null });
+        }
+
+        const url = new URL(req.url);
+
+        let day = url.searchParams.get("day");
+
+        if (!day) {
+            day = "today";
         }
 
         if (timetableFetchData.type === "ical") {
@@ -49,7 +57,7 @@ export async function GET(req: Request) {
             }
             if (currentCookies) {
                 try {
-                    const timetableData = await FetchTimetable(currentCookies);
+                    const timetableData = await FetchTimetableDay(currentCookies, baseUrl, day);
                     if (timetableData && typeof timetableData === "object")
                         await userRef.set(
                             {
@@ -79,7 +87,7 @@ export async function GET(req: Request) {
                     if (!authCredentials || authCredentials == "") {
                         throw new Error(`Verification failed`);
                     }
-                    const timetableData = await FetchTimetable(authCredentials);
+                    const timetableData = await FetchTimetableDay(authCredentials, baseUrl, day);
                     if (timetableData && typeof timetableData === "object") {
                         await userRef.set(
                             {
