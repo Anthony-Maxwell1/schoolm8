@@ -1,4 +1,5 @@
 # Schoolm8 (formerly NorwestMate)
+
 ## Organise your school life — in one place.
 
 **Schoolm8** is a student productivity platform designed to centralise assignments, tasks, schedules, and study planning across school systems like **Canvas** and **Edumate**, with future **AI-powered optimisation**.
@@ -8,11 +9,12 @@
 ## ✨ Features
 
 ### ✅ Available
+
 - Assignments
 - Tasks
 - Accounts & Authentication
-  - Email & Password
-  - Google Sign-In
+    - Email & Password
+    - Google Sign-In
 - Database with security rules
 - Canvas assignment submission directly through Schoolm8
 - Generic Timetable integration via iCal or third party.
@@ -21,10 +23,12 @@
 - Onedrive integration
 
 ### Almost finished/Testing
+
 - Google Classroom integration
 - Dashboard and dashboard editor
 
 ### 🚧 In Progress
+
 - Onboarding (Nearly done)
 - Engage integration
 - Built-in editor suite
@@ -36,6 +40,7 @@
 - Actual frontend for things like LMS access and full timetable view
 
 ### 🔮 Planned
+
 - AI assignment identification & classification
 - Automatic schedule generation
 - Optimised study plan generation based on assessments
@@ -49,17 +54,20 @@
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - Next.js
 - React
 - Tailwindcss
 
 ### Backend & Services
+
 - Firebase (Auth + Database)
 - Canvas API
 - Google OAuth API
 - Google Classroom API
 
 ### Tooling
+
 - Node.js
 - npm
 - create-next-app
@@ -68,6 +76,7 @@
 ---
 
 ## 🙌 Thanks To
+
 - TinyMCP
 - Firebase Spark Plan
 - Canvas Free Teacher Account (test sandbox)
@@ -75,6 +84,7 @@
 ---
 
 ## 🚀 Roadmap Highlights
+
 - AI-driven study optimisation
 - Smarter schedule automation
 - Deeper LMS integrations

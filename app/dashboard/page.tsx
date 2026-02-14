@@ -28,7 +28,7 @@ export default function DashboardPage() {
     if (!currentPage) return <div>No pages available</div>;
 
     return (
-       <div className="h-screen flex">
+        <div className="h-screen flex">
             {/* Dashboard */}
             <main className="flex-1">
                 <Dashboard editable={false} />
@@ -69,6 +69,7 @@ export default function DashboardPage() {
                             className="w-6 h-6 flex items-center justify-center cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation();
+                                window.location.href = "/dashboard/settings"; // navigate to settings
                                 console.log("Settings clicked");
                             }}
                         >

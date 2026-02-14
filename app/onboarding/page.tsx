@@ -200,7 +200,7 @@ export default function Onboarding() {
             console.error("Error connecting to Edumate:", err);
             alert("Failed to connect to Edumate. Please check the console for details.");
         }
-    }
+    };
 
     const setupGoogleClassroom = async () => {
         try {
@@ -245,7 +245,8 @@ export default function Onboarding() {
         // Connection flags
         if (params.has("canvas")) setCanvasConnected(toBool(params.get("canvas")));
         if (params.has("classroom")) setGoogleClassroomConnected(toBool(params.get("classroom")));
-        if (params.has("genericTimetable")) setGenericConnected(toBool(params.get("genericTimetable")));
+        if (params.has("genericTimetable"))
+            setGenericConnected(toBool(params.get("genericTimetable")));
         if (params.has("edumate")) setEdumateConnected(toBool(params.get("edumate")));
 
         // Step + carousel
@@ -437,27 +438,29 @@ export default function Onboarding() {
                                         </button>
                                     </div>
                                 ))}
-                            {lms && lms == "google-classroom" && (
-                                googleClassroomConnected ? (
+                            {lms &&
+                                lms == "google-classroom" &&
+                                (googleClassroomConnected ? (
                                     <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                                         <p>Google Classroom connected successfully!</p>
                                     </div>
                                 ) : (
-                                <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
-                                    <p>
-                                        Click this button to proceed with setting up Google
-                                        Classroom. You will be redirected to Google's OAuth page,
-                                        where you can log in and grant permissions. After that,
-                                        you'll be redirected back here to finish the setup.
-                                    </p>
-                                    <button
-                                        className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700"
-                                        onClick={setupGoogleClassroom}
-                                    >
-                                        Connect Google Classroom
-                                    </button>
-                                </div>
-                            ))}
+                                    <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
+                                        <p>
+                                            Click this button to proceed with setting up Google
+                                            Classroom. You will be redirected to Google's OAuth
+                                            page, where you can log in and grant permissions. After
+                                            that, you'll be redirected back here to finish the
+                                            setup.
+                                        </p>
+                                        <button
+                                            className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700"
+                                            onClick={setupGoogleClassroom}
+                                        >
+                                            Connect Google Classroom
+                                        </button>
+                                    </div>
+                                ))}
                         </div>
                     )}
                     {step === 3 && (
@@ -488,23 +491,30 @@ export default function Onboarding() {
                                 <option value="physical">Physical/unable to access online</option>
                                 <option value="generic">Generic</option>
                             </select>
-                            {timetable === "edumate" && (
-                                edumateConnected ? (
+                            {timetable === "edumate" &&
+                                (edumateConnected ? (
                                     <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                                         <p>Edumate connected successfully!</p>
                                     </div>
                                 ) : (
                                     <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
                                         <p>
-                                            We use a reverse engineered method to connect to Edumate using internal APIs. This can be unstable, so we recommend checking if your school supports iCal first. This would usually be in your school guide, Edumate handbook, etc. However some schools have it disabled.
+                                            We use a reverse engineered method to connect to Edumate
+                                            using internal APIs. This can be unstable, so we
+                                            recommend checking if your school supports iCal first.
+                                            This would usually be in your school guide, Edumate
+                                            handbook, etc. However some schools have it disabled.
                                             <br />
-                                            You should use the Generic and iCal URL method for this. The URL is usually:{" "}
+                                            You should use the Generic and iCal URL method for this.
+                                            The URL is usually:{" "}
                                             <code>
-                                            https://{`{school}`}.edumate.net/{`{school}`}4/cal.php/
-                                            calendar/{`{username}`}
+                                                https://{`{school}`}.edumate.net/{`{school}`}
+                                                4/cal.php/ calendar/{`{username}`}
                                             </code>
-                                            , with your username and password.
-                                            However, if your school does not support iCal, you can still connect here, however this is unofficial and can break at any time.
+                                            , with your username and password. However, if your
+                                            school does not support iCal, you can still connect
+                                            here, however this is unofficial and can break at any
+                                            time.
                                         </p>
                                         <div className="mt-4">
                                             <label className="block mb-2 font-medium">
@@ -518,8 +528,11 @@ export default function Onboarding() {
                                                 onChange={(e) => setEdumateBaseUrl(e.target.value)}
                                             />
                                             <p className="mt-2 text-sm text-green-700">
-                                                Your base url is the url before the first /, without https://. For example, if your Edumate URL is{" "}
-                                                <code>https://norwest.edumate.net/edumate4/cal.php/calendar/username</code>
+                                                Your base url is the url before the first /, without
+                                                https://. For example, if your Edumate URL is{" "}
+                                                <code>
+                                                    https://norwest.edumate.net/edumate4/cal.php/calendar/username
+                                                </code>
                                                 , then your base URL would be{" "}
                                                 <code>norwest.edumate.net</code>.
                                             </p>
@@ -532,9 +545,7 @@ export default function Onboarding() {
                                                 className="w-full p-2 border border-green-400 rounded-lg"
                                                 placeholder="Enter your username"
                                                 value={edumateUsername}
-                                                onChange={(e) =>
-                                                    setEdumateUsername(e.target.value)
-                                                }
+                                                onChange={(e) => setEdumateUsername(e.target.value)}
                                             />
                                             <label className="block mt-4 mb-2 font-medium">
                                                 Password
@@ -544,9 +555,7 @@ export default function Onboarding() {
                                                 className="w-full p-2 border border-green-400 rounded-lg"
                                                 placeholder="Enter your password"
                                                 value={edumatePassword}
-                                                onChange={(e) =>
-                                                    setEdumatePassword(e.target.value)
-                                                }
+                                                onChange={(e) => setEdumatePassword(e.target.value)}
                                             />
                                             <button
                                                 className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 mt-4"
@@ -556,8 +565,7 @@ export default function Onboarding() {
                                             </button>
                                         </div>
                                     </div>
-                                )
-                            )}
+                                ))}
                             {timetable === "generic" &&
                                 (genericConnected ? (
                                     <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">

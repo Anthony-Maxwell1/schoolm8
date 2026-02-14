@@ -139,6 +139,11 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                             Movable
                         </label>
                         <br></br>
+                        <input type="checkbox" id="topBar" className="mr-3" />
+                        <label htmlFor="topBar" className="font-semibold">
+                            Top Bar
+                        </label>
+                        <br></br>
                         {/* Tile editing form goes here */}
                         <button
                             className="mt-4 px-3 py-1 bg-blue-500 text-white rounded"
@@ -146,12 +151,17 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 const movable = (
                                     document.getElementById("movable") as HTMLInputElement
                                 ).checked;
+                                const topBar = (
+                                    document.getElementById("topBar") as HTMLInputElement
+                                ).checked;
 
                                 const tile = currentPage.tiles.find((t) => t.id === editorTile);
                                 if (!tile) return; // ⚠️ guard against undefined
 
-                                const newSpecialEffects = [movable ? "movable" : ""];
-
+                                const newSpecialEffects = [
+                                    movable ? "movable" : "",
+                                    topBar ? "topBar" : "",
+                                ].filter(Boolean);
                                 updateTile({
                                     id: tile.id,
                                     registryId: tile.registryId,
@@ -259,7 +269,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 <CircleX className="cursor-pointer" />
                             </button>
                         )}
-                        {TopBarReplaced && (
+                        {TopBarReplaced && tile.specialEffects?.includes("topBar") && (
                             <div dangerouslySetInnerHTML={{ __html: TopBarReplaced }} />
                         )}
                         <div className={classes?.Tile || "border bg-white shadow"}>
@@ -290,7 +300,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         )}
                         {(editable || tile.specialEffects?.includes("movable")) && (
                             <div
-                                className="absolute top-0 left-0 w-8 h-8 cursor-move opacity-0"
+                                className={`absolute top-0 left-0 ${TopBarReplaced ? "w-full" : "w-7"} h-7 cursor-move opacity-0`}
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();

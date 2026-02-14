@@ -40,8 +40,19 @@ export const RegistryBrowser = ({
 );
 
 export default function EditorPage() {
-    const { pages, currentPage, gridSize, addPage, setCurrentPage, addTile, addPanel, saveState } =
-        useLayout();
+    const {
+        currentPage,
+        gridSize,
+        removeTile,
+        updateTile,
+        saveState,
+        addPanel,
+        addTile,
+        removePanel,
+        addPage,
+        pages,
+        setCurrentPage,
+    } = useLayout();
 
     const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +60,9 @@ export default function EditorPage() {
     const [draggingNode, setDraggingNode] = useState<RegistryNode | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [dragType, setDragType] = useState<"tile" | "panel" | null>(null);
+    const [globalEditorOpen, setGlobalEditorOpen] = useState(false);
+
+    const [specialEffects, setSpecialEffects] = useState<string[]>([]);
 
     // prevent hydration mismatch
     useEffect(() => {
@@ -149,6 +163,58 @@ export default function EditorPage() {
 
     return (
         <div className="h-screen flex relative">
+            {globalEditorOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-4 rounded shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Global Editor</h2>
+                        <input type="checkbox" id="movable" className="mr-3" />
+                        <label htmlFor="movable" className="font-semibold">
+                            Movable
+                        </label>
+                        <br />
+                        <input type="checkbox" id="topBar" className="mr-3" />
+                        <label htmlFor="topBar" className="font-semibold">
+                            Top Bar
+                        </label>
+                        <br></br>
+                        {/* Tile editing form goes here */}
+                        <button
+                            className="mt-4 px-3 py-1 bg-blue-500 text-white rounded"
+                            onClick={() => {
+                                const movable = (
+                                    document.getElementById("movable") as HTMLInputElement
+                                ).checked;
+
+                                const topBar = (
+                                    document.getElementById("topBar") as HTMLInputElement
+                                ).checked;
+
+                                const newSpecialEffects = [
+                                    movable ? "movable" : "",
+                                    topBar ? "topBar" : "",
+                                ].filter(Boolean);
+
+                                for (const tile of currentPage?.tiles ?? []) {
+                                    updateTile({
+                                        id: tile.id,
+                                        registryId: tile.registryId,
+                                        x: tile.x,
+                                        y: tile.y,
+                                        w: tile.w,
+                                        h: tile.h,
+                                        props: tile.props,
+                                        specialEffects: newSpecialEffects,
+                                    });
+                                }
+
+                                setGlobalEditorOpen(false);
+                            }}
+                        >
+                            Save & Close
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* pages */}
             <aside className="w-48 border-r p-2">
                 <button onClick={addPage} className="w-full mb-2 bg-blue-600 text-white p-1">
@@ -201,6 +267,20 @@ export default function EditorPage() {
                     {draggingNode.label}
                 </div>
             )}
+            <button
+                className="fixed bottom-14 right-4 bg-red-600 text-white px-3 py-1 rounded cursor-pointer"
+                onClick={() => {
+                    setGlobalEditorOpen(true);
+                }}
+            >
+                Global Options
+            </button>
+            <a
+                className="fixed bottom-4 right-4 bg-green-600 text-white px-3 py-1 rounded"
+                href="/dashboard"
+            >
+                Back to Dashboard
+            </a>
         </div>
     );
 }
