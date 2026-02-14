@@ -4,7 +4,7 @@ import { useLayout } from "@/context/layoutContext";
 import { TileRegistry, PanelRegistry } from "@/lib/tiles";
 import { RegistryNode } from "@/lib/tiles";
 import { useState, useRef, useEffect } from "react";
-import { CircleX } from "lucide-react";
+import { CircleX, Ellipsis } from "lucide-react";
 import { useTheme } from "@/context/themeContext";
 
 const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null => {
@@ -26,6 +26,9 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [resizingTile, setResizingTile] = useState<string | null>(null);
     const [movingTile, setMovingTile] = useState<string | null>(null);
+
+    const [editorOpen, setEditorOpen] = useState(false);
+    const [editorTile, setEditorTile] = useState<string | null>(null);
 
     useEffect(() => {
         if (!movingTile || !currentPage) return;
@@ -114,6 +117,11 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
         };
     }, [resizingTile, currentPage, gridSize]);
 
+    const openTileMenu = (tileId: string) => {
+        setEditorTile(tileId);
+        setEditorOpen(true);
+    };
+
     if (!currentPage) return <div className="p-4">No page selected</div>;
 
     return (
@@ -121,6 +129,48 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
             ref={containerRef}
             className="relative w-full h-full overflow-hidden bg-[url('/images/backgrounds/builtin/0001.png')] bg-cover"
         >
+            {editable && editorOpen && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-4 rounded shadow">
+                        <h2 className="text-xl font-semibold mb-4">Edit Tile {editorTile}</h2>
+                        <h3 className="font-semibold text-lg mb-1">Special Effects</h3>
+                        <input type="checkbox" id="movable" className="mr-3" />
+                        <label htmlFor="movable" className="font-semibold">
+                            Movable
+                        </label>
+                        <br></br>
+                        {/* Tile editing form goes here */}
+                        <button
+                            className="mt-4 px-3 py-1 bg-blue-500 text-white rounded"
+                            onClick={() => {
+                                const movable = (
+                                    document.getElementById("movable") as HTMLInputElement
+                                ).checked;
+
+                                const tile = currentPage.tiles.find((t) => t.id === editorTile);
+                                if (!tile) return; // ⚠️ guard against undefined
+
+                                const newSpecialEffects = [movable ? "movable" : ""];
+
+                                updateTile({
+                                    id: tile.id,
+                                    registryId: tile.registryId,
+                                    x: tile.x,
+                                    y: tile.y,
+                                    w: tile.w,
+                                    h: tile.h,
+                                    props: tile.props,
+                                    specialEffects: newSpecialEffects,
+                                });
+
+                                setEditorOpen(false);
+                            }}
+                        >
+                            Save & Close
+                        </button>
+                    </div>
+                </div>
+            )}
             {/* GRID */}
             {editable && (
                 <div
@@ -179,6 +229,11 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                 if (!def?.component) return null;
                 const TileComponent = def.component;
 
+                let TopBarReplaced = topBar;
+                if (topBar) {
+                    TopBarReplaced = topBar.replace("{__TILE_TITLE__}", def.label || "");
+                }
+
                 const style: React.CSSProperties = {
                     position: "absolute",
                     left: `${(tile.x / gridSize.cols) * 100}%`,
@@ -204,9 +259,23 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 <CircleX className="cursor-pointer" />
                             </button>
                         )}
-                        {topBar && <div dangerouslySetInnerHTML={{ __html: topBar }} />}
+                        {TopBarReplaced && (
+                            <div dangerouslySetInnerHTML={{ __html: TopBarReplaced }} />
+                        )}
                         <div className={classes?.Tile || "border bg-white shadow"}>
                             <TileComponent {...tile.props} />
+                            {editable && (
+                                <div
+                                    className="absolute bottom-2 left-2"
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openTileMenu(tile.id);
+                                    }}
+                                >
+                                    <Ellipsis className="cursor-pointer z-50" />
+                                </div>
+                            )}
                         </div>
                         {/* resize handle */}
                         {editable && (
@@ -219,7 +288,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                 }}
                             />
                         )}
-                        {editable && (
+                        {(editable || tile.specialEffects?.includes("movable")) && (
                             <div
                                 className="absolute top-0 left-0 w-8 h-8 cursor-move opacity-0"
                                 onMouseDown={(e) => {

@@ -5,6 +5,7 @@ export type ClassKey = "Tile" | "TileOuter";
 export type Theme = {
     classes: Record<ClassKey, string>;
     TopBar?: string;
+    Data?: Record<string, any>;
 };
 
 export type ThemeKey = "basic-minimal" | "retro" | "retro-mac" | "os" | "glass" | "blur";
@@ -49,47 +50,46 @@ export const themes: ThemeMap = {
         },
         TopBar: `
         <div class="bg-[url('/images/themes/retro-mac/brushedmetal.png')] bg-repeat absolute inset-0 pointer-events-none opacity-40"></div>
-      <div class="absolute top-0 left-0 right-0 h-7 flex items-center px-3 gap-2">
+        <div class="absolute top-0 left-0 right-0 h-7 flex items-center px-3 gap-2">
 
 
-  <!-- Close button -->
-  <div class="w-3.5 h-3.5 rounded-full
-              bg-linear-to-b from-red-300 via-red-500 to-red-700
-              border border-red-900/60
-              shadow-inner
-              relative hover:w-4 hover:h-4 transition-all duration-200 overflow-hidden">
-      <div class="absolute top-px left-0.5 w-2 h-1 rounded-full bg-white/60 blur-[1px]"></div>
-      <div class="absolute bottom-[0.5px] w-3 h-1 rounded-full bg-red-300/60 blur-[1px]"></div>
-  </div>
+        <!-- Close button -->
+        <div class="w-3.5 h-3.5 rounded-full
+                    bg-linear-to-b from-red-300 via-red-500 to-red-700
+                    border border-red-900/60
+                    shadow-inner
+                    relative hover:w-4 hover:h-4 transition-all duration-200 overflow-hidden">
+            <div class="absolute top-px left-0.5 w-2 h-1 rounded-full bg-white/60 blur-[1px]"></div>
+            <div class="absolute bottom-[0.5px] w-3 h-1 rounded-full bg-red-300/60 blur-[1px]"></div>
+        </div>
 
-  <!-- Minimise button -->
-  <div class="w-3.5 h-3.5 rounded-full
-              bg-linear-to-b from-yellow-200 via-yellow-400 to-yellow-600
-              border border-yellow-900/60
-              shadow-inner
-              relative hover:w-4 hover:h-4 transition-all duration-200 overflow-hidden">
-      <div class="absolute top-px left-0.5 w-2 h-1 rounded-full bg-white/60 blur-[1px]"></div>
-      <div class="absolute bottom-[0.5px] w-3 h-1 rounded-full bg-yellow-200/60 blur-[1px]"></div>
-  </div>
+        <!-- Minimise button -->
+        <div class="w-3.5 h-3.5 rounded-full
+                    bg-linear-to-b from-yellow-200 via-yellow-400 to-yellow-600
+                    border border-yellow-900/60
+                    shadow-inner
+                    relative hover:w-4 hover:h-4 transition-all duration-200 overflow-hidden">
+            <div class="absolute top-px left-0.5 w-2 h-1 rounded-full bg-white/60 blur-[1px]"></div>
+            <div class="absolute bottom-[0.5px] w-3 h-1 rounded-full bg-yellow-200/60 blur-[1px]"></div>
+        </div>
 
-  <!-- Zoom button -->
-  <div class="w-3.5 h-3.5 rounded-full
-              bg-linear-to-b from-green-300 via-green-500 to-green-700
-              border border-green-900/60
-              shadow-inner
-              relative hover:w-4 hover:h-4 transition-all duration-200 overflow-hidden">
-      <div class="absolute top-px left-0.5 w-2 h-1 rounded-full bg-white/60 blur-[1px]"></div>
-      <div class="absolute bottom-[0.5px] w-3 h-1 rounded-full bg-green-300/60 blur-[1px]"></div>
-  </div>
+        <!-- Zoom button -->
+        <div class="w-3.5 h-3.5 rounded-full
+                    bg-linear-to-b from-green-300 via-green-500 to-green-700
+                    border border-green-900/60
+                    shadow-inner
+                    relative hover:w-4 hover:h-4 transition-all duration-200 overflow-hidden">
+            <div class="absolute top-px left-0.5 w-2 h-1 rounded-full bg-white/60 blur-[1px]"></div>
+            <div class="absolute bottom-[0.5px] w-3 h-1 rounded-full bg-green-300/60 blur-[1px]"></div>
+        </div>
 
-  <!-- Optional toolbar title/content -->
-  <div class="absolute left-1/2 top-1/2 -translate-1/2 flex-1 text-center text-xs font-semibold text-gray-700 select-none pointer-events-none font-mac">
-    My Retro-Mac Window
-  </div>
-
-</div>
+        <!-- Optional toolbar title/content -->
+        <div class="absolute left-1/2 top-1/2 -translate-1/2 flex-1 text-center text-xs font-semibold text-gray-700 select-none pointer-events-none font-mac">
+            {__TILE_TITLE__}
+        </div>
 
     `,
+        Data: {},
     },
 
     os: {

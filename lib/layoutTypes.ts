@@ -8,6 +8,7 @@ export type TileInstance = {
     w: number;
     h: number;
     props: Record<string, any>;
+    specialEffects?: string[]; // e.g. ["shake", "glow"]
 };
 
 export type PanelInstance = {
