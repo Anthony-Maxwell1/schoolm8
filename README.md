@@ -26,6 +26,8 @@
 
 - Google Classroom integration
 - Dashboard and dashboard editor
+- Themes
+- Styling system (Raw)
 
 ### 🚧 In Progress
 
@@ -35,7 +37,7 @@
 - Schedule system
 - Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
 - Google Drive integration
-- Themes, styles and abstraction for users who don't want to enter in raw tailwindcss data for dashboard
+- GUI Style editor for users who don't want to enter raw tailwindcss data
 - Dashboard tiles
 - Actual frontend for things like LMS access and full timetable view
 
