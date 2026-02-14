@@ -21,7 +21,7 @@ const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null =>
 export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const { currentPage, gridSize, removeTile, updateTile, saveState, removePanel } = useLayout();
 
-    const { classes, topBar } = useTheme();
+    const { classes, topBar, extraHtml } = useTheme();
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [resizingTile, setResizingTile] = useState<string | null>(null);
@@ -256,12 +256,16 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                     <div
                         key={tile.id}
                         style={style}
-                        className={classes?.TileOuter + " relative group"}
+                        className={
+                            (tile.specialEffects?.includes("topBar")
+                                ? classes?.TileOuter
+                                : classes?.TileOuterNoTopBar) + " relative group"
+                        }
                     >
                         {/* delete */}
                         {editable && (
                             <button
-                                className="absolute top-0 right-0 z-10 cursor-grab"
+                                className="absolute top-0 right-0 z-30 cursor-grab"
                                 onClick={() => {
                                     removeTile(tile.id);
                                 }}
@@ -272,11 +276,12 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         {TopBarReplaced && tile.specialEffects?.includes("topBar") && (
                             <div dangerouslySetInnerHTML={{ __html: TopBarReplaced }} />
                         )}
+                        {extraHtml && <div dangerouslySetInnerHTML={{ __html: extraHtml }} />}
                         <div className={classes?.Tile || "border bg-white shadow"}>
                             <TileComponent {...tile.props} />
                             {editable && (
                                 <div
-                                    className="absolute bottom-2 left-2"
+                                    className="absolute bottom-2 left-2 z-30"
                                     onMouseDown={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
@@ -290,7 +295,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         {/* resize handle */}
                         {editable && (
                             <div
-                                className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize opacity-0"
+                                className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize opacity-0 z-30"
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
@@ -300,7 +305,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         )}
                         {(editable || tile.specialEffects?.includes("movable")) && (
                             <div
-                                className={`absolute top-0 left-0 ${TopBarReplaced ? "w-full" : "w-7"} h-7 cursor-move opacity-0`}
+                                className={`absolute top-0 left-0 w-7 h-7 cursor-move opacity-0 z-30`}
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();

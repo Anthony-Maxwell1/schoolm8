@@ -1,9 +1,10 @@
 // utils/themeClasses.ts
-export type ClassKey = "Tile" | "TileOuter";
+export type ClassKey = "Tile" | "TileOuter" | "TileOuterNoTopBar";
 
 export type Theme = {
     classes: Record<ClassKey, string>;
     TopBar?: string;
+    extraHtml?: string;
     Data?: Record<string, any>;
 };
 
@@ -18,6 +19,7 @@ export const themes: ThemeMap = {
     "basic-minimal": {
         classes: {
             TileOuter: tw("p-6"),
+            TileOuterNoTopBar: tw("p-6"),
             Tile: tw(
                 "h-full w-full bg-white rounded-2xl border border-neutral-200 shadow-sm flex flex-col overflow-hidden p-5",
             ),
@@ -27,15 +29,23 @@ export const themes: ThemeMap = {
         classes: {
             TileOuter: tw(`
         relative pt-[26px] overflow-visible
-        bg-[#c0c0c0] 
+        bg-[#c0c0c0]
+        border-t-2 border-l-2 border-[#dfdfdf]
+        border-b-2 border-r-2 border-[#808080]
+        shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
+        group
+      `),
+            TileOuterNoTopBar: tw(`
+        relative overflow-visible
+        bg-[#c0c0c0]
         border-t-2 border-l-2 border-[#dfdfdf]
         border-b-2 border-r-2 border-[#808080]
         shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
         group
       `),
             Tile: tw(`
-        relative z-20 h-full w-full 
-        bg-white 
+        relative z-20 h-full w-full
+        bg-white
         flex flex-col overflow-hidden p-3
         border-t-2 border-l-2 border-[#808080]
         border-b-2 border-r-2 border-[#dfdfdf]
@@ -44,7 +54,7 @@ export const themes: ThemeMap = {
         },
         TopBar: `
       <div class="absolute top-0 left-0 right-0 h-[26px] z-30 flex items-center justify-between px-1
-                  bg-[#000080] 
+                  bg-[#000080]
                   border-t-2 border-l-2 border-[#dfdfdf]
                   border-b-2 border-r-2 border-[#808080]
                   shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]">
@@ -77,8 +87,15 @@ export const themes: ThemeMap = {
     "retro-mac": {
         classes: {
             TileOuter: tw(`
-        relative pt-7 rounded-lg overflow-hidden p-2 
-        bg-gray-300 
+        relative pt-7 rounded-lg overflow-hidden p-2
+        bg-gray-300
+        shadow-[0_0_10px_rgba(0,0,0,0.3),0_4px_6px_-1px_rgba(0,0,0,0.5)]
+        hover:shadow-[0_0_18px_rgba(0,0,0,0.45),0_10px_16px_-2px_rgba(0,0,0,0.6)]
+        transition-all duration-200 isolate
+      `),
+            TileOuterNoTopBar: tw(`
+        relative rounded-lg overflow-hidden p-2
+        bg-gray-300
         shadow-[0_0_10px_rgba(0,0,0,0.3),0_4px_6px_-1px_rgba(0,0,0,0.5)]
         hover:shadow-[0_0_18px_rgba(0,0,0,0.45),0_10px_16px_-2px_rgba(0,0,0,0.6)]
         transition-all duration-200 isolate
@@ -87,8 +104,10 @@ export const themes: ThemeMap = {
                 "relative z-20 h-full w-full bg-white flex flex-col overflow-hidden p-5 shadow-md rounded-sm hover:w-[100.4%] hover:h-[100.4%] hover:-translate-[0.2%] transition-all duration-200",
             ),
         },
-        TopBar: `
+        extraHtml: `
         <div class="bg-[url('/images/themes/retro-mac/brushedmetal.png')] bg-repeat absolute inset-0 pointer-events-none opacity-40"></div>
+        `,
+        TopBar: `
         <div class="absolute top-0 left-0 right-0 h-7 flex items-center px-3 gap-2">
 
 
@@ -132,6 +151,7 @@ export const themes: ThemeMap = {
     os: {
         classes: {
             TileOuter: tw("relative pl-6 pr-6"),
+            TileOuterNoTopBar: tw("relative pl-6 pr-6"),
             Tile: tw(`
         h-full w-full rounded-b-lg
         bg-white/80 backdrop-blur-2xl
@@ -180,6 +200,10 @@ export const themes: ThemeMap = {
     glass: {
         classes: {
             TileOuter: tw("relative pl-6 pr-6 hover:scale-[1.02] transition-all duration-300"),
+            TileOuterNoTopBar: tw(
+                "relative pl-6 pr-6 hover:scale-[1.02] transition-all duration-300",
+            ),
+
             Tile: tw(`
         h-full w-full rounded-b-[20px]
         bg-white/20 backdrop-blur-3xl
@@ -209,8 +233,8 @@ export const themes: ThemeMap = {
                   before:bg-gradient-to-b before:from-white/10 before:to-transparent
                   before:pointer-events-none">
         <div class="flex items-center gap-3 flex-1 min-w-0 relative z-10">
-          <div class="w-6 h-6 rounded-full flex items-center justify-center 
-                      bg-gradient-to-br from-blue-400/40 to-purple-500/40 
+          <div class="w-6 h-6 rounded-full flex items-center justify-center
+                      bg-gradient-to-br from-blue-400/40 to-purple-500/40
                       backdrop-blur-sm
                       border border-white/30
                       shadow-[0_2px_8px_rgba(0,0,0,0.1),0_0_0_1px_rgba(255,255,255,0.2)_inset]">
@@ -243,6 +267,7 @@ export const themes: ThemeMap = {
     blur: {
         classes: {
             TileOuter: tw("relative pl-6 pr-6"),
+            TileOuterNoTopBar: tw("relative pl-6 pr-6"),
             Tile: tw(`
         h-full w-full rounded-b-2xl
         bg-neutral-900/50 backdrop-blur-2xl
@@ -264,7 +289,7 @@ export const themes: ThemeMap = {
                   transition-all duration-300
                   hover:bg-neutral-800/50">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div class="w-5 h-5 rounded-md flex items-center justify-center 
+          <div class="w-5 h-5 rounded-md flex items-center justify-center
                       bg-gradient-to-br from-neutral-700/60 to-neutral-800/60
                       border border-white/10
                       shadow-inner">
@@ -300,3 +325,4 @@ const DEFAULT_THEME = "retro-mac";
 
 export const defaultClasses: ClassMap = themes[DEFAULT_THEME].classes;
 export const defaultTopBar: string = themes[DEFAULT_THEME].TopBar || "";
+export const defaultExtraHtml: string = themes[DEFAULT_THEME].extraHtml || "";
