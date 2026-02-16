@@ -6,6 +6,7 @@ import { RegistryNode } from "@/lib/tiles";
 import { useState, useRef, useEffect } from "react";
 import { CircleX, Ellipsis } from "lucide-react";
 import { useTheme } from "@/context/themeContext";
+import { useAuth } from "@/context/authContext";
 
 const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null => {
     for (const n of nodes) {
@@ -19,6 +20,8 @@ const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null =>
 };
 
 export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
+    const { user, loading } = useAuth();
+
     const { currentPage, gridSize, removeTile, updateTile, saveState, removePanel } = useLayout();
 
     const { classes, topBar, extraHtml } = useTheme();
@@ -31,6 +34,12 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const [editorTile, setEditorTile] = useState<string | null>(null);
 
     useEffect(() => {
+        // if (loading) return;
+
+        // if (!user) {
+        //     router.push("/signin");
+        //     return;
+        // }
         if (!movingTile || !currentPage) return;
 
         const handleMouseMove = (e: MouseEvent) => {
@@ -123,6 +132,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     };
 
     if (!currentPage) return <div className="p-4">No page selected</div>;
+    if (loading) return;
 
     return (
         <div

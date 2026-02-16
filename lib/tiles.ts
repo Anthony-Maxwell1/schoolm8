@@ -20,6 +20,7 @@ export type RegistryRoot = RegistryNode[];
 
 import { ClockTile } from "@/components/tiles/ClockTile";
 import { WeatherTile } from "@/components/tiles/WeatherTile";
+import { TimetableList, TimetableGrid } from "@/components/tiles/Timetable";
 import { NavPanel } from "@/components/panels/NavPanel";
 
 /* =======================
@@ -42,6 +43,18 @@ export const TileRegistry: RegistryRoot = [
                 label: "Weather",
                 component: WeatherTile,
                 defaultProps: { location: "Sydney" },
+            },
+        ],
+    },
+    {
+        id: "timetable",
+        label: "Timetable",
+        children: [
+            {
+                id: "timetableList",
+                label: "Timetable List",
+                component: TimetableList,
+                defaultProps: {},
             },
         ],
     },
