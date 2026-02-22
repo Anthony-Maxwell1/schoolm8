@@ -291,7 +291,7 @@ export default function Onboarding() {
             )}
 
             {/* Main container */}
-            <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
+            <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8 ">
                 {/* LEFT PANEL: step list */}
                 <div className="w-full max-w-[280px] rounded-2xl bg-white/90 overflow-hidden flex flex-col shadow-xl">
                     {steps.map((s, i) => (
@@ -310,7 +310,7 @@ export default function Onboarding() {
                 </div>
 
                 {/* RIGHT PANEL: step content */}
-                <div className="w-full max-w-2xl rounded-3xl bg-white/90 p-8 shadow-2xl ring-1 ring-black/10 backdrop-blur-md">
+                <div className="w-full max-w-2xl rounded-3xl p-8 shadow-xl ring-1 ring-white/50 bg-white/30  backdrop-blur-lg">
                     {/* Step 1: Carousel */}
                     {step === 0 && (
                         <div>
@@ -324,10 +324,10 @@ export default function Onboarding() {
                             </div>
 
                             <div className="text-center space-y-2">
-                                <h2 className="text-xl font-semibold text-slate-900">
+                                <h2 className="text-xl font-semibold text-white/75">
                                     {carouselItems[carouselIndex].title}
                                 </h2>
-                                <p className="text-slate-600">
+                                <p className="text-white/65">
                                     {carouselItems[carouselIndex].description}
                                 </p>
                             </div>
