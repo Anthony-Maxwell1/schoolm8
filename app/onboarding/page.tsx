@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
+import { set } from "date-fns";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -41,6 +42,9 @@ export default function Onboarding() {
     const [edumateBaseUrl, setEdumateBaseUrl] = useState("");
     const [edumateUsername, setEdumateUsername] = useState("");
     const [edumatePassword, setEdumatePassword] = useState("");
+
+    // Is loading?
+    const [loadingState, setLoadingState] = useState(false);
 
     const steps = [
         { title: "Showcase features" },
@@ -96,6 +100,7 @@ export default function Onboarding() {
     const goPrevStep = () => setStep((s) => Math.max(s - 1, 0));
 
     const setupCanvas = async () => {
+        setLoadingState(true);
         if (!canvasBaseUrl || !canvasAccessToken) {
             alert("Please enter both the base URL and access token.");
             return;
@@ -121,10 +126,13 @@ export default function Onboarding() {
         } catch (err) {
             console.error("Error connecting to Canvas:", err);
             alert("Failed to connect to Canvas. Please check the console for details.");
+        } finally {
+            setLoadingState(false);
         }
     };
 
     const connectGeneric = async () => {
+        setLoadingState(true);
         if (timetableMethod === "ical-url") {
             if (!icalUrl || !icalUsername || !icalPassword) {
                 alert("Please enter the iCal URL, username, and password.");
@@ -171,9 +179,11 @@ export default function Onboarding() {
             }
             setGenericConnected(true);
         }
+        setLoadingState(false);
     };
 
     const connectEdumate = async () => {
+        setLoadingState(true);
         if (!edumateBaseUrl || !edumateUsername || !edumatePassword) {
             alert("Please enter the base URL, username, and password.");
             return;
@@ -199,6 +209,8 @@ export default function Onboarding() {
         } catch (err) {
             console.error("Error connecting to Edumate:", err);
             alert("Failed to connect to Edumate. Please check the console for details.");
+        } finally {
+            setLoadingState(false);
         }
     };
 
@@ -212,7 +224,7 @@ export default function Onboarding() {
                 },
                 body: JSON.stringify({
                     scopeGroup: "classroom",
-                    redirectUrl: `/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=${googleClassroomConnected}&genericTimetable=${genericConnected}&edumate=${edumateConnected}`,
+                    redirectUrl: `/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`,
                 }),
             });
             if (!response.ok) {
@@ -224,6 +236,8 @@ export default function Onboarding() {
         } catch (err) {
             console.error("Error setting up Google Classroom:", err);
             alert("Failed to set up Google Classroom. Please check the console for details.");
+        } finally {
+            setLoadingState(false);
         }
     };
 
@@ -266,6 +280,15 @@ export default function Onboarding() {
         >
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
+
+            {loadingState && (
+                <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 pointer-events-auto" style={{ overflow: 'hidden' }}>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-4 border-white border-t-green-600 rounded-full animate-spin" />
+                        <div className="text-white text-lg font-medium">Loading...</div>
+                    </div>
+                </div>
+            )}
 
             {/* Main container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
@@ -685,6 +708,18 @@ export default function Onboarding() {
                                         )}
                                     </div>
                                 ))}
+                        </div>
+                    )}
+                    {step === 6 && (
+                        <div>
+                            <h2 className="text-2xl font-semibold text-slate-900">All done!</h2>
+                            <p className="text-slate-600">
+                                You're all set up! Click Finish to start using Schoolm8, and if you
+                                have any questions or need help, feel free to reach out to us at schoolm8@thatdev.org
+                            </p>
+                            <p>There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
+                            <p>Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
+                            <p>schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
                         </div>
                     )}
                     {/* Navigation */}
