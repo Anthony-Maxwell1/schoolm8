@@ -291,8 +291,8 @@ export default function Onboarding() {
             )}
 
             <div className="fixed bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
-                    Switch to Light
+                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                    Switch to Blur
                 </a>
                 <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
                     Switch to Dark
@@ -303,14 +303,14 @@ export default function Onboarding() {
             {/* Main container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
                 {/* LEFT PANEL: step list */}
-                <div className="w-full max-w-70 rounded-2xl ring-1 ring-white/50 bg-white/30 backdrop-blur-lg overflow-hidden flex flex-col shadow-xl">
+                <div className="w-full max-w-[280px] rounded-2xl bg-white/90 overflow-hidden flex flex-col shadow-xl">
                     {steps.map((s, i) => (
                         <button
                             key={i}
                             onClick={() => setStep(i)}
-                            className={`text-left w-full p-3 transition text-white ${
+                            className={`text-left w-full p-3 transition ${
                                 i === step
-                                    ? "border-l-4 border-l-green-600 font-semibold"
+                                    ? "border-l-4 border-l-green-600 bg-white font-semibold"
                                     : "hover:bg-black/5"
                             }`}
                         >
@@ -320,7 +320,7 @@ export default function Onboarding() {
                 </div>
 
                 {/* RIGHT PANEL: step content */}
-                <div className="w-full max-w-2xl rounded-3xl p-8 shadow-xl ring-1 ring-white/50 bg-white/30  backdrop-blur-lg">
+                <div className="w-full max-w-2xl rounded-3xl bg-white/90 p-8 shadow-2xl ring-1 ring-black/10 backdrop-blur-md">
                     {/* Step 1: Carousel */}
                     {step === 0 && (
                         <div>
@@ -334,10 +334,10 @@ export default function Onboarding() {
                             </div>
 
                             <div className="text-center space-y-2">
-                                <h2 className="text-xl font-semibold text-white/75">
+                                <h2 className="text-xl font-semibold text-slate-900">
                                     {carouselItems[carouselIndex].title}
                                 </h2>
-                                <p className="text-white/65">
+                                <p className="text-slate-600">
                                     {carouselItems[carouselIndex].description}
                                 </p>
                             </div>
@@ -346,13 +346,13 @@ export default function Onboarding() {
                             <div className="flex justify-between mt-4">
                                 <button
                                     onClick={prevCarousel}
-                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20 text-white"
+                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20"
                                 >
                                     Prev
                                 </button>
                                 <button
                                     onClick={nextCarousel}
-                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20 text-white"
+                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20"
                                 >
                                     Next
                                 </button>
@@ -377,8 +377,8 @@ export default function Onboarding() {
                     {/* Step 2: Disclaimer */}
                     {step === 1 && (
                         <div className="text-center space-y-4">
-                            <h2 className="text-2xl font-semibold text-white/75">Disclaimer</h2>
-                            <p className="text-white/65">
+                            <h2 className="text-2xl font-semibold text-slate-900">Disclaimer</h2>
+                            <p className="text-slate-600">
                                 Schoolm8 is not affiliated with any school or educational
                                 institution. We are an independent platform created to help students
                                 organize their academic lives. All trademarks and logos belong to
@@ -390,9 +390,9 @@ export default function Onboarding() {
                     {/* Steps 3+ : custom HTML placeholder */}
                     {step === 2 && (
                         <div className="text-center space-y-4">
-                            <h2 className="text-xl font-semibold text-white/75">Add your LMS!</h2>
-                            <p className="text-white/65">Add your Learning Management System.</p>
-                            <p className="text-white/65">Pick your LMS from the list below.</p>
+                            <h2 className="text-xl font-semibold text-slate-900">Add your LMS!</h2>
+                            <p>Add your Learning Management System.</p>
+                            <p>Pick your LMS from the list below.</p>
                             <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
                                 <p>
                                     Don't see your LMS? Don't worry, you can still use Schoolm8! We
@@ -498,15 +498,15 @@ export default function Onboarding() {
                     )}
                     {step === 3 && (
                         <div className="text-center space-y-4">
-                            <h2 className="text-2xl font-semibold text-white/75">
+                            <h2 className="text-2xl font-semibold text-slate-900">
                                 Link your timetable
                             </h2>
-                            <p className="text-white/65">
+                            <p>
                                 Link your timetable management system, to get views of your
                                 schedule, even more personalised study guides and info, as well as
                                 an api for apps on your phone, watch or anything else!
                             </p>
-                            <p className="text-white/65">
+                            <p>
                                 Pick your timetable software from the list below. If you don't see
                                 yours, pick "Generic" and we'll provide you with all the options to
                                 set it up.
@@ -722,14 +722,14 @@ export default function Onboarding() {
                     )}
                     {step === 6 && (
                         <div>
-                            <h2 className="text-2xl font-semibold text-white/75">All done!</h2>
-                            <p className="text-white/65">
+                            <h2 className="text-2xl font-semibold text-slate-900">All done!</h2>
+                            <p className="text-slate-600">
                                 You're all set up! Click Finish to start using Schoolm8, and if you
                                 have any questions or need help, feel free to reach out to us at schoolm8@thatdev.org
                             </p>
-                            <p className="text-white/65">There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
-                            <p className="text-white/65">Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
-                            <p className="text-white/65">schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
+                            <p>There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
+                            <p>Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
+                            <p>schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
                         </div>
                     )}
                     {/* Navigation */}
@@ -737,7 +737,7 @@ export default function Onboarding() {
                         <button
                             onClick={goPrevStep}
                             disabled={step === 0}
-                            className="px-4 py-2 rounded-lg bg-black/10 hover:bg-black/20 disabled:opacity-40 text-white"
+                            className="px-4 py-2 rounded-lg bg-black/10 hover:bg-black/20 disabled:opacity-40"
                         >
                             Back
                         </button>

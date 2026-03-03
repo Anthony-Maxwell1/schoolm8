@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
-import { set } from "date-fns";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -18,32 +17,26 @@ export default function Onboarding() {
     const [timetable, setTimetable] = useState("");
 
     // LMS configuration
-    // | -> Canvas
     const [canvasBaseUrl, setCanvasBaseUrl] = useState("");
     const [canvasAccessToken, setCanvasAccessToken] = useState("");
     const [canvasConnected, setCanvasConnected] = useState(false);
-    // | -> Google Classroom
+    // Google Classroom
     const [googleClassroomConnected, setGoogleClassroomConnected] = useState(false);
 
-    // Method for linking timetable, e.g. ical url, file upload, third party etc.
+    // Timetable method
     const [timetableMethod, setTimetableMethod] = useState("");
 
     // Timetable configuration
-    // | -> Generic
     const [genericConnected, setGenericConnected] = useState(false);
-    // | | -> iCal URL
     const [icalUrl, setIcalUrl] = useState("");
     const [icalUsername, setIcalUsername] = useState("");
     const [icalPassword, setIcalPassword] = useState("");
-    // | | -> iCal File Upload
     const [icalData, setIcalData] = useState("");
-    // | -> Edumate
     const [edumateConnected, setEdumateConnected] = useState(false);
     const [edumateBaseUrl, setEdumateBaseUrl] = useState("");
     const [edumateUsername, setEdumateUsername] = useState("");
     const [edumatePassword, setEdumatePassword] = useState("");
 
-    // Is loading?
     const [loadingState, setLoadingState] = useState(false);
 
     const steps = [
@@ -58,7 +51,7 @@ export default function Onboarding() {
 
     const carouselItems = [
         {
-            image: "https://picsum.photos/600/400", // unique URLs, remove query params
+            image: "https://picsum.photos/600/400",
             title: "All your tools in one portal",
             description:
                 "Finally, we don't have to put up with schools putting things in 10 different places at once.",
@@ -224,7 +217,7 @@ export default function Onboarding() {
                 },
                 body: JSON.stringify({
                     scopeGroup: "classroom",
-                    redirectUrl: `/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`,
+                    redirectUrl: `/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`,
                 }),
             });
             if (!response.ok) {
@@ -243,7 +236,6 @@ export default function Onboarding() {
 
     useEffect(() => {
         if (!loading && !user) {
-            // Redirect to login if not authenticated
             window.location.href = "/login";
         }
     }, [user, loading]);
@@ -256,18 +248,15 @@ export default function Onboarding() {
 
         const toBool = (v: string | null) => v === "1" || v === "true";
 
-        // Connection flags
         if (params.has("canvas")) setCanvasConnected(toBool(params.get("canvas")));
         if (params.has("classroom")) setGoogleClassroomConnected(toBool(params.get("classroom")));
         if (params.has("genericTimetable"))
             setGenericConnected(toBool(params.get("genericTimetable")));
         if (params.has("edumate")) setEdumateConnected(toBool(params.get("edumate")));
 
-        // Step + carousel
         if (params.has("step")) setStep(Number(params.get("step")));
         if (params.has("carousel")) setCarouselIndex(Number(params.get("carousel")));
 
-        // Selections
         if (params.has("lms")) setLms(params.get("lms") || "");
         if (params.has("timetable")) setTimetable(params.get("timetable") || "");
         if (params.has("timetableMethod")) setTimetableMethod(params.get("timetableMethod") || "");
@@ -275,14 +264,14 @@ export default function Onboarding() {
 
     return (
         <div
-            className="relative min-h-screen bg-cover bg-center"
+            className="relative min-h-screen bg-cover bg-center bg-gray-900"
             style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
         >
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/50 to-black/70 backdrop-blur-sm" />
 
             {loadingState && (
-                <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 pointer-events-auto" style={{ overflow: 'hidden' }}>
+                <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/70 pointer-events-auto" style={{ overflow: 'hidden' }}>
                     <div className="flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-4 border-white border-t-green-600 rounded-full animate-spin" />
                         <div className="text-white text-lg font-medium">Loading...</div>
@@ -291,27 +280,27 @@ export default function Onboarding() {
             )}
 
             <div className="fixed bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
-                    Switch to Light
+                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-gray-800/90 text-gray-200 text-xs cursor-pointer hover:bg-gray-700" href={`/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                    Switch to Blur
                 </a>
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-gray-800/90 text-gray-200 text-xs cursor-pointer hover:bg-gray-700" href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
                     Switch to Dark
                 </a>
-                <p className="text-white text-sm text-center mt-1">Current onboarding style: Blur</p>
+                <p className="text-gray-300 text-sm text-center mt-1">Current onboarding style: Dark</p>
             </div>
 
             {/* Main container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
                 {/* LEFT PANEL: step list */}
-                <div className="w-full max-w-70 rounded-2xl ring-1 ring-white/50 bg-white/30 backdrop-blur-lg overflow-hidden flex flex-col shadow-xl">
+                <div className="w-full max-w-70 rounded-2xl bg-gray-800/90 overflow-hidden flex flex-col shadow-xl border border-gray-700">
                     {steps.map((s, i) => (
                         <button
                             key={i}
                             onClick={() => setStep(i)}
-                            className={`text-left w-full p-3 transition text-white ${
+                            className={`text-left w-full p-3 transition ${
                                 i === step
-                                    ? "border-l-4 border-l-green-600 font-semibold"
-                                    : "hover:bg-black/5"
+                                    ? "border-l-4 border-l-green-600 bg-gray-700 font-semibold text-white"
+                                    : "hover:bg-gray-700/50 text-gray-300"
                             }`}
                         >
                             Step {i + 1}: {s.title}
@@ -320,11 +309,11 @@ export default function Onboarding() {
                 </div>
 
                 {/* RIGHT PANEL: step content */}
-                <div className="w-full max-w-2xl rounded-3xl p-8 shadow-xl ring-1 ring-white/50 bg-white/30  backdrop-blur-lg">
+                <div className="w-full max-w-2xl rounded-3xl bg-gray-800/40 p-8 shadow-2xl ring-1 ring-gray-700/50 backdrop-blur-md border border-gray-700/30">
                     {/* Step 1: Carousel */}
                     {step === 0 && (
                         <div>
-                            <div className="relative w-full h-[300px] rounded-2xl overflow-hidden mb-6">
+                            <div className="relative w-full h-75 rounded-2xl overflow-hidden mb-6">
                                 <Image
                                     src={carouselItems[carouselIndex].image}
                                     alt={carouselItems[carouselIndex].title}
@@ -334,10 +323,10 @@ export default function Onboarding() {
                             </div>
 
                             <div className="text-center space-y-2">
-                                <h2 className="text-xl font-semibold text-white/75">
+                                <h2 className="text-xl font-semibold text-white">
                                     {carouselItems[carouselIndex].title}
                                 </h2>
-                                <p className="text-white/65">
+                                <p className="text-gray-400">
                                     {carouselItems[carouselIndex].description}
                                 </p>
                             </div>
@@ -346,13 +335,13 @@ export default function Onboarding() {
                             <div className="flex justify-between mt-4">
                                 <button
                                     onClick={prevCarousel}
-                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20 text-white"
+                                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
                                 >
                                     Prev
                                 </button>
                                 <button
                                     onClick={nextCarousel}
-                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20 text-white"
+                                    className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
                                 >
                                     Next
                                 </button>
@@ -366,7 +355,7 @@ export default function Onboarding() {
                                         className={`h-2 w-2 rounded-full transition ${
                                             i === carouselIndex
                                                 ? "bg-green-600 w-5"
-                                                : "bg-slate-300"
+                                                : "bg-gray-600"
                                         }`}
                                     />
                                 ))}
@@ -377,8 +366,8 @@ export default function Onboarding() {
                     {/* Step 2: Disclaimer */}
                     {step === 1 && (
                         <div className="text-center space-y-4">
-                            <h2 className="text-2xl font-semibold text-white/75">Disclaimer</h2>
-                            <p className="text-white/65">
+                            <h2 className="text-2xl font-semibold text-white">Disclaimer</h2>
+                            <p className="text-gray-400">
                                 Schoolm8 is not affiliated with any school or educational
                                 institution. We are an independent platform created to help students
                                 organize their academic lives. All trademarks and logos belong to
@@ -390,10 +379,10 @@ export default function Onboarding() {
                     {/* Steps 3+ : custom HTML placeholder */}
                     {step === 2 && (
                         <div className="text-center space-y-4">
-                            <h2 className="text-xl font-semibold text-white/75">Add your LMS!</h2>
-                            <p className="text-white/65">Add your Learning Management System.</p>
-                            <p className="text-white/65">Pick your LMS from the list below.</p>
-                            <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
+                            <h2 className="text-xl font-semibold text-white">Add your LMS!</h2>
+                            <p className="text-gray-300">Add your Learning Management System.</p>
+                            <p className="text-gray-300">Pick your LMS from the list below.</p>
+                            <div className="p-4 bg-yellow-900/30 border border-yellow-700/50 text-yellow-400 rounded-lg mt-4">
                                 <p>
                                     Don't see your LMS? Don't worry, you can still use Schoolm8! We
                                     are working on adding support for more LMS platforms, but in the
@@ -402,7 +391,7 @@ export default function Onboarding() {
                                 </p>
                             </div>
                             <select
-                                className="w-full p-2 border border-slate-300 rounded-lg"
+                                className="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white"
                                 value={lms}
                                 onChange={(e) => setLms(e.target.value)}
                             >
@@ -418,37 +407,37 @@ export default function Onboarding() {
                             </select>
                             {lms === "canvas" &&
                                 (canvasConnected ? (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>Canvas connected successfully!</p>
                                     </div>
                                 ) : (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>We need three things to set up your account.</p>
-                                        <label className="block mb-2 font-medium">Base URL</label>
+                                        <label className="block mb-2 font-medium text-white mt-4">Base URL</label>
                                         <input
                                             type="text"
-                                            className="w-full p-2 border border-green-400 rounded-lg"
+                                            className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                             placeholder="Enter your Canvas base URL"
                                             value={canvasBaseUrl}
                                             onChange={(e) => setCanvasBaseUrl(e.target.value)}
                                         />
-                                        <p>Your base url is the url before the first /.</p>
+                                        <p className="text-green-400 text-sm mt-2">Your base url is the url before the first /.</p>
                                         <Image
                                             src={image0001}
                                             alt="Canvas base URL example"
                                             className="my-4 rounded-lg"
                                         />
-                                        <label className="block mb-2 font-medium">
+                                        <label className="block mb-2 font-medium text-white">
                                             Access Token
                                         </label>
                                         <input
                                             type="text"
-                                            className="w-full p-2 border border-green-400 rounded-lg"
+                                            className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                             placeholder="Enter your Canvas access token"
                                             value={canvasAccessToken}
                                             onChange={(e) => setCanvasAccessToken(e.target.value)}
                                         />
-                                        <p>
+                                        <p className="text-green-400 text-sm mt-2">
                                             You can generate an access token in your Canvas account
                                             settings.
                                         </p>
@@ -457,14 +446,14 @@ export default function Onboarding() {
                                             alt="Canvas access token example"
                                             className="my-4 rounded-lg"
                                         />
-                                        <p>
+                                        <p className="text-green-400 text-sm">
                                             Scroll down to Approved Integrations, and click "New
                                             Access Token". Purpose can be anything, e.g. "schoolm8",
                                             and you can set expiration date and time for as far out
                                             as you want us to link canvas for.
                                         </p>
                                         <button
-                                            className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700"
+                                            className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 mt-4"
                                             onClick={setupCanvas}
                                         >
                                             Connect
@@ -474,11 +463,11 @@ export default function Onboarding() {
                             {lms &&
                                 lms == "google-classroom" &&
                                 (googleClassroomConnected ? (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>Google Classroom connected successfully!</p>
                                     </div>
                                 ) : (
-                                    <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
+                                    <div className="p-4 bg-yellow-900/30 border border-yellow-700/50 text-yellow-400 rounded-lg mt-4">
                                         <p>
                                             Click this button to proceed with setting up Google
                                             Classroom. You will be redirected to Google's OAuth
@@ -487,7 +476,7 @@ export default function Onboarding() {
                                             setup.
                                         </p>
                                         <button
-                                            className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700"
+                                            className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 mt-4"
                                             onClick={setupGoogleClassroom}
                                         >
                                             Connect Google Classroom
@@ -498,21 +487,21 @@ export default function Onboarding() {
                     )}
                     {step === 3 && (
                         <div className="text-center space-y-4">
-                            <h2 className="text-2xl font-semibold text-white/75">
+                            <h2 className="text-2xl font-semibold text-white">
                                 Link your timetable
                             </h2>
-                            <p className="text-white/65">
+                            <p className="text-gray-400">
                                 Link your timetable management system, to get views of your
                                 schedule, even more personalised study guides and info, as well as
                                 an api for apps on your phone, watch or anything else!
                             </p>
-                            <p className="text-white/65">
+                            <p className="text-gray-400">
                                 Pick your timetable software from the list below. If you don't see
                                 yours, pick "Generic" and we'll provide you with all the options to
                                 set it up.
                             </p>
                             <select
-                                className="w-full p-2 border border-slate-300 rounded-lg"
+                                className="w-full p-2 border border-gray-600 rounded-lg bg-gray-700 text-white"
                                 value={timetable}
                                 onChange={(e) => setTimetable(e.target.value)}
                             >
@@ -526,11 +515,11 @@ export default function Onboarding() {
                             </select>
                             {timetable === "edumate" &&
                                 (edumateConnected ? (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>Edumate connected successfully!</p>
                                     </div>
                                 ) : (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>
                                             We use a reverse engineered method to connect to Edumate
                                             using internal APIs. This can be unstable, so we
@@ -540,7 +529,7 @@ export default function Onboarding() {
                                             <br />
                                             You should use the Generic and iCal URL method for this.
                                             The URL is usually:{" "}
-                                            <code>
+                                            <code className="bg-gray-900/50 px-1 rounded">
                                                 https://{`{school}`}.edumate.net/{`{school}`}
                                                 4/cal.php/ calendar/{`{username}`}
                                             </code>
@@ -550,42 +539,42 @@ export default function Onboarding() {
                                             time.
                                         </p>
                                         <div className="mt-4">
-                                            <label className="block mb-2 font-medium">
+                                            <label className="block mb-2 font-medium text-white">
                                                 Base URL
                                             </label>
                                             <input
                                                 type="text"
-                                                className="w-full p-2 border border-green-400 rounded-lg"
+                                                className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                                 placeholder="e.g. norwest.edumate.net"
                                                 value={edumateBaseUrl}
                                                 onChange={(e) => setEdumateBaseUrl(e.target.value)}
                                             />
-                                            <p className="mt-2 text-sm text-green-700">
+                                            <p className="mt-2 text-sm text-green-400">
                                                 Your base url is the url before the first /, without
                                                 https://. For example, if your Edumate URL is{" "}
-                                                <code>
+                                                <code className="bg-gray-900/50 px-1 rounded">
                                                     https://norwest.edumate.net/edumate4/cal.php/calendar/username
                                                 </code>
                                                 , then your base URL would be{" "}
-                                                <code>norwest.edumate.net</code>.
+                                                <code className="bg-gray-900/50 px-1 rounded">norwest.edumate.net</code>.
                                             </p>
 
-                                            <label className="block mt-4 mb-2 font-medium">
+                                            <label className="block mt-4 mb-2 font-medium text-white">
                                                 Username
                                             </label>
                                             <input
                                                 type="text"
-                                                className="w-full p-2 border border-green-400 rounded-lg"
+                                                className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                                 placeholder="Enter your username"
                                                 value={edumateUsername}
                                                 onChange={(e) => setEdumateUsername(e.target.value)}
                                             />
-                                            <label className="block mt-4 mb-2 font-medium">
+                                            <label className="block mt-4 mb-2 font-medium text-white">
                                                 Password
                                             </label>
                                             <input
                                                 type="password"
-                                                className="w-full p-2 border border-green-400 rounded-lg"
+                                                className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                                 placeholder="Enter your password"
                                                 value={edumatePassword}
                                                 onChange={(e) => setEdumatePassword(e.target.value)}
@@ -601,11 +590,11 @@ export default function Onboarding() {
                                 ))}
                             {timetable === "generic" &&
                                 (genericConnected ? (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>Timetable connected successfully!</p>
                                     </div>
                                 ) : (
-                                    <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                                    <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>There are various methods to link your timetable.</p>
                                         <p>
                                             <b>iCal Url (Recommended)</b>: If your timetable
@@ -627,7 +616,7 @@ export default function Onboarding() {
                                             Depending on the setup, it should sync live.
                                         </p>
                                         <select
-                                            className="w-full p-2 border border-green-400 rounded-lg mt-4"
+                                            className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white mt-4"
                                             value={timetableMethod}
                                             onChange={(e) => setTimetableMethod(e.target.value)}
                                         >
@@ -640,40 +629,40 @@ export default function Onboarding() {
                                         </select>
                                         {timetableMethod === "ical-url" && (
                                             <div className="mt-4">
-                                                <label className="block mb-2 font-medium">
+                                                <label className="block mb-2 font-medium text-white">
                                                     iCal URL
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className="w-full p-2 border border-green-400 rounded-lg"
+                                                    className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                                     placeholder="Enter your timetable's iCal URL"
                                                     value={icalUrl}
                                                     onChange={(e) => setIcalUrl(e.target.value)}
                                                 />
-                                                <p className="mt-2 text-sm text-green-700">
+                                                <p className="mt-2 text-sm text-green-400">
                                                     You can usually find the iCal URL in your
                                                     timetable software's settings or sharing
                                                     options.
                                                 </p>
 
-                                                <label className="block mt-4 mb-2 font-medium">
+                                                <label className="block mt-4 mb-2 font-medium text-white">
                                                     Username
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    className="w-full p-2 border border-green-400 rounded-lg"
+                                                    className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                                     placeholder="Enter your username"
                                                     value={icalUsername}
                                                     onChange={(e) =>
                                                         setIcalUsername(e.target.value)
                                                     }
                                                 />
-                                                <label className="block mt-4 mb-2 font-medium">
+                                                <label className="block mt-4 mb-2 font-medium text-white">
                                                     Password
                                                 </label>
                                                 <input
                                                     type="password"
-                                                    className="w-full p-2 border border-green-400 rounded-lg"
+                                                    className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
                                                     placeholder="Enter your password"
                                                     value={icalPassword}
                                                     onChange={(e) =>
@@ -690,7 +679,7 @@ export default function Onboarding() {
                                         )}
                                         {timetableMethod === "ical-file" && (
                                             <div className="mt-4">
-                                                <p>
+                                                <p className="text-green-400">
                                                     Please upload your timetable in iCal format.
                                                     This is a static snapshot and will not sync
                                                     live, but it will allow us to pull your schedule
@@ -699,7 +688,7 @@ export default function Onboarding() {
                                                 <input
                                                     type="file"
                                                     accept=".ics"
-                                                    className="w-full p-2 border border-green-400 rounded-lg mt-4"
+                                                    className="w-full p-2 border border-green-600/50 rounded-lg mt-4 bg-gray-700 text-white"
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
@@ -722,14 +711,14 @@ export default function Onboarding() {
                     )}
                     {step === 6 && (
                         <div>
-                            <h2 className="text-2xl font-semibold text-white/75">All done!</h2>
-                            <p className="text-white/65">
+                            <h2 className="text-2xl font-semibold text-white">All done!</h2>
+                            <p className="text-gray-400 mt-4">
                                 You're all set up! Click Finish to start using Schoolm8, and if you
                                 have any questions or need help, feel free to reach out to us at schoolm8@thatdev.org
                             </p>
-                            <p className="text-white/65">There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
-                            <p className="text-white/65">Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
-                            <p className="text-white/65">schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
+                            <p className="text-gray-400 mt-2">There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
+                            <p className="text-gray-400 mt-2">Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
+                            <p className="text-gray-400 mt-2">schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor" className="text-green-600 hover:underline">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
                         </div>
                     )}
                     {/* Navigation */}
@@ -737,7 +726,7 @@ export default function Onboarding() {
                         <button
                             onClick={goPrevStep}
                             disabled={step === 0}
-                            className="px-4 py-2 rounded-lg bg-black/10 hover:bg-black/20 disabled:opacity-40 text-white"
+                            className="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600 disabled:opacity-40"
                         >
                             Back
                         </button>
