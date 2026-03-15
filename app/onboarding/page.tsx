@@ -282,7 +282,10 @@ export default function Onboarding() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
 
             {loadingState && (
-                <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 pointer-events-auto" style={{ overflow: 'hidden' }}>
+                <div
+                    className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 pointer-events-auto"
+                    style={{ overflow: "hidden" }}
+                >
                     <div className="flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-4 border-white border-t-green-600 rounded-full animate-spin" />
                         <div className="text-white text-lg font-medium">Loading...</div>
@@ -291,13 +294,21 @@ export default function Onboarding() {
             )}
 
             <div className="fixed bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                <a
+                    className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
+                    href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
+                >
                     Switch to Light
                 </a>
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer" href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                <a
+                    className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
+                    href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
+                >
                     Switch to Dark
                 </a>
-                <p className="text-white text-sm text-center mt-1">Current onboarding style: Blur</p>
+                <p className="text-white text-sm text-center mt-1">
+                    Current onboarding style: Blur
+                </p>
             </div>
 
             {/* Main container */}
@@ -725,11 +736,34 @@ export default function Onboarding() {
                             <h2 className="text-2xl font-semibold text-white/75">All done!</h2>
                             <p className="text-white/65">
                                 You're all set up! Click Finish to start using Schoolm8, and if you
-                                have any questions or need help, feel free to reach out to us at schoolm8@thatdev.org
+                                have any questions or need help, feel free to reach out to us at
+                                schoolm8@thatdev.org
                             </p>
-                            <p className="text-white/65">There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
-                            <p className="text-white/65">Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
-                            <p className="text-white/65">schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
+                            <p className="text-white/65">
+                                There's so much more you could be doing, and it would be impossible
+                                to fit it all in one onboarding.
+                            </p>
+                            <p className="text-white/65">
+                                Explore all of our integrations (such as cloud services, calendar
+                                sync, and more) in the{" "}
+                                <a
+                                    href="/settings/integrations"
+                                    className="text-green-600 hover:underline"
+                                >
+                                    Settings
+                                </a>
+                                .
+                            </p>
+                            <p className="text-white/65">
+                                schoolm8 is extremely customizable. On top of our layout editor in{" "}
+                                <a href="/dashboard/editor">our dashboard</a>, we allow you to go
+                                deeper into css, styling and DIY layouts and cards in our advanced
+                                options, found in{" "}
+                                <a href="/settings" className="text-green-600 hover:underline">
+                                    settings
+                                </a>
+                                .
+                            </p>
                         </div>
                     )}
                     {/* Navigation */}

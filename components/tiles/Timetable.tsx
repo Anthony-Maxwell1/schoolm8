@@ -4,7 +4,7 @@ import { useAuth } from "@/context/authContext";
 
 export function TimetableList() {
     // const { fetchTimetableDay, fetchTimetableWeek } = useData();
-    const [timetable, setTimetable] = useState<json[]>([]); // Index 0 is today, 1 is today+1, and so on.
+    const [timetable, setTimetable] = useState<JSON[]>([]); // Index 0 is today, 1 is today+1, and so on.
     const { user, token, loading } = useAuth();
 
     useEffect(() => {
@@ -17,7 +17,7 @@ export function TimetableList() {
                 },
             });
             if (res) {
-                setTimetable([res.json()]);
+                setTimetable([await res.json()]);
             }
         }
         if (timetable.length == 0) {

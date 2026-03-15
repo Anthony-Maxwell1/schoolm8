@@ -15,7 +15,9 @@ type ThemeContextType = {
     updateClass: (key: keyof ClassMap, value: string) => void;
     setClasses: (classes: ClassMap) => void;
     topBar: string;
+    extraHtml: string;
     updateTopBar: (value: string) => void;
+    updateExtraHtml: (value: string) => void;
     fetchFromTheme: (themeKey: string) => void;
 };
 
@@ -24,9 +26,10 @@ const ThemeContext = createContext<ThemeContextType>({
     updateClass: () => {},
     setClasses: () => {},
     topBar: "",
-    defaultExtraHtml: "",
+    extraHtml: "",
     updateTopBar: () => {},
     fetchFromTheme: () => {},
+    updateExtraHtml: () => {},
 });
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {

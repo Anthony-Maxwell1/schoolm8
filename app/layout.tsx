@@ -2,6 +2,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/authContext";
 import { LayoutProvider } from "@/context/layoutContext";
 import { ThemeProvider } from "@/context/themeContext";
+import ClientAuthGuard from "./ClientAuthGuard";
 
 export const metadata = {
     title: "schoolm8",
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body>
                 <LayoutProvider>
                     <ThemeProvider>
-                        <AuthProvider>{children}</AuthProvider>
+                        <AuthProvider>
+                            <ClientAuthGuard>{children}</ClientAuthGuard>
+                        </AuthProvider>
                     </ThemeProvider>
                 </LayoutProvider>
             </body>

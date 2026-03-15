@@ -271,7 +271,10 @@ export default function Onboarding() {
             <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/50 to-black/70 backdrop-blur-sm" />
 
             {loadingState && (
-                <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/70 pointer-events-auto" style={{ overflow: 'hidden' }}>
+                <div
+                    className="fixed inset-0 z-20 flex items-center justify-center bg-black/70 pointer-events-auto"
+                    style={{ overflow: "hidden" }}
+                >
                     <div className="flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-4 border-white border-t-green-600 rounded-full animate-spin" />
                         <div className="text-white text-lg font-medium">Loading...</div>
@@ -280,13 +283,21 @@ export default function Onboarding() {
             )}
 
             <div className="fixed bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-gray-800/90 text-gray-200 text-xs cursor-pointer hover:bg-gray-700" href={`/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                <a
+                    className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-gray-800/90 text-gray-200 text-xs cursor-pointer hover:bg-gray-700"
+                    href={`/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
+                >
                     Switch to Blur
                 </a>
-                <a className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-gray-800/90 text-gray-200 text-xs cursor-pointer hover:bg-gray-700" href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}>
+                <a
+                    className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-gray-800/90 text-gray-200 text-xs cursor-pointer hover:bg-gray-700"
+                    href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
+                >
                     Switch to Dark
                 </a>
-                <p className="text-gray-300 text-sm text-center mt-1">Current onboarding style: Dark</p>
+                <p className="text-gray-300 text-sm text-center mt-1">
+                    Current onboarding style: Dark
+                </p>
             </div>
 
             {/* Main container */}
@@ -353,9 +364,7 @@ export default function Onboarding() {
                                     <div
                                         key={i}
                                         className={`h-2 w-2 rounded-full transition ${
-                                            i === carouselIndex
-                                                ? "bg-green-600 w-5"
-                                                : "bg-gray-600"
+                                            i === carouselIndex ? "bg-green-600 w-5" : "bg-gray-600"
                                         }`}
                                     />
                                 ))}
@@ -413,7 +422,9 @@ export default function Onboarding() {
                                 ) : (
                                     <div className="p-4 bg-green-900/30 border border-green-700/50 text-green-400 rounded-lg">
                                         <p>We need three things to set up your account.</p>
-                                        <label className="block mb-2 font-medium text-white mt-4">Base URL</label>
+                                        <label className="block mb-2 font-medium text-white mt-4">
+                                            Base URL
+                                        </label>
                                         <input
                                             type="text"
                                             className="w-full p-2 border border-green-600/50 rounded-lg bg-gray-700 text-white"
@@ -421,7 +432,9 @@ export default function Onboarding() {
                                             value={canvasBaseUrl}
                                             onChange={(e) => setCanvasBaseUrl(e.target.value)}
                                         />
-                                        <p className="text-green-400 text-sm mt-2">Your base url is the url before the first /.</p>
+                                        <p className="text-green-400 text-sm mt-2">
+                                            Your base url is the url before the first /.
+                                        </p>
                                         <Image
                                             src={image0001}
                                             alt="Canvas base URL example"
@@ -556,7 +569,10 @@ export default function Onboarding() {
                                                     https://norwest.edumate.net/edumate4/cal.php/calendar/username
                                                 </code>
                                                 , then your base URL would be{" "}
-                                                <code className="bg-gray-900/50 px-1 rounded">norwest.edumate.net</code>.
+                                                <code className="bg-gray-900/50 px-1 rounded">
+                                                    norwest.edumate.net
+                                                </code>
+                                                .
                                             </p>
 
                                             <label className="block mt-4 mb-2 font-medium text-white">
@@ -714,11 +730,39 @@ export default function Onboarding() {
                             <h2 className="text-2xl font-semibold text-white">All done!</h2>
                             <p className="text-gray-400 mt-4">
                                 You're all set up! Click Finish to start using Schoolm8, and if you
-                                have any questions or need help, feel free to reach out to us at schoolm8@thatdev.org
+                                have any questions or need help, feel free to reach out to us at
+                                schoolm8@thatdev.org
                             </p>
-                            <p className="text-gray-400 mt-2">There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.</p>
-                            <p className="text-gray-400 mt-2">Explore all of our integrations (such as cloud services, calendar sync, and more) in the <a href="/settings/integrations" className="text-green-600 hover:underline">Settings</a>.</p>
-                            <p className="text-gray-400 mt-2">schoolm8 is extremely customizable. On top of our layout editor in <a href="/dashboard/editor" className="text-green-600 hover:underline">our dashboard</a>, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in <a href="/settings" className="text-green-600 hover:underline">settings</a>.</p>
+                            <p className="text-gray-400 mt-2">
+                                There's so much more you could be doing, and it would be impossible
+                                to fit it all in one onboarding.
+                            </p>
+                            <p className="text-gray-400 mt-2">
+                                Explore all of our integrations (such as cloud services, calendar
+                                sync, and more) in the{" "}
+                                <a
+                                    href="/settings/integrations"
+                                    className="text-green-600 hover:underline"
+                                >
+                                    Settings
+                                </a>
+                                .
+                            </p>
+                            <p className="text-gray-400 mt-2">
+                                schoolm8 is extremely customizable. On top of our layout editor in{" "}
+                                <a
+                                    href="/dashboard/editor"
+                                    className="text-green-600 hover:underline"
+                                >
+                                    our dashboard
+                                </a>
+                                , we allow you to go deeper into css, styling and DIY layouts and
+                                cards in our advanced options, found in{" "}
+                                <a href="/settings" className="text-green-600 hover:underline">
+                                    settings
+                                </a>
+                                .
+                            </p>
                         </div>
                     )}
                     {/* Navigation */}
