@@ -69,7 +69,7 @@ export default function DashboardPage() {
                             className="w-6 h-6 flex items-center justify-center cursor-pointer"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                window.location.href = "/dashboard/settings"; // navigate to settings
+                                window.location.href = "/settings"; // navigate to settings
                                 console.log("Settings clicked");
                             }}
                         >

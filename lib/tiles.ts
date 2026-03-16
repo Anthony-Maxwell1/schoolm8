@@ -56,6 +56,12 @@ export const TileRegistry: RegistryRoot = [
                 component: TimetableList,
                 defaultProps: {},
             },
+            {
+                id: "timetableGrid",
+                label: "Timetable Grid",
+                component: TimetableGrid,
+                defaultProps: {},
+            },
         ],
     },
 ];
