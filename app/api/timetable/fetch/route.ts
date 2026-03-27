@@ -5,7 +5,16 @@ import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
 
 import { isValidISODate, standardiseDay, standardiseWeek } from "@/lib/timetableNormaliser";
 
-// --- helpers ---
+// ======================================================
+// CONFIG
+// ======================================================
+
+const CACHE_DURATION_MS = 1000 * 60 * 60 * 6; // 6 hours
+
+// ======================================================
+// HELPERS
+// ======================================================
+
 function resolveMode(params: URLSearchParams) {
     const dayParam = params.get("day");
     const weekParam = params.get("week");
@@ -31,7 +40,42 @@ function resolveMode(params: URLSearchParams) {
     return { mode: "today" as const, value: "today" };
 }
 
-// --- route ---
+function isCacheValid(entry?: { expiry: number }) {
+    return entry && Date.now() < entry.expiry;
+}
+
+async function getCachedDay(userRef: any, date: string) {
+    const doc = await userRef.get();
+    const cache = doc.data()?.timetable?.cache || {};
+    return cache[date];
+}
+
+async function setCachedDay(userRef: any, date: string, data: any) {
+    const expiry = Date.now() + CACHE_DURATION_MS;
+
+    await userRef.set(
+        {
+            timetable: {
+                cache: {
+                    [date]: {
+                        data,
+                        expiry,
+                    },
+                },
+            },
+        },
+        { merge: true },
+    );
+}
+
+function resolveDate(value: string) {
+    return value === "today" ? new Date().toISOString().split("T")[0] : value;
+}
+
+// ======================================================
+// ROUTE
+// ======================================================
+
 export async function GET(req: Request) {
     try {
         // ---------- AUTH ----------
@@ -82,35 +126,60 @@ export async function GET(req: Request) {
 
             // ---- TODAY / DAY ----
             if (mode === "today" || mode === "day") {
-                const date = value === "today" ? new Date().toISOString().split("T")[0] : value;
+                const date = resolveDate(value);
 
+                // 🔍 CACHE CHECK
+                const cached = await getCachedDay(userRef, date);
+                if (isCacheValid(cached)) {
+                    return NextResponse.json({ timetable: cached.data, cached: true });
+                }
+
+                // ❌ FETCH
                 const timetable = await standardiseDay({
                     provider: "ical",
                     parsedICalEvents: parsedEvents,
                     date,
                 });
 
-                return NextResponse.json({ timetable });
+                // 💾 CACHE
+                await setCachedDay(userRef, date, timetable);
+
+                return NextResponse.json({ timetable, cached: false });
             }
 
             // ---- WEEK ----
             if (mode === "week") {
-                // group parsed events by YYYY-MM-DD
-                const grouped: Record<string, any[]> = {};
+                const startDate = value;
+                const days: string[] = [];
 
-                for (const event of parsedEvents) {
-                    const date = event.startDate.toISOString().split("T")[0];
-                    if (!grouped[date]) grouped[date] = [];
-                    grouped[date].push(event);
+                // build 7-day range
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(startDate);
+                    d.setDate(d.getDate() + i);
+                    days.push(d.toISOString().split("T")[0]);
                 }
 
-                const timetable = await standardiseWeek({
-                    provider: "ical",
-                    startDate: value,
-                    icalEventsByDay: grouped,
-                });
+                const results: Record<string, any> = {};
 
-                return NextResponse.json({ timetable });
+                for (const date of days) {
+                    const cached = await getCachedDay(userRef, date);
+
+                    if (isCacheValid(cached)) {
+                        results[date] = cached.data;
+                        continue;
+                    }
+
+                    const timetable = await standardiseDay({
+                        provider: "ical",
+                        parsedICalEvents: parsedEvents,
+                        date,
+                    });
+
+                    await setCachedDay(userRef, date, timetable);
+                    results[date] = timetable;
+                }
+
+                return NextResponse.json({ timetable: results });
             }
         }
 
@@ -136,48 +205,81 @@ export async function GET(req: Request) {
 
             // ---- TODAY / DAY ----
             if (mode === "today" || mode === "day") {
-                const dayValue = mode === "today" ? "today" : value;
+                const date = resolveDate(value);
 
-                const rawDay = await FetchTimetableDay(cookies, baseUrl, dayValue);
+                // 🔍 CACHE CHECK
+                const cached = await getCachedDay(userRef, date);
+                if (isCacheValid(cached)) {
+                    return NextResponse.json({ timetable: cached.data, cached: true });
+                }
+
+                // ❌ FETCH
+                const rawDay = await FetchTimetableDay(
+                    cookies,
+                    baseUrl,
+                    mode === "today" ? "today" : date,
+                );
 
                 const timetable = await standardiseDay({
                     provider: "edumate",
                     rawDay,
-                    date: dayValue === "today" ? new Date().toISOString().split("T")[0] : dayValue,
+                    date,
                 });
 
+                // 💾 CACHE + COOKIES
                 await userRef.set(
                     {
                         timetable: {
                             currentCookies: cookies,
-                            lastFetchedTimetable: timetable,
                         },
                     },
                     { merge: true },
                 );
 
-                return NextResponse.json({ timetable });
+                await setCachedDay(userRef, date, timetable);
+
+                return NextResponse.json({ timetable, cached: false });
             }
 
             // ---- WEEK ----
             if (mode === "week") {
-                const timetable = await standardiseWeek({
-                    provider: "edumate",
-                    startDate: value,
-                    fetchEdumateDay: (date) => FetchTimetableDay(cookies, baseUrl, date),
-                });
+                const startDate = value;
+                const results: Record<string, any> = {};
+
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(startDate);
+                    d.setDate(d.getDate() + i);
+                    const date = d.toISOString().split("T")[0];
+
+                    const cached = await getCachedDay(userRef, date);
+
+                    if (isCacheValid(cached)) {
+                        results[date] = cached.data;
+                        continue;
+                    }
+
+                    const rawDay = await FetchTimetableDay(cookies, baseUrl, date);
+
+                    const timetable = await standardiseDay({
+                        provider: "edumate",
+                        rawDay,
+                        date,
+                    });
+
+                    await setCachedDay(userRef, date, timetable);
+                    results[date] = timetable;
+                }
 
                 await userRef.set(
                     {
                         timetable: {
                             currentCookies: cookies,
-                            lastFetchedTimetable: timetable,
                         },
                     },
                     { merge: true },
                 );
 
-                return NextResponse.json({ timetable });
+                return NextResponse.json({ timetable: results });
             }
         }
 
