@@ -118,4 +118,16 @@ export const css = {
             },
         },
     },
+    app: {
+        lms: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "w-full h-full",
+                    announcements: {
+                        "ROOT-STYLE": "w-full p-3 h-24",
+                    },
+                },
+            },
+        },
+    },
 };
