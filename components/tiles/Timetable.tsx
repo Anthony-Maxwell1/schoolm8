@@ -124,30 +124,40 @@ function addDays(date: Date, days: number) {
 
 export function TimetableGrid() {
     const [timetable, setTimetable] = useState<TimetableDay[]>([]);
-    const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
     const { token, loading } = useAuth();
 
+    const [hoveredEvent, setHoveredEvent] = useState<TimetableEvent | null>(null);
+    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
+    const allHours = Array.from({ length: 11 }, (_, i) => i + 8); // 08:00 – 18:00
+
+    // Mouse tracking
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            setTooltipPos({ x: e.clientX - 530, y: e.clientY - 200 });
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, []);
+
+    // Fetch days
     async function fetchDays(amount: number) {
         if (!token) return;
-
         setLoadingMore(true);
 
         const startIndex = timetable.length;
-
         for (let i = 0; i < amount; i++) {
             try {
-                const day = addDays(new Date(), startIndex + i)
+                const dayStr = addDays(new Date(), startIndex + i)
                     .toISOString()
                     .split("T")[0];
-
-                const data = await fetchDayCached(day, token);
-
+                const data = await fetchDayCached(dayStr, token);
                 if (data) {
-                    setTimetable((prev) => {
-                        if (prev.some((d) => d.date === data.date)) return prev;
-                        return [...prev, data];
-                    });
+                    setTimetable((prev) =>
+                        prev.some((d) => d.date === data.date) ? prev : [...prev, data],
+                    );
                 }
             } catch {
                 setHasMore(false);
@@ -159,23 +169,24 @@ export function TimetableGrid() {
 
     useEffect(() => {
         if (loading || !token) return;
-        fetchDays(5);
+        fetchDays(DAYS_PER_PAGE);
     }, [loading, token]);
-
-    const allHours = Array.from({ length: 11 }, (_, i) => i + 8); // 08:00 – 18:00
 
     function eventTop(start: string) {
         const date = new Date(start);
         const h = date.getHours();
         const m = date.getMinutes();
-        return ((h - 8) * 60 + m) * (64 / 60);
+        return ((h - 8) * 60 + m) * (64 / 60); // 64px per hour
     }
 
     return (
-        <div>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Timetable</h2>
+        <div className="relative">
+            {loadingMore && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-50">
+                    Loading...
+                </div>
+            )}
 
-            {/* Scroll container */}
             <div className="max-h-[70vh] overflow-auto rounded-lg">
                 <div className="flex min-w-max">
                     {/* Hour labels */}
@@ -227,11 +238,13 @@ export function TimetableGrid() {
                                     {day.events.map((event, idx) => (
                                         <div
                                             key={event.id ?? `${event.title}-${event.start}-${idx}`}
-                                            className="absolute left-1 right-1 overflow-hidden rounded-md bg-blue-100 px-2 py-1 shadow-sm"
+                                            className="absolute left-0 right-0 mx-1 overflow-hidden rounded-md bg-blue-100 px-2 py-1 shadow-sm cursor-pointer"
                                             style={{
                                                 top: `${eventTop(event.start)}px`,
                                                 minHeight: "40px",
                                             }}
+                                            onMouseEnter={() => setHoveredEvent(event)}
+                                            onMouseLeave={() => setHoveredEvent(null)}
                                         >
                                             <p className="truncate text-xs font-semibold text-blue-900">
                                                 {event.title}
@@ -248,8 +261,16 @@ export function TimetableGrid() {
                 </div>
             </div>
 
-            {!hasMore && timetable.length === 0 && (
-                <p className="text-sm text-gray-500">No classes scheduled.</p>
+            {/* Tooltip */}
+            {hoveredEvent && (
+                <div
+                    className="fixed max-w-xs bg-white rounded-lg border-black border-2 p-2 shadow-lg z-50 pointer-events-none"
+                    style={{ left: tooltipPos.x, top: tooltipPos.y }}
+                >
+                    <span className="text-lg font-semibold">{hoveredEvent.title}</span>
+                    <p className="text-blue-600">{hoveredEvent.start}</p>
+                    <p>{hoveredEvent.room ?? "TBC"}</p>
+                </div>
             )}
         </div>
     );

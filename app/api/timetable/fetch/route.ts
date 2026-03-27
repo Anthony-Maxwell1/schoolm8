@@ -201,6 +201,14 @@ export async function GET(req: Request) {
             if (!cookies) {
                 cookies = await ObtainAuthCredentials(baseUrl, username, password);
                 if (!cookies) throw new Error("Failed to authenticate with Edumate");
+                await userRef.set(
+                    {
+                        timetable: {
+                            currentCookies: cookies,
+                        },
+                    },
+                    { merge: true },
+                );
             }
 
             // ---- TODAY / DAY ----
@@ -219,6 +227,23 @@ export async function GET(req: Request) {
                     baseUrl,
                     mode === "today" ? "today" : date,
                 );
+
+                if (rawDay.error) {
+                    if (rawDay.error == 401) {
+                        cookies = await ObtainAuthCredentials(baseUrl, username, password);
+                        if (!cookies) throw new Error("Failed to authenticate with Edumate");
+                        await userRef.set(
+                            {
+                                timetable: {
+                                    currentCookies: cookies,
+                                },
+                            },
+                            { merge: true },
+                        );
+                    } else {
+                        throw new Error();
+                    }
+                }
 
                 const timetable = await standardiseDay({
                     provider: "edumate",
