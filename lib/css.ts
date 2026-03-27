@@ -1,3 +1,4 @@
+// This is styling, mainly for components and pages not affected by dashboard themes.
 export const css = {
     components: {
         tiles: {
@@ -56,8 +57,61 @@ export const css = {
                         inner: {
                             "ROOT-STYLE": "max-h-[70vh] overflow-auto rounded-lg",
                             inner: {
-                                "ROOT-STYLE": "",
+                                "ROOT-STYLE": "flex min-w-max",
+                                hourlabels: {
+                                    "ROOT-STYLE": "mt-10 flex w-14 shrink-0 flex-col",
+                                    label: {
+                                        "ROOT-STYLE":
+                                            "flex h-16 items-start justify-end pr-2 text-xs text-gray-400",
+                                    },
+                                },
+                                daycolumns: {
+                                    "ROOT-STYLE": "flex gap-1",
+                                    column: {
+                                        "ROOT-STYLE": "w-36 shrink-0",
+                                        header: {
+                                            "ROOT-STYLE":
+                                                "mb-1 h-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500",
+                                            weekday: {},
+                                            date: {
+                                                "ROOT-STYLE":
+                                                    "text-base font-semibold text-gray-800",
+                                            },
+                                        },
+                                        grid: {
+                                            "ROOT-STYLE":
+                                                "relative rounded-lg border border-gray-100 bg-gray-50",
+                                            hourlines: {
+                                                "ROOT-STYLE":
+                                                    "absolute left-0 right-0 border-t border-gray-200",
+                                            },
+                                            event: {
+                                                "ROOT-STYLE":
+                                                    "absolute left-0 right-0 mx-1 overflow-hidden rounded-md bg-blue-100 px-2 py-1 shadow-sm cursor-pointer",
+                                                name: {
+                                                    "ROOT-STYLE":
+                                                        "truncate text-xs font-semibold text-blue-900",
+                                                },
+                                                details: {
+                                                    "ROOT-STYLE": "truncate text-xs text-blue-600",
+                                                    delimeter: " · ",
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
                             },
+                        },
+                        tooltip: {
+                            "ROOT-STYLE":
+                                "fixed max-w-xs bg-white rounded-lg border-black border-2 p-2 shadow-lg z-50 pointer-events-none",
+                            name: {
+                                "ROOT-STYLE": "text-lg font-semibold",
+                            },
+                            time: {
+                                "ROOT-STYLE": "text-blue-600",
+                            },
+                            room: {},
                         },
                     },
                 },

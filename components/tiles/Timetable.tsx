@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/authContext";
+import { css } from "@/lib/css";
 
 type TimetableEvent = {
     id?: string;
@@ -42,6 +43,7 @@ async function fetchDayCached(day: string, token: string): Promise<TimetableDay 
 export function TimetableList() {
     const [timetable, setTimetable] = useState<TimetableDay[]>([]);
     const { token, loading } = useAuth();
+    const style = css.components.tiles.Timetable.TimetableList;
 
     useEffect(() => {
         if (loading || !token) return;
@@ -69,16 +71,16 @@ export function TimetableList() {
     }, [loading, token]);
 
     return (
-        <div className="overflow-y-auto">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Timetable</h2>
+        <div className={style.main["ROOT-STYLE"]}>
+            <h2 className={style.main.title["ROOT-STYLE"]}>{style.main.title.CONTENT}</h2>
 
             {timetable.length === 0 ? (
-                <p className="text-sm text-gray-500">No classes scheduled.</p>
+                <p className={style.main.noclasses["ROOT-STYLE"]}>{style.main.noclasses.CONTENT}</p>
             ) : (
-                <div className="space-y-5">
+                <div className={style.main.inner["ROOT-STYLE"]}>
                     {timetable.map((day) => (
-                        <div key={day.date} className="space-y-2">
-                            <h3 className="text-sm font-medium uppercase tracking-wide text-gray-500">
+                        <div key={day.date} className={style.main.inner.day["ROOT-STYLE"]}>
+                            <h3 className={style.main.inner.day["date-time"]["ROOT-STYLE"]}>
                                 {new Date(day.date).toLocaleDateString(undefined, {
                                     weekday: "long",
                                     month: "short",
@@ -86,21 +88,41 @@ export function TimetableList() {
                                 })}
                             </h3>
 
-                            <div className="space-y-2">
+                            <div className={style.main.inner.day.inner["ROOT-STYLE"]}>
                                 {day.events.map((event, idx) => (
                                     <div
                                         key={event.id ?? `${event.title}-${event.start}-${idx}`}
-                                        className="flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 p-3"
+                                        className={style.main.inner.day.inner.event["ROOT-STYLE"]}
                                     >
-                                        <div className="min-w-0">
-                                            <p className="truncate font-medium text-blue-900">
+                                        <div
+                                            className={
+                                                style.main.inner.day.inner.event.main["ROOT-STYLE"]
+                                            }
+                                        >
+                                            <p
+                                                className={
+                                                    style.main.inner.day.inner.event.main.name[
+                                                        "ROOT-STYLE"
+                                                    ]
+                                                }
+                                            >
                                                 {event.title}
                                             </p>
-                                            <p className="text-sm text-blue-700">
+                                            <p
+                                                className={
+                                                    style.main.inner.day.inner.event.main.room[
+                                                        "ROOT-STYLE"
+                                                    ]
+                                                }
+                                            >
                                                 {event.room ?? "Room TBC"}
                                             </p>
                                         </div>
-                                        <span className="ml-3 shrink-0 rounded-md bg-white px-2 py-1 text-xs font-semibold text-blue-700">
+                                        <span
+                                            className={
+                                                style.main.inner.day.inner.event.time["ROOT-STYLE"]
+                                            }
+                                        >
                                             {event.start}
                                         </span>
                                     </div>
@@ -127,6 +149,8 @@ export function TimetableGrid() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const { token, loading } = useAuth();
+
+    const style = css.components.tiles.Timetable.TimetableGrid;
 
     const [hoveredEvent, setHoveredEvent] = useState<TimetableEvent | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -180,21 +204,21 @@ export function TimetableGrid() {
     }
 
     return (
-        <div className="relative">
+        <div className={style.main["ROOT-STYLE"]}>
             {loadingMore && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-50">
-                    Loading...
+                <div className={style.main.loading["ROOT-STYLE"]}>
+                    {style.main.loading["CONTENT"]}
                 </div>
             )}
 
-            <div className="max-h-[70vh] overflow-auto rounded-lg">
-                <div className="flex min-w-max">
+            <div className={style.main.inner["ROOT-STYLE"]}>
+                <div className={style.main.inner.inner["ROOT-STYLE"]}>
                     {/* Hour labels */}
-                    <div className="mt-10 flex w-14 shrink-0 flex-col">
+                    <div className={style.main.inner.inner.hourlabels["ROOT-STYLE"]}>
                         {allHours.map((h) => (
                             <div
                                 key={h}
-                                className="flex h-16 items-start justify-end pr-2 text-xs text-gray-400"
+                                className={style.main.inner.inner.hourlabels.label["ROOT-STYLE"]}
                             >
                                 {String(h).padStart(2, "0")}:00
                             </div>
@@ -202,17 +226,32 @@ export function TimetableGrid() {
                     </div>
 
                     {/* Day columns */}
-                    <div className="flex gap-1">
+                    <div className={style.main.inner.inner.daycolumns["ROOT-STYLE"]}>
                         {timetable.map((day) => (
-                            <div key={day.date} className="w-36 shrink-0">
+                            <div
+                                key={day.date}
+                                className={style.main.inner.inner.daycolumns.column["ROOT-STYLE"]}
+                            >
                                 {/* Day header */}
-                                <div className="mb-1 h-10 text-center text-xs font-medium uppercase tracking-wide text-gray-500">
+                                <div
+                                    className={
+                                        style.main.inner.inner.daycolumns.column.header[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
+                                >
                                     <div>
                                         {new Date(day.date).toLocaleDateString(undefined, {
                                             weekday: "short",
                                         })}
                                     </div>
-                                    <div className="text-base font-semibold text-gray-800">
+                                    <div
+                                        className={
+                                            style.main.inner.inner.daycolumns.column.header.date[
+                                                "ROOT-STYLE"
+                                            ]
+                                        }
+                                    >
                                         {new Date(day.date).toLocaleDateString(undefined, {
                                             day: "numeric",
                                             month: "short",
@@ -222,14 +261,19 @@ export function TimetableGrid() {
 
                                 {/* Grid body */}
                                 <div
-                                    className="relative rounded-lg border border-gray-100 bg-gray-50"
+                                    className={
+                                        style.main.inner.inner.daycolumns.column.grid["ROOT-STYLE"]
+                                    }
                                     style={{ height: `${allHours.length * 64}px` }}
                                 >
                                     {/* Hour lines */}
                                     {allHours.map((h) => (
                                         <div
                                             key={h}
-                                            className="absolute left-0 right-0 border-t border-gray-200"
+                                            className={
+                                                style.main.inner.inner.daycolumns.column.grid
+                                                    .hourlines["ROOT-STYLE"]
+                                            }
                                             style={{ top: `${(h - 8) * 64}px` }}
                                         />
                                     ))}
@@ -238,7 +282,11 @@ export function TimetableGrid() {
                                     {day.events.map((event, idx) => (
                                         <div
                                             key={event.id ?? `${event.title}-${event.start}-${idx}`}
-                                            className="absolute left-0 right-0 mx-1 overflow-hidden rounded-md bg-blue-100 px-2 py-1 shadow-sm cursor-pointer"
+                                            className={
+                                                style.main.inner.inner.daycolumns.column.grid.event[
+                                                    "ROOT-STYLE"
+                                                ]
+                                            }
                                             style={{
                                                 top: `${eventTop(event.start)}px`,
                                                 minHeight: "40px",
@@ -246,10 +294,20 @@ export function TimetableGrid() {
                                             onMouseEnter={() => setHoveredEvent(event)}
                                             onMouseLeave={() => setHoveredEvent(null)}
                                         >
-                                            <p className="truncate text-xs font-semibold text-blue-900">
+                                            <p
+                                                className={
+                                                    style.main.inner.inner.daycolumns.column.grid
+                                                        .event.name["ROOT-STYLE"]
+                                                }
+                                            >
                                                 {event.title}
                                             </p>
-                                            <p className="truncate text-xs text-blue-600">
+                                            <p
+                                                className={
+                                                    style.main.inner.inner.daycolumns.column.grid
+                                                        .event.details["ROOT-STYLE"]
+                                                }
+                                            >
                                                 {event.start} · {event.room ?? "TBC"}
                                             </p>
                                         </div>
@@ -264,11 +322,13 @@ export function TimetableGrid() {
             {/* Tooltip */}
             {hoveredEvent && (
                 <div
-                    className="fixed max-w-xs bg-white rounded-lg border-black border-2 p-2 shadow-lg z-50 pointer-events-none"
+                    className={style.main.tooltip["ROOT-STYLE"]}
                     style={{ left: tooltipPos.x, top: tooltipPos.y }}
                 >
-                    <span className="text-lg font-semibold">{hoveredEvent.title}</span>
-                    <p className="text-blue-600">{hoveredEvent.start}</p>
+                    <span className={style.main.tooltip.name["ROOT-STYLE"]}>
+                        {hoveredEvent.title}
+                    </span>
+                    <p className={style.main.tooltip.time["ROOT-STYLE"]}>{hoveredEvent.start}</p>
                     <p>{hoveredEvent.room ?? "TBC"}</p>
                 </div>
             )}
