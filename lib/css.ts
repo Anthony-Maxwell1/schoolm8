@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 // This is styling, mainly for components and pages not affected by dashboard themes.
 export const css = {
     components: {
@@ -122,9 +124,92 @@ export const css = {
         lms: {
             page: {
                 main: {
-                    "ROOT-STYLE": "w-full h-full",
-                    announcements: {
-                        "ROOT-STYLE": "w-full p-3 h-24",
+                    "ROOT-STYLE": "min-h-screen bg-gray-100 p-6 flex flex-col items-center gap-10",
+                    title: {
+                        "ROOT-STYLE": "text-4xl font-bold",
+                        CONTENT: "LMS Dashboard",
+                    },
+                    section: {
+                        "ROOT-STYLE": "w-full max-w-6xl",
+                        header: {
+                            "ROOT-STYLE": "flex justify-between items-center mb-3",
+                            title: {
+                                "ROOT-STYLE": "text-2xl font-semibold",
+                            },
+                            seeall: {
+                                "ROOT-STYLE": "text-blue-500 hover:underline cursor-pointer",
+                                CONTENT: "See all",
+                            },
+                        },
+                        carousel: {
+                            "ROOT-STYLE": "relative",
+                            left: {
+                                "ROOT-STYLE":
+                                    "absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md p-2 rounded-full hover:scale-105 transition cursor-pointer",
+                                CONTENT: "←",
+                            },
+                            right: {
+                                "ROOT-STYLE":
+                                    "absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md p-2 rounded-full hover:scale-105 transition cursor-pointer",
+                                CONTENT: "→",
+                            },
+                            scrollarea: {
+                                "ROOT-STYLE":
+                                    "flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2 px-8",
+                                item: {
+                                    "ROOT-STYLE":
+                                        "min-w-[260px] bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer",
+                                    image: {
+                                        "ROOT-STYLE": "w-full h-32 object-cover",
+                                    },
+                                    inner: {
+                                        "ROOT-STYLE": "p-3",
+                                        title: {
+                                            "ROOT-STYLE": "font-semibold",
+                                        },
+                                        description: {
+                                            "ROOT-STYLE": "text-sm text-gray-600",
+                                        },
+                                        due: {
+                                            "ROOT-STYLE": "text-sm text-red-500 mt-1",
+                                            CONTENT: "Due: ",
+                                        },
+                                        created: {
+                                            "ROOT-STYLE": "text-xs text-gray-400 mt-1",
+                                            CONTENT: "Created: ",
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    courses: {
+                        "ROOT-STYLE": "w-full max-w-6xl",
+                        title: {
+                            "ROOT-STYLE": "text-2xl font-semibold mb-3",
+                            CONTENT: "Courses",
+                        },
+                        inner: {
+                            "ROOT-STYLE": "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
+                            course: {
+                                "ROOT-STYLE":
+                                    "relative h-40 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer group",
+                                image: {
+                                    "ROOT-STYLE":
+                                        "w-full h-full object-cover group-hover:scale-105 transition",
+                                },
+                                overlay: {
+                                    "ROOT-STYLE":
+                                        "absolute inset-0 bg-black/40 group-hover:bg-black/30 transition",
+                                },
+                                name: {
+                                    "ROOT-STYLE": "absolute bottom-3 left-3 text-white",
+                                    inner: {
+                                        "ROOT-STYLE": "font-semibold text-lg",
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
