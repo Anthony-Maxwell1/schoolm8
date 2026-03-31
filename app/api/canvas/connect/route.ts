@@ -40,6 +40,7 @@ export async function POST(req: Request) {
                 info: {
                     canvasBaseUrl: baseUrl,
                 },
+                lms: "canvas",
             },
             { merge: true },
         );

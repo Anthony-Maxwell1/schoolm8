@@ -1,4 +1,9 @@
-import { CanvasAssignment, CanvasCourse } from "@/app/api/canvas/sync/route";
+import {
+    CanvasAssignment,
+    LMSAssignment,
+    LMSAnnouncement,
+    CanvasCourse,
+} from "@/app/api/canvas/sync/route";
 import { ClassroomAssignment, ClassroomCourse } from "@/app/api/googleclassroom/sync/route";
 
 export type Assignment = {
@@ -11,6 +16,12 @@ export type Assignment = {
     created?: Date;
     url?: string;
     source: "canvas" | "classroom" | "moodle";
+    submission: boolean;
+    submissionState: string;
+    projects: any[];
+    missing: boolean;
+    rawCanvasData?: CanvasAssignment;
+    rawClassroomData?: ClassroomAssignment;
 };
 
 export type Course = {
@@ -41,31 +52,20 @@ export function normalizeCourse(course: CanvasCourse | ClassroomCourse): Course 
     }
 }
 
-export function normalizeAssignment(
-    assignment: CanvasAssignment | ClassroomAssignment,
-): Assignment {
+export function normalizeAssignment(assignment: LMSAssignment | ClassroomAssignment): Assignment {
     if (assignment.hasOwnProperty("courseId")) {
-        const a = assignment as CanvasAssignment;
+        const a = assignment as LMSAssignment;
         return {
-            id: a.id.toString(),
-            title: a.name,
-            description: a.description,
-            courseId: a.id.toString(),
-            courseName: a.name,
-            dueAt: a.due_at ? new Date(a.due_at) : undefined,
-            url: a.html_url,
+            ...a,
+            dueAt: a.dueAt ? new Date(a.dueAt) : undefined,
             source: "canvas",
         };
     } else {
         const a = assignment as ClassroomAssignment;
         return {
-            id: a.id,
-            title: a.title,
-            description: a.description,
-            courseId: a.courseId,
-            courseName: a.courseName,
+            ...a,
+            submission: a.submittedAt !== null,
             dueAt: a.dueAt ? new Date(a.dueAt) : undefined,
-            url: a.url,
             source: "classroom",
         };
     }

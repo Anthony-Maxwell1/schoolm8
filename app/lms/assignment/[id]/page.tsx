@@ -2,28 +2,28 @@
 
 import { css } from "@/lib/css";
 
-type Data = {
+export type Data = {
+    id: string;
     title: string;
-    desc: string;
-    rubric: Record<string, Array<string>>;
-    course: string;
+    description: string;
+    courseId: string;
+    courseName: string;
+    dueAt?: Date;
     created?: Date;
-    due?: Date;
-    link?: string;
-    source?: string;
+    url?: string;
+    source: "canvas" | "classroom" | "moodle";
+    rubric?: Record<string, string[]>;
 };
 
 const data: Data = {
     title: "Hello!",
-    desc: "this is a description",
-    rubric: {
-        "Section 1": ["1 Point", "2 Points", "3 Points"],
-        "Section 2": ["1 Point", "2 Points"],
-    },
-    course: "Testing",
+    id: "123",
+    description: "this is a description",
+    courseName: "Testing",
+    courseId: "123",
     created: new Date(),
-    due: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
-    link: "https://test.com",
+    dueAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
+    url: "https://test.com",
     source: "classroom",
 };
 
@@ -36,8 +36,8 @@ export default async function Assignment({ params }: { params: { id: string } })
 
     const style = css.app.lms.assignment;
 
-    const headers = Object.keys(data.rubric);
-    const maxRows = getMaxRows(data.rubric);
+    const headers = data.rubric && Object.keys(data.rubric);
+    const maxRows = data.rubric && getMaxRows(data.rubric);
 
     return (
         <div className={style.main["ROOT-STYLE"]}>
@@ -52,59 +52,66 @@ export default async function Assignment({ params }: { params: { id: string } })
 
                 <h1 className={style.header.title["ROOT-STYLE"]}>{data.title}</h1>
 
-                <p className={style.header.course["ROOT-STYLE"]}>{data.course}</p>
+                <p className={style.header.course["ROOT-STYLE"]}>{data.courseName}</p>
 
                 <div className={style.header.dates["ROOT-STYLE"]}>
                     {data.created && <span>Created: {data.created.toLocaleDateString()}</span>}
-                    {data.due && (
+                    {data.dueAt && (
                         <span className={style.header.due["ROOT-STYLE"]}>
-                            Due: {data.due.toLocaleDateString()}
+                            Due: {data.dueAt.toLocaleDateString()}
                         </span>
                     )}
                 </div>
 
-                <p className={style.header.desc["ROOT-STYLE"]}>{data.desc}</p>
+                <p className={style.header.desc["ROOT-STYLE"]}>{data.description}</p>
 
-                {data.link && (
-                    <a href={data.link} target="_blank" className={style.header.link["ROOT-STYLE"]}>
+                {data.url && (
+                    <a href={data.url} target="_blank" className={style.header.link["ROOT-STYLE"]}>
                         Open Resource →
                     </a>
                 )}
             </div>
 
             {/* Rubric */}
-            <div className={style.rubric.card["ROOT-STYLE"]}>
-                <h2 className={style.rubric.title["ROOT-STYLE"]}>{style.rubric.title.CONTENT}</h2>
+            {data.rubric && headers && maxRows && (
+                <div className={style.rubric.card["ROOT-STYLE"]}>
+                    <h2 className={style.rubric.title["ROOT-STYLE"]}>
+                        {style.rubric.title.CONTENT}
+                    </h2>
 
-                <div className={style.rubric.tableWrapper["ROOT-STYLE"]}>
-                    <table className={style.rubric.table["ROOT-STYLE"]}>
-                        <thead>
-                            <tr>
-                                {headers.map((h) => (
-                                    <th key={h} className={style.rubric.table.header["ROOT-STYLE"]}>
-                                        {h}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {Array.from({ length: maxRows }).map((_, row) => (
-                                <tr key={row}>
+                    <div className={style.rubric.tableWrapper["ROOT-STYLE"]}>
+                        <table className={style.rubric.table["ROOT-STYLE"]}>
+                            <thead>
+                                <tr>
                                     {headers.map((h) => (
-                                        <td
+                                        <th
                                             key={h}
-                                            className={style.rubric.table.cell["ROOT-STYLE"]}
+                                            className={style.rubric.table.header["ROOT-STYLE"]}
                                         >
-                                            {data.rubric[h][row] ?? ""}
-                                        </td>
+                                            {h}
+                                        </th>
                                     ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+
+                            <tbody>
+                                {Array.from({ length: maxRows }).map((_, row) => (
+                                    <tr key={row}>
+                                        {headers.map((h) => (
+                                            <td
+                                                key={h}
+                                                className={style.rubric.table.cell["ROOT-STYLE"]}
+                                            >
+                                                {data.rubric![h][row] ?? ""}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

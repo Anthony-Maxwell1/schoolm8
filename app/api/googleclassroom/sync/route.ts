@@ -4,6 +4,10 @@ import { db } from "@/lib/firebaseAdmin";
 import { google, classroom_v1 } from "googleapis";
 import { htmlToText } from "html-to-text";
 
+/* =========================
+   Types
+========================= */
+
 export type ClassroomCourse = {
     id: string;
     name: string;
@@ -18,15 +22,40 @@ export type ClassroomAssignment = {
     courseName: string;
     dueAt: string | null;
     url: string;
+
     submissionState: string;
     submittedAt: string | null;
+
     projects: any[];
     missing: boolean;
-    rawClassroomData: any;
+
+    rawClassroomData: classroom_v1.Schema$CourseWork;
+
     updatedAt: string;
     createdAt: string;
+
     overriddenFields: string[];
 };
+
+export type ClassroomAnnouncement = {
+    id: string;
+    text: string;
+    courseId: string;
+    courseName: string;
+    state: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type ClassroomSyncResult = {
+    assignments: Record<string, ClassroomAssignment>;
+    announcements: Record<string, ClassroomAnnouncement>;
+    courses: Record<string, ClassroomCourse>;
+};
+
+/* =========================
+   Helpers
+========================= */
 
 function cleanUndefined(obj: any): any {
     if (Array.isArray(obj)) return obj.map(cleanUndefined);
@@ -41,9 +70,13 @@ function cleanUndefined(obj: any): any {
     return obj;
 }
 
-function sanitizeHTML(input: string | undefined): string {
+function sanitizeHTML(input?: string): string {
     return htmlToText(input || "", {}).trim();
 }
+
+/* =========================
+   Route
+========================= */
 
 export async function GET(req: Request) {
     try {
@@ -56,13 +89,18 @@ export async function GET(req: Request) {
 
         const idToken = authHeader.split(" ")[1];
 
-        // Import Firebase auth lazily to avoid circular imports
         const { auth } = await import("@/lib/firebaseAdmin");
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
 
-        const assignments = await syncClassroomForUser(userId);
-        return NextResponse.json({ status: "ok", assignments });
+        const { assignments, announcements, courses } = await syncClassroomForUser(userId);
+
+        return NextResponse.json({
+            status: "ok",
+            assignments,
+            announcements,
+            courses,
+        });
     } catch (err: any) {
         console.error("CLASSROOM SYNC ERROR FULL:", err);
 
@@ -79,21 +117,27 @@ export async function GET(req: Request) {
     }
 }
 
-async function syncClassroomForUser(userId: string) {
+/* =========================
+   Core Sync
+========================= */
+
+async function syncClassroomForUser(userId: string): Promise<ClassroomSyncResult> {
     const userRef = db.collection("users").doc(userId);
     const doc = await userRef.get();
     if (!doc.exists) throw new Error("User not found");
 
     const userData = doc.data();
     const tokenData = userData?.google?.classroom?.token;
-    if (!tokenData?.access_token || !tokenData?.refresh_token)
-        throw new Error("Missing Google Classroom tokens");
 
-    // Initialize OAuth2 client
+    if (!tokenData?.access_token || !tokenData?.refresh_token) {
+        throw new Error("Missing Google Classroom tokens");
+    }
+
     const oAuth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
     );
+
     oAuth2Client.setCredentials({
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
@@ -101,25 +145,54 @@ async function syncClassroomForUser(userId: string) {
         token_type: tokenData.token_type,
     });
 
-    const classroom = google.classroom({ version: "v1", auth: oAuth2Client });
+    const classroom = google.classroom({
+        version: "v1",
+        auth: oAuth2Client,
+    });
 
-    // Fetch courses
+    /* =========================
+       Fetch Courses
+    ========================= */
+
     const coursesRes = await classroom.courses.list();
-    const courses: classroom_v1.Schema$Course[] = coursesRes.data.courses || [];
+    const courses = coursesRes.data.courses || [];
+
+    const coursesMap: Record<string, ClassroomCourse> = {};
+    for (const c of courses) {
+        if (!c.id) continue;
+        coursesMap[c.id] = {
+            id: c.id,
+            name: c.name || "",
+            url: c.alternateLink || "",
+        };
+    }
+
+    /* =========================
+       Prepare
+    ========================= */
 
     const existingAssignments: Record<string, ClassroomAssignment> =
         userData?.data?.assignments || {};
+
     const updatedAssignments: Record<string, ClassroomAssignment> = {};
+    const updatedAnnouncements: Record<string, ClassroomAnnouncement> = {};
+
     const seenIds = new Set<string>();
+
+    /* =========================
+       Loop Courses
+    ========================= */
 
     for (const course of courses) {
         if (!course.id) continue;
 
-        // Fetch course work (assignments)
+        /* ---------- Assignments ---------- */
+
         const assignmentsRes = await classroom.courses.courseWork.list({
             courseId: course.id,
         });
-        const courseWork: classroom_v1.Schema$CourseWork[] = assignmentsRes.data.courseWork || [];
+
+        const courseWork = assignmentsRes.data.courseWork || [];
 
         for (const a of courseWork) {
             if (!a.id) continue;
@@ -130,27 +203,28 @@ async function syncClassroomForUser(userId: string) {
             const existing = existingAssignments[id];
             const overriddenKeys: string[] = existing?.overriddenFields || [];
 
-            // Fetch student submissions for this assignment
+            /* ---- Submission ---- */
+
             const submissionsRes = await classroom.courses.courseWork.studentSubmissions.list({
                 courseId: course.id,
                 courseWorkId: a.id,
                 userId: "me",
             });
+
             const submission = submissionsRes.data.studentSubmissions?.[0];
 
             let submittedAt: string | null = null;
 
-            if (submission?.submissionHistory?.length) {
-                const firstHistory = submission.submissionHistory[0]; // Schema$SubmissionHistory
-                if (firstHistory.stateHistory?.stateTimestamp) {
-                    submittedAt = new Date(firstHistory.stateHistory.stateTimestamp).toISOString();
-                }
+            if (submission?.updateTime) {
+                submittedAt = new Date(submission.updateTime).toISOString();
             }
+
+            /* ---- Assignment ---- */
 
             const assignment: ClassroomAssignment = {
                 id,
                 title: a.title || "",
-                description: sanitizeHTML(a.description ?? ""),
+                description: a.description ? sanitizeHTML(a.description) : "",
                 courseId: course.id,
                 courseName: course.name || "",
                 dueAt: a.dueDate
@@ -163,29 +237,60 @@ async function syncClassroomForUser(userId: string) {
                       ).toISOString()
                     : null,
                 url: a.alternateLink || "",
+
                 submissionState: submission?.state || "NEW",
                 submittedAt,
+
                 projects: existing?.projects || [],
                 missing: false,
+
                 rawClassroomData: a,
+
                 updatedAt: new Date().toISOString(),
                 createdAt: existing?.createdAt || new Date().toISOString(),
+
                 overriddenFields: overriddenKeys,
             };
 
-            // Apply overridden fields
             for (const key of overriddenKeys) {
                 if (existing && key in existing) {
-                    // @ts-ignore Safe because we trust overriddenKeys
+                    // @ts-ignore
                     assignment[key] = existing[key];
                 }
             }
 
             updatedAssignments[id] = assignment;
         }
+
+        /* ---------- Announcements ---------- */
+
+        const announcementsRes = await classroom.courses.announcements.list({
+            courseId: course.id,
+        });
+
+        const announcements = announcementsRes.data.announcements || [];
+
+        for (const ann of announcements) {
+            if (!ann.id) continue;
+
+            updatedAnnouncements[ann.id] = {
+                id: ann.id,
+                text: ann.text ? sanitizeHTML(ann.text) : "",
+                courseId: course.id,
+                courseName: course.name || "",
+                state: ann.state || "UNKNOWN",
+                createdAt: ann.creationTime
+                    ? new Date(ann.creationTime).toISOString()
+                    : new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+        }
     }
 
-    // Mark missing assignments
+    /* =========================
+       Missing Assignments
+    ========================= */
+
     for (const id of Object.keys(existingAssignments)) {
         if (!seenIds.has(id)) {
             updatedAssignments[id] = {
@@ -196,30 +301,26 @@ async function syncClassroomForUser(userId: string) {
         }
     }
 
-    // Build courses map
-    const coursesMap: Record<string, ClassroomCourse> = {};
-    for (const c of courses) {
-        if (!c.id) continue;
-        coursesMap[c.id] = {
-            id: c.id,
-            name: c.name || "",
-            url: c.alternateLink || "",
-        };
-    }
+    /* =========================
+       Save
+    ========================= */
 
-    // Save back to Firebase
     await userRef.set(
         {
             data: {
                 assignments: cleanUndefined(updatedAssignments),
+                announcements: cleanUndefined(updatedAnnouncements),
                 courses: cleanUndefined(coursesMap),
             },
         },
         { merge: true },
     );
 
-    // Clear credentials from memory
     oAuth2Client.setCredentials({});
 
-    return updatedAssignments;
+    return {
+        assignments: updatedAssignments,
+        announcements: updatedAnnouncements,
+        courses: coursesMap,
+    };
 }
