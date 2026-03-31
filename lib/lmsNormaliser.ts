@@ -1,10 +1,9 @@
+import { LMSAssignment, LMSAnnouncement, CanvasCourse } from "@/app/api/canvas/sync/route";
 import {
-    CanvasAssignment,
-    LMSAssignment,
-    LMSAnnouncement,
-    CanvasCourse,
-} from "@/app/api/canvas/sync/route";
-import { ClassroomAssignment, ClassroomCourse } from "@/app/api/googleclassroom/sync/route";
+    ClassroomAssignment,
+    ClassroomCourse,
+    ClassroomAnnouncement,
+} from "@/app/api/googleclassroom/sync/route";
 
 export type Assignment = {
     id: string;
@@ -20,14 +19,26 @@ export type Assignment = {
     submissionState: string;
     projects: any[];
     missing: boolean;
-    rawCanvasData?: CanvasAssignment;
-    rawClassroomData?: ClassroomAssignment;
+    rawCanvasData?: any;
+    rawClassroomData?: any;
 };
 
 export type Course = {
     id: string;
     name: string;
     description?: string;
+    url?: string;
+    source: "canvas" | "classroom" | "moodle";
+};
+
+export type Announcement = {
+    id: string;
+    text: string;
+    courseId: string;
+    courseName: string;
+    state: string;
+    createdAt: string;
+    updatedAt: string;
     url?: string;
     source: "canvas" | "classroom" | "moodle";
 };
@@ -66,6 +77,27 @@ export function normalizeAssignment(assignment: LMSAssignment | ClassroomAssignm
             ...a,
             submission: a.submittedAt !== null,
             dueAt: a.dueAt ? new Date(a.dueAt) : undefined,
+            source: "classroom",
+        };
+    }
+}
+
+export function normalizeAnnouncement(
+    announcement: LMSAnnouncement | ClassroomAnnouncement,
+): Announcement {
+    if (announcement.hasOwnProperty("url")) {
+        const a = announcement as LMSAnnouncement;
+        return {
+            ...a,
+            text: a.message,
+            state: "posted",
+            createdAt: a.postedAt,
+            source: "canvas",
+        };
+    } else {
+        const a = announcement as ClassroomAnnouncement;
+        return {
+            ...a,
             source: "classroom",
         };
     }
