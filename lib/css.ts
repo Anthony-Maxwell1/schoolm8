@@ -213,6 +213,61 @@ export const css = {
                     },
                 },
             },
+            assignment: {
+                main: {
+                    "ROOT-STYLE": "min-h-screen bg-gray-100 p-6 flex flex-col items-center gap-6",
+                },
+
+                header: {
+                    card: {
+                        "ROOT-STYLE":
+                            "w-full max-w-4xl bg-white rounded-xl shadow-md p-6 flex flex-col gap-3",
+                    },
+                    meta: {
+                        "ROOT-STYLE": "text-sm text-gray-400",
+                    },
+                    title: {
+                        "ROOT-STYLE": "text-3xl font-bold",
+                    },
+                    course: {
+                        "ROOT-STYLE": "text-lg text-gray-600",
+                    },
+                    dates: {
+                        "ROOT-STYLE": "flex gap-4 text-sm text-gray-500",
+                    },
+                    due: {
+                        "ROOT-STYLE": "text-red-500 font-medium",
+                    },
+                    desc: {
+                        "ROOT-STYLE": "text-gray-700 mt-2",
+                    },
+                    link: {
+                        "ROOT-STYLE": "mt-2 text-blue-500 hover:underline font-medium w-fit",
+                    },
+                },
+
+                rubric: {
+                    card: {
+                        "ROOT-STYLE": "w-full max-w-4xl bg-white rounded-xl shadow-md p-6",
+                    },
+                    title: {
+                        "ROOT-STYLE": "text-2xl font-semibold mb-4",
+                        CONTENT: "Rubric",
+                    },
+                    tableWrapper: {
+                        "ROOT-STYLE": "overflow-x-auto",
+                    },
+                    table: {
+                        "ROOT-STYLE": "w-full border-collapse",
+                        header: {
+                            "ROOT-STYLE": "text-left border-b border-gray-200 pb-2 text-gray-600",
+                        },
+                        cell: {
+                            "ROOT-STYLE": "py-2 border-b border-gray-100 text-sm text-gray-700",
+                        },
+                    },
+                },
+            },
         },
     },
 };

@@ -1,5 +1,7 @@
 // app/lms/assignment/[id]/page.tsx
 
+import { css } from "@/lib/css";
+
 type Data = {
     title: string;
     desc: string;
@@ -20,46 +22,89 @@ const data: Data = {
     },
     course: "Testing",
     created: new Date(),
+    due: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
     link: "https://test.com",
     source: "classroom",
 };
 
-function getLengthOfLargestList(jsonObject: Record<any, Array<any>>) {
-    let maxLength = 0;
-    let biggest: Array<any> = [];
-
-    // Iterate over the object's properties using Object.values()
-    Object.values(jsonObject).forEach((value) => {
-        // Check if the property value is an array
-        // Update maxLength if the current array's length is greater
-        if (value.length > maxLength) {
-            maxLength = value.length;
-            biggest = value;
-        }
-    });
-
-    return biggest;
+function getMaxRows(obj: Record<string, any[]>) {
+    return Math.max(...Object.values(obj).map((arr) => arr.length));
 }
 
-export default async function Post({ params }: { params: { id: string } }) {
+export default async function Assignment({ params }: { params: { id: string } }) {
     const { id } = await params;
 
+    const style = css.app.lms.assignment;
+
+    const headers = Object.keys(data.rubric);
+    const maxRows = getMaxRows(data.rubric);
+
     return (
-        <div>
-            <p>
-                {id} -{" "}
-                {(data.source == "classroom" && "Google Classroom") ||
-                    (data.source == "canvas" && "Canvas") ||
-                    (data.source == "moodle" && "Moodle")}{" "}
-                - Created: {data.created?.toDateString()}{" "}
-                {data.created?.toTimeString().split(" ")[0]}
-            </p>
-            <h3>
-                {data.course} - Due: {data.due?.toDateString()} {data.due?.toTimeString()}
-            </h3>
-            <h2>{data.title}</h2>
-            <p>{data.desc}</p>
-            <table>{/* <tr>{data.rubric && data.rubric.forEach(element -> {})}</tr> */}</table>
+        <div className={style.main["ROOT-STYLE"]}>
+            {/* Header Card */}
+            <div className={style.header.card["ROOT-STYLE"]}>
+                <p className={style.header.meta["ROOT-STYLE"]}>
+                    {id} •{" "}
+                    {(data.source == "classroom" && "Google Classroom") ||
+                        (data.source == "canvas" && "Canvas") ||
+                        (data.source == "moodle" && "Moodle")}
+                </p>
+
+                <h1 className={style.header.title["ROOT-STYLE"]}>{data.title}</h1>
+
+                <p className={style.header.course["ROOT-STYLE"]}>{data.course}</p>
+
+                <div className={style.header.dates["ROOT-STYLE"]}>
+                    {data.created && <span>Created: {data.created.toLocaleDateString()}</span>}
+                    {data.due && (
+                        <span className={style.header.due["ROOT-STYLE"]}>
+                            Due: {data.due.toLocaleDateString()}
+                        </span>
+                    )}
+                </div>
+
+                <p className={style.header.desc["ROOT-STYLE"]}>{data.desc}</p>
+
+                {data.link && (
+                    <a href={data.link} target="_blank" className={style.header.link["ROOT-STYLE"]}>
+                        Open Resource →
+                    </a>
+                )}
+            </div>
+
+            {/* Rubric */}
+            <div className={style.rubric.card["ROOT-STYLE"]}>
+                <h2 className={style.rubric.title["ROOT-STYLE"]}>{style.rubric.title.CONTENT}</h2>
+
+                <div className={style.rubric.tableWrapper["ROOT-STYLE"]}>
+                    <table className={style.rubric.table["ROOT-STYLE"]}>
+                        <thead>
+                            <tr>
+                                {headers.map((h) => (
+                                    <th key={h} className={style.rubric.table.header["ROOT-STYLE"]}>
+                                        {h}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {Array.from({ length: maxRows }).map((_, row) => (
+                                <tr key={row}>
+                                    {headers.map((h) => (
+                                        <td
+                                            key={h}
+                                            className={style.rubric.table.cell["ROOT-STYLE"]}
+                                        >
+                                            {data.rubric[h][row] ?? ""}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }

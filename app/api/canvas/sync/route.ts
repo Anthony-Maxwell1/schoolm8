@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { htmlToText } from "html-to-text";
 
-type CanvasCourse = {
+export type CanvasCourse = {
     id: number;
     name: string;
     html_url: string;
 };
 
-type CanvasAssignment = {
+export type CanvasAssignment = {
     id: number;
     name: string;
     description: string;
@@ -17,7 +17,7 @@ type CanvasAssignment = {
     html_url: string;
 };
 
-type CanvasSubmission = {
+export type CanvasSubmission = {
     submitted_at: string | null;
     workflow_state: string; // unsubmitted | submitted | graded | etc.
 };

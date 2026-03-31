@@ -4,13 +4,13 @@ import { db } from "@/lib/firebaseAdmin";
 import { google, classroom_v1 } from "googleapis";
 import { htmlToText } from "html-to-text";
 
-type ClassroomCourse = {
+export type ClassroomCourse = {
     id: string;
     name: string;
     url: string;
 };
 
-type ClassroomAssignment = {
+export type ClassroomAssignment = {
     id: string;
     title: string;
     description: string;
