@@ -29,7 +29,8 @@ export async function handler(req: NextRequest) {
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
-    redirect(redirectUrl);
+    const absoluteUrl = new URL(redirectUrl, req.url).toString(); // convert to absolute
+    return NextResponse.redirect(absoluteUrl, 302);
 }
 
 // Export all HTTP methods to handle generically

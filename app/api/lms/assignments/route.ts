@@ -25,7 +25,8 @@ export async function handler(req: NextRequest) {
 
         const redirectUrl = `/api/${userData.lms}${LMS_API_ENDPOINT}`;
 
-        redirect(redirectUrl);
+        const absoluteUrl = new URL(redirectUrl, req.url).toString(); // convert to absolute
+        return NextResponse.redirect(absoluteUrl, 302);
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

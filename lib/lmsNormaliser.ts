@@ -21,6 +21,7 @@ export type Assignment = {
     missing: boolean;
     rawCanvasData?: any;
     rawClassroomData?: any;
+    rubric?: Record<string, string[]>; // Assuming rubric is a nested object
 };
 
 export type Course = {
