@@ -22,6 +22,7 @@ export type Assignment = {
     rawCanvasData?: any;
     rawClassroomData?: any;
     rubric?: Record<string, string[]>; // Assuming rubric is a nested object
+    image?: string;
 };
 
 export type Course = {
@@ -30,6 +31,7 @@ export type Course = {
     description?: string;
     url?: string;
     source: "canvas" | "classroom" | "moodle";
+    image?: string;
 };
 
 export type Announcement = {
@@ -43,9 +45,10 @@ export type Announcement = {
     updatedAt: Date;
     url?: string;
     source: "canvas" | "classroom" | "moodle";
+    image?: string;
 };
 
-export function normalizeCourse(course: CanvasCourse | ClassroomCourse): Course {
+export function normaliseCourse(course: CanvasCourse | ClassroomCourse): Course {
     if (course.hasOwnProperty("html_url")) {
         const c = course as CanvasCourse;
         return {
@@ -65,7 +68,7 @@ export function normalizeCourse(course: CanvasCourse | ClassroomCourse): Course 
     }
 }
 
-export function normalizeAssignment(assignment: LMSAssignment | ClassroomAssignment): Assignment {
+export function normaliseAssignment(assignment: LMSAssignment | ClassroomAssignment): Assignment {
     if (assignment.hasOwnProperty("courseId")) {
         const a = assignment as LMSAssignment;
         return {
@@ -84,7 +87,7 @@ export function normalizeAssignment(assignment: LMSAssignment | ClassroomAssignm
     }
 }
 
-export function normalizeAnnouncement(
+export function normaliseAnnouncement(
     announcement: LMSAnnouncement | ClassroomAnnouncement,
 ): Announcement {
     if (announcement.hasOwnProperty("url")) {

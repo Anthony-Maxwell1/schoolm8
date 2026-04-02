@@ -3,7 +3,7 @@
 
 import { css } from "@/lib/css";
 import { useState, useEffect } from "react";
-import { Assignment, normalizeAssignment } from "@/lib/lmsNormaliser";
+import { Assignment, normaliseAssignment } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
 import { useParams } from "next/navigation";
 import { ClassroomAssignment } from "@/app/api/googleclassroom/sync/route";
@@ -13,7 +13,7 @@ function getMaxRows(obj: Record<string, any[]>) {
     return Math.max(...Object.values(obj).map((arr) => arr.length));
 }
 
-export default function AssignmentPage({ params }: { params: { id: string } }) {
+export default function AssignmentPage({ params }: { params: { id: string; cameFrom: string } }) {
     const { id } = useParams();
     const { user, token, loading } = useAuth();
 
@@ -38,7 +38,7 @@ export default function AssignmentPage({ params }: { params: { id: string } }) {
                         | ClassroomAssignment[]
                         | LMSAssignment[];
                     const assignment = assignmentsArray.find((a) => a.id === id);
-                    setData(normalizeAssignment(assignment!));
+                    setData(normaliseAssignment(assignment!));
                 }
             })
             .catch((err) => console.error(err));
@@ -73,11 +73,24 @@ export default function AssignmentPage({ params }: { params: { id: string } }) {
 
                 <p className={style.header.desc["ROOT-STYLE"]}>{data?.description}</p>
 
-                {data?.url && (
-                    <a href={data?.url} target="_blank" className={style.header.link["ROOT-STYLE"]}>
-                        Open Resource →
+                <div className={style.header.links["ROOT-STYLE"]}>
+                    {data?.url && (
+                        <a
+                            href={data?.url}
+                            target="_blank"
+                            className={style.header.links.link["ROOT-STYLE"]}
+                        >
+                            Open Resource →
+                        </a>
+                    )}
+                    <a
+                        href={params.cameFrom ? params.cameFrom : "/lms"}
+                        target="_blank"
+                        className={style.header.links.link["ROOT-STYLE"]}
+                    >
+                        Go Back →
                     </a>
-                )}
+                </div>
             </div>
 
             {/* Rubric */}

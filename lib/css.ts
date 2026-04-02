@@ -142,20 +142,20 @@ export const css = {
                             },
                         },
                         carousel: {
-                            "ROOT-STYLE": "relative",
+                            "ROOT-STYLE": "relative w-screen",
                             left: {
                                 "ROOT-STYLE":
-                                    "absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md p-2 rounded-full hover:scale-105 transition cursor-pointer",
+                                    "absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-xl p-2 rounded-full hover:scale-105 transition cursor-pointer",
                                 CONTENT: "←",
                             },
                             right: {
                                 "ROOT-STYLE":
-                                    "absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md p-2 rounded-full hover:scale-105 transition cursor-pointer",
+                                    "absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-xl p-2 rounded-full hover:scale-105 transition cursor-pointer ",
                                 CONTENT: "→",
                             },
                             scrollarea: {
                                 "ROOT-STYLE":
-                                    "flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2 px-8",
+                                    "w-screen flex gap-4 overflow-x-auto scroll-smooth no-scrollbar pb-2 px-8 ",
                                 item: {
                                     "ROOT-STYLE":
                                         "min-w-[260px] bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer",
@@ -241,8 +241,69 @@ export const css = {
                     desc: {
                         "ROOT-STYLE": "text-gray-700 mt-2",
                     },
-                    link: {
-                        "ROOT-STYLE": "mt-2 text-blue-500 hover:underline font-medium w-fit",
+                    links: {
+                        "ROOT-STYLE": "mt-4 flex flex-row gap-4",
+                        link: {
+                            "ROOT-STYLE": "mt-2 text-blue-500 hover:underline font-medium w-fit",
+                        },
+                    },
+                },
+
+                rubric: {
+                    card: {
+                        "ROOT-STYLE": "w-full max-w-4xl bg-white rounded-xl shadow-md p-6",
+                    },
+                    title: {
+                        "ROOT-STYLE": "text-2xl font-semibold mb-4",
+                        CONTENT: "Rubric",
+                    },
+                    tableWrapper: {
+                        "ROOT-STYLE": "overflow-x-auto",
+                    },
+                    table: {
+                        "ROOT-STYLE": "w-full border-collapse",
+                        header: {
+                            "ROOT-STYLE": "text-left border-b border-gray-200 pb-2 text-gray-600",
+                        },
+                        cell: {
+                            "ROOT-STYLE": "py-2 border-b border-gray-100 text-sm text-gray-700",
+                        },
+                    },
+                },
+            },
+            announcement: {
+                main: {
+                    "ROOT-STYLE": "min-h-screen bg-gray-100 p-6 flex flex-col items-center gap-6",
+                },
+
+                header: {
+                    card: {
+                        "ROOT-STYLE":
+                            "w-full max-w-4xl bg-white rounded-xl shadow-md p-6 flex flex-col gap-3",
+                    },
+                    meta: {
+                        "ROOT-STYLE": "text-sm text-gray-400",
+                    },
+                    title: {
+                        "ROOT-STYLE": "text-3xl font-bold",
+                    },
+                    course: {
+                        "ROOT-STYLE": "text-lg text-gray-600",
+                    },
+                    dates: {
+                        "ROOT-STYLE": "flex gap-4 text-sm text-gray-500",
+                    },
+                    due: {
+                        "ROOT-STYLE": "text-red-500 font-medium",
+                    },
+                    desc: {
+                        "ROOT-STYLE": "text-gray-700 mt-2",
+                    },
+                    links: {
+                        "ROOT-STYLE": "mt-4 flex flex-row gap-4",
+                        link: {
+                            "ROOT-STYLE": "mt-2 text-blue-500 hover:underline font-medium w-fit",
+                        },
                     },
                 },
 
