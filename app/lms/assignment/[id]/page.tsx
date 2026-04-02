@@ -3,9 +3,11 @@
 
 import { css } from "@/lib/css";
 import { useState, useEffect } from "react";
-import { Assignment } from "@/lib/lmsNormaliser";
+import { Assignment, normalizeAssignment } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
 import { useParams } from "next/navigation";
+import { ClassroomAssignment } from "@/app/api/googleclassroom/sync/route";
+import { LMSAssignment } from "@/app/api/canvas/sync/route";
 
 function getMaxRows(obj: Record<string, any[]>) {
     return Math.max(...Object.values(obj).map((arr) => arr.length));
@@ -32,9 +34,11 @@ export default function AssignmentPage({ params }: { params: { id: string } }) {
                     console.warn("Redirect occurred — navigate manually");
                     window.location.href = "/lms";
                 } else {
-                    const assignmentsArray = Object.values(res.assignments) as Assignment[];
+                    const assignmentsArray = Object.values(res.assignments) as
+                        | ClassroomAssignment[]
+                        | LMSAssignment[];
                     const assignment = assignmentsArray.find((a) => a.id === id);
-                    setData(assignment || null);
+                    setData(normalizeAssignment(assignment!));
                 }
             })
             .catch((err) => console.error(err));

@@ -34,12 +34,13 @@ export type Course = {
 
 export type Announcement = {
     id: string;
+    title?: string;
     text: string;
     courseId: string;
     courseName: string;
     state: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     url?: string;
     source: "canvas" | "classroom" | "moodle";
 };
@@ -92,13 +93,16 @@ export function normalizeAnnouncement(
             ...a,
             text: a.message,
             state: "posted",
-            createdAt: a.postedAt,
+            createdAt: new Date(a.postedAt),
+            updatedAt: new Date(a.updatedAt),
             source: "canvas",
         };
     } else {
         const a = announcement as ClassroomAnnouncement;
         return {
             ...a,
+            createdAt: new Date(a.createdAt),
+            updatedAt: new Date(a.updatedAt),
             source: "classroom",
         };
     }
