@@ -6,6 +6,9 @@ import { useAuth } from "@/context/authContext";
 type StoredTask = {
     id: string;
     label: string;
+    successlabel: string;
+    faillabel: string;
+    workinglabel: string;
 };
 
 const STORAGE_KEY = "active_tasks";
@@ -53,12 +56,12 @@ export const TaskManager: React.FC = () => {
                     if (!task) return;
 
                     if (taskStatus.status === "complete") {
-                        toast.success(`${task.label} Complete`);
+                        toast.success(task.successlabel);
                         updatedTasks = updatedTasks.filter((t) => t.id !== task.id);
                     }
 
                     if (taskStatus.status === "failed") {
-                        toast.error(`${task.label} Failed`);
+                        toast.error(task.faillabel);
                         updatedTasks = updatedTasks.filter((t) => t.id !== task.id);
                     }
                 });
@@ -85,8 +88,14 @@ export const TaskManager: React.FC = () => {
                 },
             });
 
-            const tasks: { label: string; endpoint: string; method: "GET" | "POST" }[] =
-                await res.json();
+            const tasks: {
+                label: string;
+                endpoint: string;
+                method: "GET" | "POST";
+                workinglabel: string;
+                successlabel: string;
+                faillabel: string;
+            }[] = await res.json();
 
             let updated = [...getStoredTasks()];
 
@@ -111,8 +120,14 @@ export const TaskManager: React.FC = () => {
                         headers: { Authorization: `Bearer ${authToken}` },
                     });
 
-                    updated.push({ id, label: task.label });
-                    toast.info(`${task.label}ing...`);
+                    updated.push({
+                        id,
+                        label: task.label,
+                        successlabel: task.successlabel,
+                        faillabel: task.faillabel,
+                        workinglabel: task.workinglabel,
+                    });
+                    toast.info(`${task.workinglabel}`);
                 } catch (err) {
                     console.error("Stage error:", err);
                 }
