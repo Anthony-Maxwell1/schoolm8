@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { parseICalData } from "@/lib/ical";
 import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
@@ -9,7 +9,7 @@ import { isValidISODate, standardiseDay, standardiseWeek } from "@/lib/timetable
 // CONFIG
 // ======================================================
 
-const CACHE_DURATION_MS = 1000 * 60 * 60 * 6; // 6 hours
+const CACHE_DURATION_MS = 1000 * 60 * 60 * 1; // 1 hour
 
 // ======================================================
 // HELPERS
@@ -76,7 +76,7 @@ function resolveDate(value: string) {
 // ROUTE
 // ======================================================
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         // ---------- AUTH ----------
         const authHeader = req.headers.get("Authorization");
@@ -144,6 +144,18 @@ export async function GET(req: Request) {
                 // 💾 CACHE
                 await setCachedDay(userRef, date, timetable);
 
+                const executionId = req.nextUrl.searchParams.get("taskId");
+                if (executionId) {
+                    try {
+                        const userRef = db.collection("users").doc(userId);
+                        await userRef.update({
+                            [`executions.${executionId}.status`]: "complete",
+                        });
+                    } catch (updateErr) {
+                        console.error("Failed to update task status:", updateErr);
+                    }
+                }
+
                 return NextResponse.json({ timetable, cached: false });
             }
 
@@ -179,6 +191,18 @@ export async function GET(req: Request) {
                     results[date] = timetable;
                 }
 
+                const executionId = req.nextUrl.searchParams.get("taskId");
+                if (executionId) {
+                    try {
+                        const userRef = db.collection("users").doc(userId);
+                        await userRef.update({
+                            [`executions.${executionId}.status`]: "complete",
+                        });
+                    } catch (updateErr) {
+                        console.error("Failed to update task status:", updateErr);
+                    }
+                }
+
                 return NextResponse.json({ timetable: results });
             }
         }
@@ -190,6 +214,17 @@ export async function GET(req: Request) {
             const { baseUrl, username, password, currentCookies } = timetableFetchData;
 
             if (!baseUrl || !username || !password) {
+                const executionId = req.nextUrl.searchParams.get("taskId");
+                if (executionId) {
+                    try {
+                        const userRef = db.collection("users").doc(userId);
+                        await userRef.update({
+                            [`executions.${executionId}.status`]: "failed",
+                        });
+                    } catch (updateErr) {
+                        console.error("Failed to update task status:", updateErr);
+                    }
+                }
                 return NextResponse.json(
                     { error: "Missing baseUrl, username or password" },
                     { status: 400 },
@@ -218,6 +253,17 @@ export async function GET(req: Request) {
                 // 🔍 CACHE CHECK
                 const cached = await getCachedDay(userRef, date);
                 if (isCacheValid(cached)) {
+                    const executionId = req.nextUrl.searchParams.get("taskId");
+                    if (executionId) {
+                        try {
+                            const userRef = db.collection("users").doc(userId);
+                            await userRef.update({
+                                [`executions.${executionId}.status`]: "complete",
+                            });
+                        } catch (updateErr) {
+                            console.error("Failed to update task status:", updateErr);
+                        }
+                    }
                     return NextResponse.json({ timetable: cached.data, cached: true });
                 }
 
@@ -263,6 +309,18 @@ export async function GET(req: Request) {
 
                 await setCachedDay(userRef, date, timetable);
 
+                const executionId = req.nextUrl.searchParams.get("taskId");
+                if (executionId) {
+                    try {
+                        const userRef = db.collection("users").doc(userId);
+                        await userRef.update({
+                            [`executions.${executionId}.status`]: "complete",
+                        });
+                    } catch (updateErr) {
+                        console.error("Failed to update task status:", updateErr);
+                    }
+                }
+
                 return NextResponse.json({ timetable, cached: false });
             }
 
@@ -304,6 +362,18 @@ export async function GET(req: Request) {
                     { merge: true },
                 );
 
+                const executionId = req.nextUrl.searchParams.get("taskId");
+                if (executionId) {
+                    try {
+                        const userRef = db.collection("users").doc(userId);
+                        await userRef.update({
+                            [`executions.${executionId}.status`]: "complete",
+                        });
+                    } catch (updateErr) {
+                        console.error("Failed to update task status:", updateErr);
+                    }
+                }
+
                 return NextResponse.json({ timetable: results });
             }
         }
@@ -311,6 +381,22 @@ export async function GET(req: Request) {
         return NextResponse.json({ timetable: null });
     } catch (err) {
         console.error(err);
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const authHeader = req.headers.get("Authorization")!;
+
+                const idToken = authHeader.split(" ")[1];
+                const decodedToken = await auth.verifyIdToken(idToken);
+                const userId = decodedToken.uid;
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "failed",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
         return new Response(
             JSON.stringify({
                 error: err instanceof Error ? err.message : "Internal Server Error",

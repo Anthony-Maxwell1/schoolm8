@@ -25,7 +25,7 @@ export async function handler(req: NextRequest) {
 
         if (!userData.lms) throw new Error("No LMS linked to user");
 
-        redirectUrl = `/api/${userData.lms}${LMS_API_ENDPOINT}`;
+        redirectUrl = `/api/${userData.lms}${LMS_API_ENDPOINT}${new URL(req.url).search}`;
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

@@ -1,0 +1,1 @@
+- Fix issue with task system where it will start a task that it is waiting on on reload instead of checking if it is already waiting on it from a previous load in localstorage.

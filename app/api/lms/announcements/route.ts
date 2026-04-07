@@ -23,7 +23,7 @@ export async function handler(req: NextRequest) {
 
         if (!userData.lms) throw new Error("No LMS linked to user");
 
-        const redirectUrl = `/api/${userData.lms}${LMS_API_ENDPOINT}`;
+        const redirectUrl = `/api/${userData.lms}${LMS_API_ENDPOINT}${new URL(req.url).search}`;
 
         const absoluteUrl = new URL(redirectUrl, req.url).toString(); // convert to absolute
         return NextResponse.redirect(absoluteUrl, 302);

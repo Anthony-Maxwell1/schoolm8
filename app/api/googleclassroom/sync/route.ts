@@ -1,6 +1,6 @@
 // app/api/classroom/sync/route.ts
-import { NextResponse } from "next/server";
-import { db } from "@/lib/firebaseAdmin";
+import { NextRequest, NextResponse } from "next/server";
+import { auth, db } from "@/lib/firebaseAdmin";
 import { google, classroom_v1 } from "googleapis";
 import { htmlToText } from "html-to-text";
 
@@ -78,7 +78,7 @@ function sanitizeHTML(input?: string): string {
    Route
 ========================= */
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         const authHeader = req.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer "))
@@ -89,11 +89,22 @@ export async function GET(req: Request) {
 
         const idToken = authHeader.split(" ")[1];
 
-        const { auth } = await import("@/lib/firebaseAdmin");
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
 
         const { assignments, announcements, courses } = await syncClassroomForUser(userId);
+
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "complete",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
 
         return NextResponse.json({
             status: "ok",
@@ -103,6 +114,23 @@ export async function GET(req: Request) {
         });
     } catch (err: any) {
         console.error("CLASSROOM SYNC ERROR FULL:", err);
+
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const authHeader = req.headers.get("Authorization")!;
+
+                const idToken = authHeader.split(" ")[1];
+                const decodedToken = await auth.verifyIdToken(idToken);
+                const userId = decodedToken.uid;
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "failed",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
 
         return NextResponse.json(
             {

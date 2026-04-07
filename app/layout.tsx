@@ -3,6 +3,8 @@ import { AuthProvider } from "@/context/authContext";
 import { LayoutProvider } from "@/context/layoutContext";
 import { ThemeProvider } from "@/context/themeContext";
 import ClientAuthGuard from "./ClientAuthGuard";
+import { ToastContainer, toast } from "react-toastify";
+import { TaskManager } from "@/components/TaskManager";
 
 export const metadata = {
     title: "schoolm8",
@@ -16,6 +18,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <LayoutProvider>
                     <ThemeProvider>
                         <AuthProvider>
+                            <TaskManager />
+                            <ToastContainer position="bottom-right" />
                             <ClientAuthGuard>{children}</ClientAuthGuard>
                         </AuthProvider>
                     </ThemeProvider>

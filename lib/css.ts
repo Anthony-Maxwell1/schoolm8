@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-
 // This is styling, mainly for components and pages not affected by dashboard themes.
 export const css = {
     components: {

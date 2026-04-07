@@ -1,5 +1,5 @@
 // app/api/canvas/sync/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { htmlToText } from "html-to-text";
 
@@ -110,7 +110,7 @@ function sanitizeHTML(input?: string): string {
    Route
 ========================= */
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         const authHeader = req.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer "))
@@ -126,6 +126,18 @@ export async function GET(req: Request) {
 
         const { assignments, announcements, courses } = await syncCanvasForUser(userId);
 
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "complete",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
+
         return NextResponse.json({
             status: "ok",
             assignments,
@@ -133,6 +145,22 @@ export async function GET(req: Request) {
             courses,
         });
     } catch (err: any) {
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const authHeader = req.headers.get("Authorization")!;
+
+                const idToken = authHeader.split(" ")[1];
+                const decodedToken = await auth.verifyIdToken(idToken);
+                const userId = decodedToken.uid;
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "failed",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
