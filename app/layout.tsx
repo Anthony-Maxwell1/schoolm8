@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/context/themeContext";
 import ClientAuthGuard from "./ClientAuthGuard";
 import { ToastContainer, toast } from "react-toastify";
 import { TaskManager } from "@/components/TaskManager";
-import { useEffect } from "react";
 
 export const metadata = {
     title: "schoolm8",
@@ -13,9 +12,8 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    useEffect(() => {
-        console.log(`
-  _                 _            ___  
+    console.log(`
+          _                 _            ___  
  ___  ___| |__   ___   ___ | |_ __ ___  ( _ ) 
 / __|/ __| '_ \\ / _ \\ / _ \\| | '_ \` _ \\ / _ \\
 \\__ \\ (__| | | | (_) | (_) | | | | | | | (_) |
@@ -27,7 +25,6 @@ Tinker, explore, and contribute directly — no deobfuscation needed.
 Check it out on GitHub: 
 https://github.com/Anthony-Maxwell1/schoolm8
 `);
-    }, []);
     return (
         <html lang="en">
             <body>
