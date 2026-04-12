@@ -21,13 +21,13 @@
 - Reverse engineered edumate, js script to auto auth.
 - Edumate integration built on reverse engineered login flow
 - Onedrive integration
+- Styling system (Raw)
 
 ### Almost finished/Testing
 
 - Google Classroom integration
 - Dashboard and dashboard editor
 - Themes
-- Styling system (Raw)
 
 ### 🚧 In Progress
 
@@ -37,6 +37,7 @@
 - Schedule system
 - Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
 - Google Drive integration
+- Frontend for raw style data
 - GUI Style editor for users who don't want to enter raw tailwindcss data
 - Dashboard tiles
 - Actual frontend for things like LMS access and full timetable view
