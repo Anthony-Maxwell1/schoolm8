@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
                 status: "pending",
                 createdAt: Date.now(),
             },
-            [`tasks.${id}.lastRun`]: Date.now(),
+            [`data.tasks.${id}.lastRun`]: Date.now(),
         });
 
         return NextResponse.json({ id: executionId });

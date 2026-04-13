@@ -2,6 +2,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { htmlToText } from "html-to-text";
+import {
+    saveLMSAssignments,
+    saveLMSAnnouncements,
+    saveLMSCourses,
+    getLMSAssignments,
+} from "@/lib/firebaseSchema";
 
 /* =========================
    Canvas API Types
@@ -283,7 +289,8 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
        Build Data
     ========================= */
 
-    const existingAssignments: Record<string, LMSAssignment> = userData?.data?.assignments || {};
+    // Fetch existing assignments from new collections structure
+    const existingAssignments: Record<string, LMSAssignment> = await getLMSAssignments(userId);
 
     const updatedAssignments: Record<string, LMSAssignment> = {};
     const updatedAnnouncements: Record<string, LMSAnnouncement> = {};
@@ -383,16 +390,12 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
        Save
     ========================= */
 
-    await userRef.set(
-        {
-            data: {
-                assignments: cleanUndefined(updatedAssignments),
-                announcements: cleanUndefined(updatedAnnouncements),
-                courses: cleanUndefined(coursesMap),
-            },
-        },
-        { merge: true },
-    );
+    // Save to new collection structure
+    await Promise.all([
+        saveLMSAssignments(userId, updatedAssignments),
+        saveLMSAnnouncements(userId, updatedAnnouncements),
+        saveLMSCourses(userId, coursesMap),
+    ]);
 
     return {
         assignments: updatedAssignments,

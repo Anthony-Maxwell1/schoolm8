@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef } from "react";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 import { useAuth } from "@/context/authContext";
 
 type StoredTask = {
@@ -9,6 +9,7 @@ type StoredTask = {
     successlabel: string;
     faillabel: string;
     workinglabel: string;
+    toastId: Id;
 };
 
 const STORAGE_KEY = "active_tasks";
@@ -56,12 +57,33 @@ export const TaskManager: React.FC = () => {
                     if (!task) return;
 
                     if (taskStatus.status === "complete") {
-                        toast.success(task.successlabel);
+                        if (toast.isActive(task.toastId)) {
+                            // Only update if it's still visible
+                            toast.update(task.toastId, {
+                                render: task.successlabel,
+                                type: "success",
+                                isLoading: false,
+                                autoClose: 3000,
+                            });
+                        }
+
                         updatedTasks = updatedTasks.filter((t) => t.id !== task.id);
                     }
 
                     if (taskStatus.status === "failed") {
-                        toast.error(task.faillabel);
+                        if (toast.isActive(task.toastId)) {
+                            // Update existing toast
+                            toast.update(task.toastId, {
+                                render: task.faillabel,
+                                type: "error",
+                                isLoading: false,
+                                autoClose: 5000,
+                            });
+                        } else {
+                            // User dismissed it → show a NEW error toast
+                            toast.error(task.faillabel);
+                        }
+
                         updatedTasks = updatedTasks.filter((t) => t.id !== task.id);
                     }
                 });
@@ -120,14 +142,20 @@ export const TaskManager: React.FC = () => {
                         headers: { Authorization: `Bearer ${authToken}` },
                     });
 
+                    const toastId = toast.loading(task.workinglabel, {
+                        closeOnClick: true,
+                        closeButton: true,
+                        draggable: true,
+                    });
+
                     updated.push({
                         id,
                         label: task.label,
                         successlabel: task.successlabel,
                         faillabel: task.faillabel,
                         workinglabel: task.workinglabel,
+                        toastId,
                     });
-                    toast.info(`${task.workinglabel}`);
                 } catch (err) {
                     console.error("Stage error:", err);
                 }

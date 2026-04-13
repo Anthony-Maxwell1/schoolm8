@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { google, classroom_v1 } from "googleapis";
 import { htmlToText } from "html-to-text";
+import {
+    saveLMSAssignments,
+    saveLMSAnnouncements,
+    saveLMSCourses,
+    getLMSAssignments,
+} from "@/lib/firebaseSchema";
 
 /* =========================
    Types
@@ -199,8 +205,9 @@ async function syncClassroomForUser(userId: string): Promise<ClassroomSyncResult
        Prepare
     ========================= */
 
+    // Fetch existing assignments from new collections structure
     const existingAssignments: Record<string, ClassroomAssignment> =
-        userData?.data?.assignments || {};
+        await getLMSAssignments(userId);
 
     const updatedAssignments: Record<string, ClassroomAssignment> = {};
     const updatedAnnouncements: Record<string, ClassroomAnnouncement> = {};
@@ -333,16 +340,12 @@ async function syncClassroomForUser(userId: string): Promise<ClassroomSyncResult
        Save
     ========================= */
 
-    await userRef.set(
-        {
-            data: {
-                assignments: cleanUndefined(updatedAssignments),
-                announcements: cleanUndefined(updatedAnnouncements),
-                courses: cleanUndefined(coursesMap),
-            },
-        },
-        { merge: true },
-    );
+    // Save to new collection structure
+    await Promise.all([
+        saveLMSAssignments(userId, updatedAssignments),
+        saveLMSAnnouncements(userId, updatedAnnouncements),
+        saveLMSCourses(userId, coursesMap),
+    ]);
 
     oAuth2Client.setCredentials({});
 

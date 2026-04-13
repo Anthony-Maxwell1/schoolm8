@@ -4,6 +4,12 @@ import { parseICalData } from "@/lib/ical";
 import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
 
 import { isValidISODate, standardiseDay, standardiseWeek } from "@/lib/timetableNormaliser";
+import {
+    getTimetableConfig,
+    saveTimetableConfig,
+    saveTimetableDay,
+    getTimetableDay,
+} from "@/lib/firebaseSchema";
 
 // ======================================================
 // CONFIG
@@ -44,36 +50,10 @@ function resolveMode(params: URLSearchParams) {
     return { mode: "today" as const, value: "today" };
 }
 
-function isCacheValid(entry?: { expiry: number }) {
-    const valid = entry && Date.now() < entry.expiry;
+function isCacheValid(entry?: any) {
+    const valid = entry && entry.expiry && Date.now() < entry.expiry;
     console.log("[isCacheValid]", valid);
     return valid;
-}
-
-async function getCachedDay(userRef: any, date: string) {
-    const doc = await userRef.get();
-    const cache = doc.data()?.timetable?.cache || {};
-    console.log("[getCachedDay] date:", date, "cached:", !!cache[date]);
-    return cache[date];
-}
-
-async function setCachedDay(userRef: any, date: string, data: any) {
-    const expiry = Date.now() + CACHE_DURATION_MS;
-    console.log("[setCachedDay] caching for date:", date);
-
-    await userRef.set(
-        {
-            timetable: {
-                cache: {
-                    [date]: {
-                        data,
-                        expiry,
-                    },
-                },
-            },
-        },
-        { merge: true },
-    );
 }
 
 function resolveDate(value: string) {
@@ -105,11 +85,8 @@ export async function GET(req: NextRequest) {
         const userId = decodedToken.uid;
         console.log("[GET] User authenticated:", userId);
 
-        const userRef = db.collection("users").doc(userId);
-        const doc = await userRef.get();
-        if (!doc.exists) throw new Error("User not found");
-
-        const timetableFetchData = doc.data()?.timetable;
+        // Get timetable config from new structure
+        const timetableFetchData = await getTimetableConfig(userId);
         if (!timetableFetchData) {
             console.log("[GET] No timetable data found");
             return NextResponse.json({ timetable: null });
@@ -147,10 +124,10 @@ export async function GET(req: NextRequest) {
                 const date = resolveDate(value);
 
                 // 🔍 CACHE CHECK
-                const cached = await getCachedDay(userRef, date);
+                const cached = await getTimetableDay(userId, date);
                 if (isCacheValid(cached)) {
                     console.log("[GET] Returning cached day");
-                    return NextResponse.json({ timetable: cached.data, cached: true });
+                    return NextResponse.json({ timetable: cached, cached: true });
                 }
 
                 // ❌ FETCH
@@ -162,7 +139,7 @@ export async function GET(req: NextRequest) {
                 });
 
                 // 💾 CACHE
-                await setCachedDay(userRef, date, timetable);
+                await saveTimetableDay(userId, date, timetable, CACHE_DURATION_MS);
 
                 const executionId = req.nextUrl.searchParams.get("taskId");
                 if (executionId) {
@@ -196,11 +173,11 @@ export async function GET(req: NextRequest) {
                 const results: Record<string, any> = {};
 
                 for (const date of days) {
-                    const cached = await getCachedDay(userRef, date);
+                    const cached = await getTimetableDay(userId, date);
 
                     if (isCacheValid(cached)) {
                         console.log("[GET] Using cached data for:", date);
-                        results[date] = cached.data;
+                        results[date] = cached;
                         continue;
                     }
 
@@ -211,7 +188,7 @@ export async function GET(req: NextRequest) {
                         date,
                     });
 
-                    await setCachedDay(userRef, date, timetable);
+                    await saveTimetableDay(userId, date, timetable, CACHE_DURATION_MS);
                     results[date] = timetable;
                 }
 
@@ -263,14 +240,10 @@ export async function GET(req: NextRequest) {
                 console.log("[GET] Obtaining new auth cookies");
                 cookies = await ObtainAuthCredentials(baseUrl, username, password);
                 if (!cookies) throw new Error("Failed to authenticate with Edumate");
-                await userRef.set(
-                    {
-                        timetable: {
-                            currentCookies: cookies,
-                        },
-                    },
-                    { merge: true },
-                );
+                await saveTimetableConfig(userId, {
+                    ...timetableFetchData,
+                    currentCookies: cookies,
+                });
             }
 
             // ---- TODAY / DAY ----
@@ -278,7 +251,7 @@ export async function GET(req: NextRequest) {
                 const date = resolveDate(value);
 
                 // 🔍 CACHE CHECK
-                const cached = await getCachedDay(userRef, date);
+                const cached = await getTimetableDay(userId, date);
                 if (isCacheValid(cached)) {
                     console.log("[GET] Returning cached Edumate day");
                     const executionId = req.nextUrl.searchParams.get("taskId");
@@ -292,7 +265,7 @@ export async function GET(req: NextRequest) {
                             console.error("Failed to update task status:", updateErr);
                         }
                     }
-                    return NextResponse.json({ timetable: cached.data, cached: true });
+                    return NextResponse.json({ timetable: cached, cached: true });
                 }
 
                 // ❌ FETCH
@@ -309,14 +282,10 @@ export async function GET(req: NextRequest) {
                         console.log("[GET] Re-authenticating due to 401");
                         cookies = await ObtainAuthCredentials(baseUrl, username, password);
                         if (!cookies) throw new Error("Failed to authenticate with Edumate");
-                        await userRef.set(
-                            {
-                                timetable: {
-                                    currentCookies: cookies,
-                                },
-                            },
-                            { merge: true },
-                        );
+                        await saveTimetableConfig(userId, {
+                            ...timetableFetchData,
+                            currentCookies: cookies,
+                        });
                     } else {
                         throw new Error();
                     }
@@ -329,16 +298,12 @@ export async function GET(req: NextRequest) {
                 });
 
                 // 💾 CACHE + COOKIES
-                await userRef.set(
-                    {
-                        timetable: {
-                            currentCookies: cookies,
-                        },
-                    },
-                    { merge: true },
-                );
+                await saveTimetableConfig(userId, {
+                    ...timetableFetchData,
+                    currentCookies: cookies,
+                });
 
-                await setCachedDay(userRef, date, timetable);
+                await saveTimetableDay(userId, date, timetable, CACHE_DURATION_MS);
 
                 const executionId = req.nextUrl.searchParams.get("taskId");
                 if (executionId) {
@@ -366,11 +331,11 @@ export async function GET(req: NextRequest) {
                     d.setDate(d.getDate() + i);
                     const date = d.toISOString().split("T")[0];
 
-                    const cached = await getCachedDay(userRef, date);
+                    const cached = await getTimetableDay(userId, date);
 
                     if (isCacheValid(cached)) {
                         console.log("[GET] Using cached Edumate data for:", date);
-                        results[date] = cached.data;
+                        results[date] = cached;
                         continue;
                     }
 
@@ -383,18 +348,14 @@ export async function GET(req: NextRequest) {
                         date,
                     });
 
-                    await setCachedDay(userRef, date, timetable);
+                    await saveTimetableDay(userId, date, timetable, CACHE_DURATION_MS);
                     results[date] = timetable;
                 }
 
-                await userRef.set(
-                    {
-                        timetable: {
-                            currentCookies: cookies,
-                        },
-                    },
-                    { merge: true },
-                );
+                await saveTimetableConfig(userId, {
+                    ...timetableFetchData,
+                    currentCookies: cookies,
+                });
 
                 const executionId = req.nextUrl.searchParams.get("taskId");
                 if (executionId) {

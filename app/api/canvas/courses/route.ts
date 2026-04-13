@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin"; // admin is firebase-admin instance
+import { db, auth } from "@/lib/firebaseAdmin";
+import { getLMSCourses } from "@/lib/firebaseSchema";
 
 export async function GET(req: Request) {
     try {
@@ -16,12 +17,8 @@ export async function GET(req: Request) {
         const decodedToken = await auth.verifyIdToken(idToken);
         const uid = decodedToken.uid;
 
-        // Fetch user document
-        const userRef = db.collection("users").doc(uid);
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-        const courses = userDoc.data()?.data?.courses || {};
+        // Fetch courses from new collection structure
+        const courses = await getLMSCourses(uid);
 
         return NextResponse.json({ status: "ok", courses });
     } catch (err: any) {

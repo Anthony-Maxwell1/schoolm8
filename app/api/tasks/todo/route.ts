@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
         }
 
         const data = doc.data();
-        const tasksMap = data?.tasks || {};
+        const tasksMap = data?.data?.tasks || {};
 
         const now = Date.now();
 

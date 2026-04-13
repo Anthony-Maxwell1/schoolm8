@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { ObtainAuthCredentials, FetchTimetableDay } from "@/lib/edumateClient";
+import { saveTimetableConfig } from "@/lib/firebaseSchema";
 
 export async function POST(req: Request) {
     try {
@@ -31,18 +32,14 @@ export async function POST(req: Request) {
         }
         const timetableData = await FetchTimetableDay(authCredentials, baseUrl, "today");
         if (timetableData && typeof timetableData === "object") {
-            await userRef.set(
-                {
-                    timetable: {
-                        type: "edumate",
-                        baseUrl,
-                        username,
-                        password,
-                        currentCookies: authCredentials,
-                    },
-                },
-                { merge: true },
-            );
+            // Save to new collection structure
+            await saveTimetableConfig(userId, {
+                type: "edumate",
+                baseUrl,
+                username,
+                password,
+                currentCookies: authCredentials,
+            });
             return NextResponse.json({ message: "Edumate connected successfully" });
         } else {
             return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
