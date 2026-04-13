@@ -18,8 +18,10 @@ const CACHE_DURATION_MS = 1000 * 60 * 60 * 1; // 1 hour
 function resolveMode(params: URLSearchParams) {
     const dayParam = params.get("day");
     const weekParam = params.get("week");
+    console.log("[resolveMode] dayParam:", dayParam, "weekParam:", weekParam);
 
     if (!dayParam && !weekParam) {
+        console.log("[resolveMode] No params, defaulting to today");
         return { mode: "today" as const, value: "today" };
     }
 
@@ -27,6 +29,7 @@ function resolveMode(params: URLSearchParams) {
         if (dayParam !== "today" && !isValidISODate(dayParam)) {
             throw new Error("Invalid day format. Use YYYY-MM-DD or 'today'");
         }
+        console.log("[resolveMode] Day mode:", dayParam);
         return { mode: "day" as const, value: dayParam };
     }
 
@@ -34,6 +37,7 @@ function resolveMode(params: URLSearchParams) {
         if (!isValidISODate(weekParam)) {
             throw new Error("Invalid week format. Use YYYY-MM-DD");
         }
+        console.log("[resolveMode] Week mode:", weekParam);
         return { mode: "week" as const, value: weekParam };
     }
 
@@ -41,17 +45,21 @@ function resolveMode(params: URLSearchParams) {
 }
 
 function isCacheValid(entry?: { expiry: number }) {
-    return entry && Date.now() < entry.expiry;
+    const valid = entry && Date.now() < entry.expiry;
+    console.log("[isCacheValid]", valid);
+    return valid;
 }
 
 async function getCachedDay(userRef: any, date: string) {
     const doc = await userRef.get();
     const cache = doc.data()?.timetable?.cache || {};
+    console.log("[getCachedDay] date:", date, "cached:", !!cache[date]);
     return cache[date];
 }
 
 async function setCachedDay(userRef: any, date: string, data: any) {
     const expiry = Date.now() + CACHE_DURATION_MS;
+    console.log("[setCachedDay] caching for date:", date);
 
     await userRef.set(
         {
@@ -69,7 +77,9 @@ async function setCachedDay(userRef: any, date: string, data: any) {
 }
 
 function resolveDate(value: string) {
-    return value === "today" ? new Date().toISOString().split("T")[0] : value;
+    const resolved = value === "today" ? new Date().toISOString().split("T")[0] : value;
+    console.log("[resolveDate] value:", value, "resolved:", resolved);
+    return resolved;
 }
 
 // ======================================================
@@ -78,9 +88,12 @@ function resolveDate(value: string) {
 
 export async function GET(req: NextRequest) {
     try {
+        console.log("[GET] Request started");
+
         // ---------- AUTH ----------
         const authHeader = req.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer ")) {
+            console.log("[GET] Missing Authorization header");
             return NextResponse.json(
                 { error: "Missing or invalid Authorization header" },
                 { status: 401 },
@@ -90,6 +103,7 @@ export async function GET(req: NextRequest) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+        console.log("[GET] User authenticated:", userId);
 
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();
@@ -97,17 +111,20 @@ export async function GET(req: NextRequest) {
 
         const timetableFetchData = doc.data()?.timetable;
         if (!timetableFetchData) {
+            console.log("[GET] No timetable data found");
             return NextResponse.json({ timetable: null });
         }
 
         // ---------- MODE ----------
         const url = new URL(req.url);
         const { mode, value } = resolveMode(url.searchParams);
+        console.log("[GET] Resolved mode:", mode, "value:", value);
 
         // ======================================================
         // ICAL PROVIDER
         // ======================================================
         if (timetableFetchData.type === "ical") {
+            console.log("[GET] Using iCal provider");
             const { url: icalUrl, username, password } = timetableFetchData;
 
             const result = await fetch(icalUrl, {
@@ -123,6 +140,7 @@ export async function GET(req: NextRequest) {
 
             const icalText = await result.text();
             const parsedEvents = parseICalData(icalText);
+            console.log("[GET] Parsed iCal events:", parsedEvents.length);
 
             // ---- TODAY / DAY ----
             if (mode === "today" || mode === "day") {
@@ -131,10 +149,12 @@ export async function GET(req: NextRequest) {
                 // 🔍 CACHE CHECK
                 const cached = await getCachedDay(userRef, date);
                 if (isCacheValid(cached)) {
+                    console.log("[GET] Returning cached day");
                     return NextResponse.json({ timetable: cached.data, cached: true });
                 }
 
                 // ❌ FETCH
+                console.log("[GET] Fetching fresh day for date:", date);
                 const timetable = await standardiseDay({
                     provider: "ical",
                     parsedICalEvents: parsedEvents,
@@ -161,6 +181,7 @@ export async function GET(req: NextRequest) {
 
             // ---- WEEK ----
             if (mode === "week") {
+                console.log("[GET] Fetching week starting:", value);
                 const startDate = value;
                 const days: string[] = [];
 
@@ -170,6 +191,7 @@ export async function GET(req: NextRequest) {
                     d.setDate(d.getDate() + i);
                     days.push(d.toISOString().split("T")[0]);
                 }
+                console.log("[GET] Days to fetch:", days);
 
                 const results: Record<string, any> = {};
 
@@ -177,10 +199,12 @@ export async function GET(req: NextRequest) {
                     const cached = await getCachedDay(userRef, date);
 
                     if (isCacheValid(cached)) {
+                        console.log("[GET] Using cached data for:", date);
                         results[date] = cached.data;
                         continue;
                     }
 
+                    console.log("[GET] Fetching fresh data for date:", date);
                     const timetable = await standardiseDay({
                         provider: "ical",
                         parsedICalEvents: parsedEvents,
@@ -211,9 +235,11 @@ export async function GET(req: NextRequest) {
         // EDUMATE PROVIDER
         // ======================================================
         if (timetableFetchData.type === "edumate") {
+            console.log("[GET] Using Edumate provider");
             const { baseUrl, username, password, currentCookies } = timetableFetchData;
 
             if (!baseUrl || !username || !password) {
+                console.log("[GET] Missing Edumate credentials");
                 const executionId = req.nextUrl.searchParams.get("taskId");
                 if (executionId) {
                     try {
@@ -234,6 +260,7 @@ export async function GET(req: NextRequest) {
             // ---- AUTH COOKIES ----
             let cookies = currentCookies;
             if (!cookies) {
+                console.log("[GET] Obtaining new auth cookies");
                 cookies = await ObtainAuthCredentials(baseUrl, username, password);
                 if (!cookies) throw new Error("Failed to authenticate with Edumate");
                 await userRef.set(
@@ -253,6 +280,7 @@ export async function GET(req: NextRequest) {
                 // 🔍 CACHE CHECK
                 const cached = await getCachedDay(userRef, date);
                 if (isCacheValid(cached)) {
+                    console.log("[GET] Returning cached Edumate day");
                     const executionId = req.nextUrl.searchParams.get("taskId");
                     if (executionId) {
                         try {
@@ -268,6 +296,7 @@ export async function GET(req: NextRequest) {
                 }
 
                 // ❌ FETCH
+                console.log("[GET] Fetching fresh Edumate day for date:", date);
                 const rawDay = await FetchTimetableDay(
                     cookies,
                     baseUrl,
@@ -275,7 +304,9 @@ export async function GET(req: NextRequest) {
                 );
 
                 if (rawDay.error) {
+                    console.log("[GET] Edumate error:", rawDay.error);
                     if (rawDay.error == 401) {
+                        console.log("[GET] Re-authenticating due to 401");
                         cookies = await ObtainAuthCredentials(baseUrl, username, password);
                         if (!cookies) throw new Error("Failed to authenticate with Edumate");
                         await userRef.set(
@@ -326,6 +357,7 @@ export async function GET(req: NextRequest) {
 
             // ---- WEEK ----
             if (mode === "week") {
+                console.log("[GET] Fetching Edumate week starting:", value);
                 const startDate = value;
                 const results: Record<string, any> = {};
 
@@ -337,10 +369,12 @@ export async function GET(req: NextRequest) {
                     const cached = await getCachedDay(userRef, date);
 
                     if (isCacheValid(cached)) {
+                        console.log("[GET] Using cached Edumate data for:", date);
                         results[date] = cached.data;
                         continue;
                     }
 
+                    console.log("[GET] Fetching fresh Edumate data for date:", date);
                     const rawDay = await FetchTimetableDay(cookies, baseUrl, date);
 
                     const timetable = await standardiseDay({
@@ -378,9 +412,10 @@ export async function GET(req: NextRequest) {
             }
         }
 
+        console.log("[GET] No timetable provider found");
         return NextResponse.json({ timetable: null });
     } catch (err) {
-        console.error(err);
+        console.error("[GET] Error:", err);
         const executionId = req.nextUrl.searchParams.get("taskId");
         if (executionId) {
             try {
