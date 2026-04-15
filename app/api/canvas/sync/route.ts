@@ -1,15 +1,25 @@
 // app/api/canvas/sync/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { htmlToText } from "html-to-text";
+import {
+    saveLMSAssignments,
+    saveLMSAnnouncements,
+    saveLMSCourses,
+    getLMSAssignments,
+} from "@/lib/firebaseSchema";
 
-type CanvasCourse = {
+/* =========================
+   Canvas API Types
+========================= */
+
+export type CanvasCourse = {
     id: number;
     name: string;
     html_url: string;
 };
 
-type CanvasAssignment = {
+export type CanvasAssignment = {
     id: number;
     name: string;
     description: string;
@@ -17,10 +27,72 @@ type CanvasAssignment = {
     html_url: string;
 };
 
-type CanvasSubmission = {
+export type CanvasSubmission = {
     submitted_at: string | null;
-    workflow_state: string; // unsubmitted | submitted | graded | etc.
+    workflow_state: string;
 };
+
+export type CanvasAnnouncement = {
+    id: number;
+    title: string;
+    message: string;
+    posted_at: string;
+    html_url: string;
+};
+
+/* =========================
+   App (LMS) Types
+========================= */
+
+export type LMSAssignment = {
+    id: string;
+    title: string;
+    description: string;
+    courseId: string;
+    courseName: string;
+    dueAt: string | null;
+    url: string;
+
+    submission: boolean;
+    submissionState: string;
+    submittedAt: string | null;
+
+    projects: any[];
+    missing: boolean;
+
+    rawCanvasData: CanvasAssignment;
+
+    updatedAt: string;
+    createdAt: string;
+
+    overriddenFields: string[];
+};
+
+export type LMSAnnouncement = {
+    id: string;
+    title: string;
+    message: string;
+    courseId: string;
+    courseName: string;
+    postedAt: string;
+    url: string;
+
+    updatedAt: string;
+};
+
+/* =========================
+   Final Sync Result Type
+========================= */
+
+export type CanvasSyncResult = {
+    assignments: Record<string, LMSAssignment>;
+    announcements: Record<string, LMSAnnouncement>;
+    courses: Record<string, any>;
+};
+
+/* =========================
+   Helpers
+========================= */
 
 function cleanUndefined(obj: any): any {
     if (Array.isArray(obj)) return obj.map(cleanUndefined);
@@ -35,11 +107,16 @@ function cleanUndefined(obj: any): any {
     return obj;
 }
 
-function sanitizeHTML(input: string): string {
+function sanitizeHTML(input?: string): string {
+    if (!input) return "";
     return htmlToText(input, {}).trim();
 }
 
-export async function GET(req: Request) {
+/* =========================
+   Route
+========================= */
+
+export async function GET(req: NextRequest) {
     try {
         const authHeader = req.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer "))
@@ -50,18 +127,82 @@ export async function GET(req: Request) {
 
         const idToken = authHeader.split(" ")[1];
 
-        // Verify Firebase ID token
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
 
-        const assignments = await syncCanvasForUser(userId);
-        return NextResponse.json({ status: "ok", assignments });
+        const { assignments, announcements, courses } = await syncCanvasForUser(userId);
+
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "complete",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
+
+        return NextResponse.json({
+            status: "ok",
+            assignments,
+            announcements,
+            courses,
+        });
     } catch (err: any) {
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const authHeader = req.headers.get("Authorization")!;
+
+                const idToken = authHeader.split(" ")[1];
+                const decodedToken = await auth.verifyIdToken(idToken);
+                const userId = decodedToken.uid;
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "failed",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
 
-async function syncCanvasForUser(userId: string) {
+/* =========================
+   Core Sync Logic
+========================= */
+
+async function fetchAllPages(url: string, token: string) {
+    let results: any[] = [];
+    let nextUrl: string | null = url;
+
+    while (nextUrl) {
+        const res: any = await fetch(nextUrl, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) break;
+
+        const data = await res.json();
+        results.push(...data);
+
+        const linkHeader = res.headers.get("link");
+
+        const nextLink = linkHeader
+            ?.split(",")
+            .find((l: string) => l.includes('rel="next"'))
+            ?.match(/<(.+?)>/)?.[1];
+
+        nextUrl = nextLink || null;
+    }
+
+    return results;
+}
+
+async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
     const userRef = db.collection("users").doc(userId);
     const doc = await userRef.get();
     if (!doc.exists) throw new Error("User not found");
@@ -69,22 +210,96 @@ async function syncCanvasForUser(userId: string) {
     const userData = doc.data();
     const canvasToken = userData?.canvasToken;
     const canvasBaseUrl = userData?.info?.canvasBaseUrl;
-    if (!canvasToken || !canvasBaseUrl) throw new Error("Missing Canvas token or base URL");
 
-    const fetchJson = (url: string) =>
-        fetch(url, { headers: { Authorization: `Bearer ${canvasToken}` } }).then((r) =>
-            r.ok ? r.json() : null,
-        );
+    if (!canvasToken || !canvasBaseUrl) {
+        throw new Error("Missing Canvas token or base URL");
+    }
+
+    /* =========================
+       Helpers
+    ========================= */
+
+    const fetchJson = async (url: string) => {
+        const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${canvasToken}` },
+        });
+        return res.ok ? res.json() : null;
+    };
+
+    const fetchAllPages = async (url: string) => {
+        let results: any[] = [];
+        let nextUrl: string | null = url;
+
+        while (nextUrl) {
+            const res: any = await fetch(nextUrl, {
+                headers: { Authorization: `Bearer ${canvasToken}` },
+            });
+
+            if (!res.ok) break;
+
+            const data = await res.json();
+            results.push(...data);
+
+            const linkHeader = res.headers.get("link");
+
+            const nextLink = linkHeader
+                ?.split(",")
+                .find((l: string) => l.includes('rel="next"'))
+                ?.match(/<(.+?)>/)?.[1];
+
+            nextUrl = nextLink || null;
+        }
+
+        return results;
+    };
+
+    /* =========================
+       Fetch Courses
+    ========================= */
 
     const courses: CanvasCourse[] = (await fetchJson(`${canvasBaseUrl}/api/v1/courses`)) || [];
-    const existingAssignments: Record<string, any> = userData?.data?.assignments || {};
-    const updatedAssignments: Record<string, any> = {};
-    const seenIds = new Set<string>();
+
+    const courseMap = Object.fromEntries(courses.map((c) => [c.id.toString(), c.name]));
+
+    /* =========================
+       Fetch Assignments (PARALLEL)
+    ========================= */
+
+    const assignmentPromises: Promise<any>[] = [];
 
     for (const course of courses) {
-        const assignments: CanvasAssignment[] =
-            (await fetchJson(`${canvasBaseUrl}/api/v1/courses/${course.id}/assignments`)) || [];
+        let url = `${canvasBaseUrl}/api/v1/courses/${course.id}/assignments?include[]=submission`;
+        const promise = fetchAllPages(url).then((assignments) => ({ course, assignments }));
+        assignmentPromises.push(promise);
+    }
 
+    const assignmentResults = await Promise.all(assignmentPromises);
+
+    /* =========================
+       Fetch Announcements (ONCE)
+    ========================= */
+
+    const contextCodes = courses.map((c) => `course_${c.id}`).join("&context_codes[]=");
+
+    const allAnnouncements = await fetchAllPages(
+        `${canvasBaseUrl}/api/v1/announcements?context_codes[]=${contextCodes}&start_date=2000-01-01T00:00:00Z&end_date=2100-01-01T00:00:00Z&per_page=100`,
+    );
+
+    /* =========================
+       Build Data
+    ========================= */
+
+    // Fetch existing assignments from new collections structure
+    const existingAssignments: Record<string, LMSAssignment> = await getLMSAssignments(userId);
+
+    const updatedAssignments: Record<string, LMSAssignment> = {};
+    const updatedAnnouncements: Record<string, LMSAnnouncement> = {};
+
+    const seenIds = new Set<string>();
+
+    /* ---------- Assignments ---------- */
+
+    for (const { course, assignments } of assignmentResults) {
         for (const a of assignments) {
             const id = a.id.toString();
             seenIds.add(id);
@@ -92,13 +307,9 @@ async function syncCanvasForUser(userId: string) {
             const existing = existingAssignments[id];
             const overriddenKeys: string[] = existing?.overriddenFields || [];
 
-            const submission: CanvasSubmission | null = await fetchJson(
-                `${canvasBaseUrl}/api/v1/courses/${course.id}/assignments/${a.id}/submissions/self`,
-            );
+            const submission = a.submission || null;
 
-            const status = submission?.workflow_state || "unsubmitted";
-
-            let assignment: any = {
+            const assignment: LMSAssignment = {
                 id,
                 title: a.name,
                 description: sanitizeHTML(a.description),
@@ -106,23 +317,52 @@ async function syncCanvasForUser(userId: string) {
                 courseName: course.name,
                 dueAt: a.due_at ? new Date(a.due_at).toISOString() : null,
                 url: a.html_url,
-                submissionState: status,
+
+                submission: !!submission,
+                submissionState: submission?.workflow_state || "unsubmitted",
                 submittedAt: submission?.submitted_at || null,
+
                 projects: existing?.projects || [],
                 missing: false,
+
                 rawCanvasData: a,
+
                 updatedAt: new Date().toISOString(),
                 createdAt: existing?.createdAt || new Date().toISOString(),
+
                 overriddenFields: overriddenKeys,
             };
 
             for (const key of overriddenKeys) {
-                if (existing && key in existing) assignment[key] = existing[key];
+                if (existing && key in existing) {
+                    (assignment as any)[key] = (existing as any)[key];
+                }
             }
 
             updatedAssignments[id] = assignment;
         }
     }
+
+    /* ---------- Announcements ---------- */
+
+    for (const ann of allAnnouncements) {
+        const id = ann.id.toString();
+
+        const courseId = ann.context_code?.replace("course_", "") || "";
+
+        updatedAnnouncements[id] = {
+            id,
+            title: ann.title,
+            message: sanitizeHTML(ann.message),
+            courseId,
+            courseName: courseMap[courseId] || "Unknown Course",
+            postedAt: new Date(ann.posted_at).toISOString(),
+            url: ann.html_url,
+            updatedAt: new Date().toISOString(),
+        };
+    }
+
+    /* ---------- Missing Assignments ---------- */
 
     for (const id of Object.keys(existingAssignments)) {
         if (!seenIds.has(id)) {
@@ -134,25 +374,32 @@ async function syncCanvasForUser(userId: string) {
         }
     }
 
+    /* ---------- Courses Map ---------- */
+
     const coursesMap: Record<string, any> = {};
     for (const c of courses) {
         coursesMap[c.id.toString()] = {
             id: c.id.toString(),
             name: c.name,
-            url: canvasBaseUrl + "/" + c.id.toString(),
+            url: `${canvasBaseUrl}/courses/${c.id}`,
             updatedAt: new Date().toISOString(),
         };
     }
 
-    await userRef.set(
-        {
-            data: {
-                assignments: cleanUndefined(updatedAssignments),
-                courses: cleanUndefined(coursesMap),
-            },
-        },
-        { merge: true },
-    );
+    /* =========================
+       Save
+    ========================= */
 
-    return updatedAssignments;
+    // Save to new collection structure
+    await Promise.all([
+        saveLMSAssignments(userId, updatedAssignments),
+        saveLMSAnnouncements(userId, updatedAnnouncements),
+        saveLMSCourses(userId, coursesMap),
+    ]);
+
+    return {
+        assignments: updatedAssignments,
+        announcements: updatedAnnouncements,
+        courses: coursesMap,
+    };
 }

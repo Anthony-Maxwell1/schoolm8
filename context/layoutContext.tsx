@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { GridSize, Page, TileInstance, PanelInstance } from "@/lib/layoutTypes";
+import { useAuth } from "./authContext";
 
 type LayoutContextType = {
     pages: Page[];
@@ -44,8 +45,10 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
 
     const [currentPageId, setCurrentPageId] = useState<string | null>(null);
     const [gridSize, setGridSize] = useState<GridSize>(getGridSize());
+    const { loading, user } = useAuth();
 
     useEffect(() => {
+        if (loading) return;
         const handler = () => setGridSize(getGridSize());
         window.addEventListener("resize", handler);
         return () => window.removeEventListener("resize", handler);

@@ -119,6 +119,11 @@ export async function FetchTimetableDay(authCookies: string, BASE_DOMAIN: string
             method: "GET",
         },
     );
+    if (res.headers.get("content-type")?.includes("text/html")) {
+        return {
+            error: 401,
+        };
+    }
     const data = await res.json();
     console.log("Timetable data:", data);
     return data;

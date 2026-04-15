@@ -14,11 +14,19 @@ export default function SignInPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const createFirestoreDoc = async (uid: string, name: string, email: string) => {
+    const createFirestoreDoc = async (user: any) => {
+        const token = await user.getIdToken();
+
         await fetch("/api/auth/init", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ uid, name, email }),
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                name: user.displayName || "",
+                email: user.email || "",
+            }),
         });
     };
 
@@ -26,13 +34,10 @@ export default function SignInPage() {
         e.preventDefault();
         setLoading(true);
         setError("");
+
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            await createFirestoreDoc(
-                userCredential.user.uid,
-                userCredential.user.displayName || "",
-                userCredential.user.email || "",
-            );
+            await createFirestoreDoc(userCredential.user);
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.message);
@@ -44,11 +49,11 @@ export default function SignInPage() {
     const handleGoogleSignIn = async () => {
         setLoading(true);
         setError("");
+
         try {
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            await createFirestoreDoc(user.uid, user.displayName || "", user.email || "");
+            await createFirestoreDoc(result.user);
             router.push("/dashboard");
         } catch (err: any) {
             setError(err.message);

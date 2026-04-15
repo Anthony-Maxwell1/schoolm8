@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
+import { saveTimetableConfig } from "@/lib/firebaseSchema";
 
 export async function POST(req: Request) {
     try {
@@ -34,17 +35,13 @@ export async function POST(req: Request) {
             const error = await result.json();
             throw new Error(`Verification failed: ${error}`);
         }
-        await userRef.set(
-            {
-                timetable: {
-                    type: "ical",
-                    url,
-                    username,
-                    password,
-                },
-            },
-            { merge: true },
-        );
+        // Save to new collection structure
+        await saveTimetableConfig(userId, {
+            type: "ical",
+            url,
+            username,
+            password,
+        });
         return NextResponse.json({ message: "iCal connected successfully" });
     } catch (err) {
         console.error(err);
