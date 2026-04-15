@@ -17,6 +17,9 @@ type ThemeContextType = {
     topBar: string;
     updateTopBar: (value: string) => void;
     fetchFromTheme: (themeKey: string) => void;
+    extraHtml?: string;
+    defaultExtraHtml?: string;
+    updateExtraHtml?: (value: string) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType>({
