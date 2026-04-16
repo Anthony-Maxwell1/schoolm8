@@ -19,7 +19,13 @@ const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null =>
     return null;
 };
 
-export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
+export const Dashboard = ({
+    editable = false,
+    wallpaper = "/images/backgrounds/builtin/0001.png",
+}: {
+    editable?: boolean;
+    wallpaper?: string;
+}) => {
     const { user, loading } = useAuth();
 
     const { currentPage, gridSize, removeTile, updateTile, saveState, removePanel } = useLayout();
@@ -137,7 +143,8 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     return (
         <div
             ref={containerRef}
-            className="relative w-full h-full overflow-hidden bg-[url('/images/backgrounds/builtin/0001.png')] bg-cover"
+            className="relative w-full h-full overflow-hidden bg-cover bg-center"
+            style={{ backgroundImage: `url('${wallpaper}')` }}
         >
             {editable && editorOpen && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">

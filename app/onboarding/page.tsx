@@ -6,6 +6,13 @@ import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
 import { set } from "date-fns";
+import {
+    layoutPresets,
+    themePresets,
+    getLayoutPresetsForServices,
+    type LayoutPreset,
+    type ThemePreset,
+} from "@/lib/presets";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -16,6 +23,9 @@ export default function Onboarding() {
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [lms, setLms] = useState("");
     const [timetable, setTimetable] = useState("");
+    const [selectedLayout, setSelectedLayout] = useState("");
+    const [selectedDashboardTheme, setSelectedDashboardTheme] = useState("");
+    const [selectedWebsiteTheme, setSelectedWebsiteTheme] = useState("");
 
     // LMS configuration
     // | -> Canvas
@@ -51,8 +61,8 @@ export default function Onboarding() {
         { title: "Disclaimer" },
         { title: "Link your LMS" },
         { title: "Link your timetable" },
-        { title: "Pick a starting theme" },
         { title: "Pick a starting layout" },
+        { title: "Pick a starting theme" },
         { title: "Learn more" },
     ];
 
@@ -224,7 +234,7 @@ export default function Onboarding() {
                 },
                 body: JSON.stringify({
                     scopeGroup: "classroom",
-                    redirectUrl: `/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`,
+                    redirectUrl: `/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}&layout=${selectedLayout}&dashboardTheme=${selectedDashboardTheme}&websiteTheme=${selectedWebsiteTheme}`,
                 }),
             });
             if (!response.ok) {
@@ -271,6 +281,10 @@ export default function Onboarding() {
         if (params.has("lms")) setLms(params.get("lms") || "");
         if (params.has("timetable")) setTimetable(params.get("timetable") || "");
         if (params.has("timetableMethod")) setTimetableMethod(params.get("timetableMethod") || "");
+        if (params.has("layout")) setSelectedLayout(params.get("layout") || "");
+        if (params.has("dashboardTheme"))
+            setSelectedDashboardTheme(params.get("dashboardTheme") || "");
+        if (params.has("websiteTheme")) setSelectedWebsiteTheme(params.get("websiteTheme") || "");
     }, []);
 
     return (
@@ -296,13 +310,13 @@ export default function Onboarding() {
             <div className="fixed bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
                 <a
                     className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
-                    href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
+                    href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}&layout=${selectedLayout}&dashboardTheme=${selectedDashboardTheme}&websiteTheme=${selectedWebsiteTheme}`}
                 >
                     Switch to Light
                 </a>
                 <a
                     className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
-                    href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
+                    href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}&layout=${selectedLayout}&dashboardTheme=${selectedDashboardTheme}&websiteTheme=${selectedWebsiteTheme}`}
                 >
                     Switch to Dark
                 </a>
@@ -729,6 +743,159 @@ export default function Onboarding() {
                                         )}
                                     </div>
                                 ))}
+                        </div>
+                    )}
+                    {step === 4 && (
+                        <div className="text-center space-y-4">
+                            <h2 className="text-2xl font-semibold text-white/75">
+                                Pick a starting layout
+                            </h2>
+                            <p className="text-white/65">
+                                Choose a dashboard layout that works best for you. Some layouts
+                                require certain services to be connected.
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                {(() => {
+                                    // Determine which services are connected
+                                    const connectedServices: string[] = [];
+                                    if (canvasConnected || googleClassroomConnected) {
+                                        connectedServices.push("lms");
+                                    }
+                                    if (edumateConnected || genericConnected) {
+                                        connectedServices.push("timetable");
+                                    }
+
+                                    // Get available layouts
+                                    const availableLayouts =
+                                        getLayoutPresetsForServices(connectedServices);
+
+                                    return availableLayouts.map((preset) => (
+                                        <button
+                                            key={preset.id}
+                                            onClick={() => setSelectedLayout(preset.id)}
+                                            className={`p-4 rounded-lg border-2 transition text-left ${
+                                                selectedLayout === preset.id
+                                                    ? "border-green-600 bg-green-600/10"
+                                                    : "border-white/30 hover:border-white/50 bg-white/5"
+                                            }`}
+                                        >
+                                            <h3 className="font-semibold text-white">
+                                                {preset.name}
+                                            </h3>
+                                            <p className="text-white/65 text-sm">
+                                                {preset.description}
+                                            </p>
+                                            <p className="text-white/50 text-xs mt-2">
+                                                Grid: {preset.gridSize.cols}x{preset.gridSize.rows}
+                                            </p>
+                                        </button>
+                                    ));
+                                })()}
+                            </div>
+
+                            {(() => {
+                                const connectedServices: string[] = [];
+                                if (canvasConnected || googleClassroomConnected) {
+                                    connectedServices.push("lms");
+                                }
+                                if (edumateConnected || genericConnected) {
+                                    connectedServices.push("timetable");
+                                }
+
+                                const availableLayouts =
+                                    getLayoutPresetsForServices(connectedServices);
+                                const allLayouts = Object.values(layoutPresets);
+                                const unavailableLayouts = allLayouts.filter(
+                                    (l) => !availableLayouts.includes(l),
+                                );
+
+                                if (unavailableLayouts.length > 0) {
+                                    return (
+                                        <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg mt-4">
+                                            <p className="font-medium mb-2">
+                                                Some layouts require additional services:
+                                            </p>
+                                            <ul className="text-sm">
+                                                {unavailableLayouts.map((layout) => (
+                                                    <li key={layout.id}>
+                                                        • <strong>{layout.name}</strong>: requires{" "}
+                                                        {layout.requiredServices.join(", ")}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </div>
+                    )}
+                    {step === 5 && (
+                        <div className="text-center space-y-4">
+                            <h2 className="text-2xl font-semibold text-white/75">
+                                Pick a starting theme
+                            </h2>
+                            <p className="text-white/65">
+                                Choose themes for your dashboard and the website interface. You can
+                                have different themes for each.
+                            </p>
+
+                            <div className="space-y-6">
+                                {/* Dashboard Theme */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white/75 mb-3">
+                                        Dashboard Theme
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {Object.values(themePresets).map((preset) => (
+                                            <button
+                                                key={`dashboard-${preset.id}`}
+                                                onClick={() => setSelectedDashboardTheme(preset.id)}
+                                                className={`p-4 rounded-lg border-2 transition text-left ${
+                                                    selectedDashboardTheme === preset.id
+                                                        ? "border-green-600 bg-green-600/10"
+                                                        : "border-white/30 hover:border-white/50 bg-white/5"
+                                                }`}
+                                            >
+                                                <h4 className="font-semibold text-white">
+                                                    {preset.name}
+                                                </h4>
+                                                <p className="text-white/65 text-sm">
+                                                    {preset.description}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Website Theme */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white/75 mb-3">
+                                        Website Theme
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {Object.values(themePresets).map((preset) => (
+                                            <button
+                                                key={`website-${preset.id}`}
+                                                onClick={() => setSelectedWebsiteTheme(preset.id)}
+                                                className={`p-4 rounded-lg border-2 transition text-left ${
+                                                    selectedWebsiteTheme === preset.id
+                                                        ? "border-green-600 bg-green-600/10"
+                                                        : "border-white/30 hover:border-white/50 bg-white/5"
+                                                }`}
+                                            >
+                                                <h4 className="font-semibold text-white">
+                                                    {preset.name}
+                                                </h4>
+                                                <p className="text-white/65 text-sm">
+                                                    {preset.description}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                     {step === 6 && (

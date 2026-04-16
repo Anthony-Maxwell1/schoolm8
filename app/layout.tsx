@@ -1,6 +1,7 @@
 import "./globals.css";
 import { AuthProvider } from "@/context/authContext";
 import { LayoutProvider } from "@/context/layoutContext";
+import { NavigationProvider } from "@/context/navigationContext";
 import { ThemeProvider } from "@/context/themeContext";
 import ClientAuthGuard from "./ClientAuthGuard";
 import { ToastContainer, toast } from "react-toastify";
@@ -30,11 +31,13 @@ https://github.com/Anthony-Maxwell1/schoolm8
             <body>
                 <LayoutProvider>
                     <ThemeProvider>
-                        <AuthProvider>
-                            <TaskManager />
-                            <ToastContainer position="bottom-right" />
-                            <ClientAuthGuard>{children}</ClientAuthGuard>
-                        </AuthProvider>
+                        <NavigationProvider>
+                            <AuthProvider>
+                                <TaskManager />
+                                <ToastContainer position="bottom-right" />
+                                <ClientAuthGuard>{children}</ClientAuthGuard>
+                            </AuthProvider>
+                        </NavigationProvider>
                     </ThemeProvider>
                 </LayoutProvider>
             </body>

@@ -7,7 +7,6 @@ import { ClassroomCourse } from "../api/googleclassroom/sync/route";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ArrowRight, Search } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
 
 export default function CoursesPage() {
     const { user, token, loading } = useAuth();
@@ -50,10 +49,16 @@ export default function CoursesPage() {
     }, [searchQuery, courses]);
 
     return (
-        <AppLayout title="Courses">
-            {/* Search Bar */}
-            <div className="sticky top-14 md:top-0 z-20 bg-slate-800/40 backdrop-blur-md border-b border-slate-700/50 px-6 py-4">
-                <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            {/* Header */}
+            <div className="sticky top-0 z-20 bg-slate-800/80 backdrop-blur border-b border-slate-700">
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <BookOpen className="w-8 h-8 text-emerald-500" />
+                        <h1 className="text-3xl font-bold text-white">Courses</h1>
+                    </div>
+
+                    {/* Search Bar */}
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input
@@ -61,14 +66,14 @@ export default function CoursesPage() {
                             placeholder="Search courses..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <main className="max-w-7xl mx-auto px-6 py-12">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-20">
                         <div className="flex flex-col items-center gap-4">
@@ -96,7 +101,7 @@ export default function CoursesPage() {
                             <Link
                                 key={course.id}
                                 href={`/courses/${course.id}`}
-                                className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10"
+                                className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-700 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10"
                             >
                                 {/* Course Image */}
                                 {course.image && (
@@ -122,7 +127,7 @@ export default function CoursesPage() {
                                     )}
 
                                     {/* Footer */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-600/30">
+                                    <div className="flex items-center justify-between pt-4 border-t border-slate-600/50">
                                         <div className="text-xs text-slate-500">
                                             {course.id ? `ID: ${course.id.slice(0, 8)}...` : ""}
                                         </div>
@@ -133,7 +138,7 @@ export default function CoursesPage() {
                         ))}
                     </div>
                 )}
-            </div>
-        </AppLayout>
+            </main>
+        </div>
     );
 }

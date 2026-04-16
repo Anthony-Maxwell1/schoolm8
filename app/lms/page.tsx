@@ -11,14 +11,12 @@ import {
     normaliseCourse,
 } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
-import { AppLayout } from "@/components/AppLayout";
 import {
     ClassroomAnnouncement,
     ClassroomAssignment,
     ClassroomCourse,
 } from "../api/googleclassroom/sync/route";
 import { CanvasCourse, LMSAnnouncement, LMSAssignment } from "../api/canvas/sync/route";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function LMS() {
     const announcementRef = useRef<HTMLDivElement>(null);
@@ -86,31 +84,31 @@ export default function LMS() {
         redirectTemplate: string;
         refProp: any;
     }) => (
-        <div className="space-y-4">
+        <div className="">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white">{title}</h2>
-                <button className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-                    See all
+            <div className={style.main.section.header["ROOT-STYLE"]}>
+                <h2 className={style.main.section.header["ROOT-STYLE"]}>{title}</h2>
+                <button className={style.main.section.header.seeall["ROOT-STYLE"]}>
+                    {style.main.section.header.seeall.CONTENT}
                 </button>
             </div>
 
             {/* Carousel */}
-            <div className="relative group">
+            <div className={style.main.section.carousel["ROOT-STYLE"]}>
                 {/* Left Button */}
                 <button
                     onClick={() => scroll(refProp, "left")}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 backdrop-blur p-2 rounded-lg text-white hover:bg-slate-800"
+                    className={style.main.section.carousel.left["ROOT-STYLE"]}
                 >
-                    <ChevronLeft className="w-5 h-5" />
+                    {style.main.section.carousel.left.CONTENT}
                 </button>
 
                 {/* Scroll Area */}
-                <div ref={refProp} className="flex gap-4 overflow-x-auto scroll-smooth pb-2 px-8">
+                <div ref={refProp} className={style.main.section.carousel.scrollarea["ROOT-STYLE"]}>
                     {data.map((item, i) => (
                         <div
                             key={i}
-                            className="flex-shrink-0 w-80 h-48 rounded-lg bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-4 cursor-pointer overflow-hidden group"
+                            className={style.main.section.carousel.scrollarea.item["ROOT-STYLE"]}
                             onClick={function () {
                                 redirect(redirectTemplate.replace("{id}", item.id));
                             }}
@@ -118,29 +116,67 @@ export default function LMS() {
                             {item.image && (
                                 <img
                                     src={item.image}
-                                    className="w-full h-32 object-cover rounded-lg mb-2 group-hover:scale-105 transition-transform"
+                                    className={
+                                        style.main.section.carousel.scrollarea.item.image[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
                                 />
                             )}
-                            <div>
-                                <h4 className="font-semibold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors">
+                            <div
+                                className={
+                                    style.main.section.carousel.scrollarea.item.inner["ROOT-STYLE"]
+                                }
+                            >
+                                <h4
+                                    className={
+                                        style.main.section.carousel.scrollarea.item.inner.title[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
+                                >
                                     {item.title}
                                 </h4>
-                                <p className="text-sm text-slate-400 line-clamp-1">
+                                <p
+                                    className={
+                                        style.main.section.carousel.scrollarea.item.inner
+                                            .description["ROOT-STYLE"]
+                                    }
+                                >
                                     {item.description &&
-                                        item.description.slice(0, 50) +
-                                            (item.description.length > 50 ? "..." : "")}
+                                        item.description.slice(0, 100) +
+                                            (item.description.length > 100 ? "..." : "")}
                                     {item.text &&
-                                        item.text.slice(0, 50) +
-                                            (item.text.length > 50 ? "..." : "")}
+                                        item.text.slice(0, 100) +
+                                            (item.text.length > 100 ? "..." : "")}
                                 </p>
                                 {item.due && (
-                                    <p className="text-xs text-slate-500 mt-1">
-                                        Due: {new Date(item.due).toLocaleDateString()}
+                                    <p
+                                        className={
+                                            style.main.section.carousel.scrollarea.item.inner.due[
+                                                "ROOT-STYLE"
+                                            ]
+                                        }
+                                    >
+                                        {
+                                            style.main.section.carousel.scrollarea.item.inner.due
+                                                .CONTENT
+                                        }
+                                        {new Date(item.due).toLocaleDateString()}
                                     </p>
                                 )}
                                 {item.created && (
-                                    <p className="text-xs text-slate-500">
-                                        Posted: {new Date(item.created).toLocaleDateString()}
+                                    <p
+                                        className={
+                                            style.main.section.carousel.scrollarea.item.inner
+                                                .created["ROOT-STYLE"]
+                                        }
+                                    >
+                                        {
+                                            style.main.section.carousel.scrollarea.item.inner
+                                                .created.CONTENT
+                                        }
+                                        {new Date(item.created).toLocaleDateString()}
                                     </p>
                                 )}
                             </div>
@@ -151,86 +187,76 @@ export default function LMS() {
                 {/* Right Button */}
                 <button
                     onClick={() => scroll(refProp, "right")}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 backdrop-blur p-2 rounded-lg text-white hover:bg-slate-800"
+                    className={style.main.section.carousel.right["ROOT-STYLE"]}
                 >
-                    <ChevronRight className="w-5 h-5" />
+                    {style.main.section.carousel.right.CONTENT}
                 </button>
             </div>
         </div>
     );
 
     return (
-        <AppLayout title="Learning Management System">
-            <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
-                {/* Announcements */}
-                {announcements.length > 0 && (
-                    <Section
-                        title="Announcements"
-                        redirectTemplate="/lms/announcement/{id}?cameFrom=/lms"
-                        data={announcements}
-                        refProp={announcementRef}
-                    />
-                )}
+        <div className={style.main["ROOT-STYLE"]}>
+            <h1 className={style.main.title["ROOT-STYLE"]}>{style.main.title["CONTENT"]}</h1>
 
-                {/* Assignments */}
-                {assignments.length > 0 && (
-                    <Section
-                        title="Assignments"
-                        redirectTemplate="/lms/assignment/{id}?cameFrom=/lms"
-                        data={assignments}
-                        refProp={assignmentRef}
-                    />
-                )}
+            {/* Announcements */}
+            <Section
+                title="Announcements"
+                redirectTemplate="/lms/announcement/{id}?cameFrom=/lms"
+                data={announcements}
+                refProp={announcementRef}
+            />
 
-                {/* Courses */}
-                {courses.length > 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-white">Your Courses</h2>
+            {/* Assignments */}
+            <Section
+                title="Assignments"
+                redirectTemplate="/lms/assignment/{id}?cameFrom=/lms"
+                data={assignments}
+                refProp={assignmentRef}
+            />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {courses.map((course, i) => (
+            {/* Courses */}
+            <div className={style.main.courses["ROOT-STYLE"]}>
+                <h2 className={style.main.courses["ROOT-STYLE"]}>
+                    {style.main.courses.title["CONTENT"]}
+                </h2>
+
+                <div className={style.main.courses.inner["ROOT-STYLE"]}>
+                    {console.log(courses) == undefined &&
+                        courses.map((course, i) => (
+                            <div
+                                key={i}
+                                className={style.main.courses.inner.course["ROOT-STYLE"]}
+                                onClick={function () {
+                                    redirect(`/lms/course/${course.id}?cameFrom=/lms`);
+                                }}
+                            >
+                                <img
+                                    src={course.image}
+                                    className={style.main.courses.inner.course.image["ROOT-STYLE"]}
+                                />
+
+                                {/* Overlay */}
                                 <div
-                                    key={i}
-                                    className="relative overflow-hidden rounded-2xl h-48 cursor-pointer group"
-                                    onClick={function () {
-                                        redirect(`/lms/course/${course.id}?cameFrom=/lms`);
-                                    }}
-                                >
-                                    {/* Image */}
-                                    <img
-                                        src={course.image}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                    />
+                                    className={
+                                        style.main.courses.inner.course.overlay["ROOT-STYLE"]
+                                    }
+                                />
 
-                                    {/* Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80" />
-
-                                    {/* Text */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
-                                            {course.name}
-                                        </h3>
-                                    </div>
+                                {/* Text */}
+                                <div className={style.main.courses.inner.course.name["ROOT-STYLE"]}>
+                                    <h3
+                                        className={
+                                            style.main.courses.inner.course.name.inner["ROOT-STYLE"]
+                                        }
+                                    >
+                                        {course.name}
+                                    </h3>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {announcements.length === 0 && assignments.length === 0 && courses.length === 0 && (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-semibold text-slate-300 mb-2">
-                                No LMS data yet
-                            </h2>
-                            <p className="text-slate-400">
-                                Set up your LMS integration in settings to see your courses,
-                                assignments, and announcements.
-                            </p>
-                        </div>
-                    </div>
-                )}
+                            </div>
+                        ))}
+                </div>
             </div>
-        </AppLayout>
+        </div>
     );
 }
