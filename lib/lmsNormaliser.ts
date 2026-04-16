@@ -49,16 +49,18 @@ export type Announcement = {
 };
 
 export function normaliseCourse(course: CanvasCourse | ClassroomCourse): Course {
-    if (course.hasOwnProperty("html_url")) {
+    if (course.hasOwnProperty("type") && (course as any).type === "CanvasCourse") {
         const c = course as CanvasCourse;
         return {
             id: c.id.toString(),
             name: c.name,
             url: c.html_url,
+            image: c.image_download_url || undefined,
             source: "canvas",
         };
     } else {
         const c = course as ClassroomCourse;
+
         return {
             id: c.id,
             name: c.name,
@@ -69,7 +71,7 @@ export function normaliseCourse(course: CanvasCourse | ClassroomCourse): Course 
 }
 
 export function normaliseAssignment(assignment: LMSAssignment | ClassroomAssignment): Assignment {
-    if (assignment.hasOwnProperty("courseId")) {
+    if (assignment.hasOwnProperty("type") && (assignment as any).type === "LMSAssignment") {
         const a = assignment as LMSAssignment;
         return {
             ...a,
@@ -90,7 +92,7 @@ export function normaliseAssignment(assignment: LMSAssignment | ClassroomAssignm
 export function normaliseAnnouncement(
     announcement: LMSAnnouncement | ClassroomAnnouncement,
 ): Announcement {
-    if (announcement.hasOwnProperty("url")) {
+    if (announcement.hasOwnProperty("type") && (announcement as any).type === "LMSAnnouncement") {
         const a = announcement as LMSAnnouncement;
         return {
             ...a,

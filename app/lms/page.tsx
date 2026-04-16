@@ -222,36 +222,39 @@ export default function LMS() {
                 </h2>
 
                 <div className={style.main.courses.inner["ROOT-STYLE"]}>
-                    {courses.map((course, i) => (
-                        <div
-                            key={i}
-                            className={style.main.courses.inner.course["ROOT-STYLE"]}
-                            onClick={function () {
-                                redirect(`/lms/course/${course.id}?cameFrom=/lms`);
-                            }}
-                        >
-                            <img
-                                src={course.image}
-                                className={style.main.courses.inner.course.image["ROOT-STYLE"]}
-                            />
-
-                            {/* Overlay */}
+                    {console.log(courses) == undefined &&
+                        courses.map((course, i) => (
                             <div
-                                className={style.main.courses.inner.course.overlay["ROOT-STYLE"]}
-                            />
+                                key={i}
+                                className={style.main.courses.inner.course["ROOT-STYLE"]}
+                                onClick={function () {
+                                    redirect(`/lms/course/${course.id}?cameFrom=/lms`);
+                                }}
+                            >
+                                <img
+                                    src={course.image}
+                                    className={style.main.courses.inner.course.image["ROOT-STYLE"]}
+                                />
 
-                            {/* Text */}
-                            <div className={style.main.courses.inner.course.name["ROOT-STYLE"]}>
-                                <h3
+                                {/* Overlay */}
+                                <div
                                     className={
-                                        style.main.courses.inner.course.name.inner["ROOT-STYLE"]
+                                        style.main.courses.inner.course.overlay["ROOT-STYLE"]
                                     }
-                                >
-                                    {course.name}
-                                </h3>
+                                />
+
+                                {/* Text */}
+                                <div className={style.main.courses.inner.course.name["ROOT-STYLE"]}>
+                                    <h3
+                                        className={
+                                            style.main.courses.inner.course.name.inner["ROOT-STYLE"]
+                                        }
+                                    >
+                                        {course.name}
+                                    </h3>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
         </div>

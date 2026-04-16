@@ -17,6 +17,8 @@ export type CanvasCourse = {
     id: number;
     name: string;
     html_url: string;
+    image_download_url?: string;
+    type: "CanvasCourse";
 };
 
 export type CanvasAssignment = {
@@ -25,6 +27,7 @@ export type CanvasAssignment = {
     description: string;
     due_at: string | null;
     html_url: string;
+    type: "CanvasAssignment";
 };
 
 export type CanvasSubmission = {
@@ -38,6 +41,7 @@ export type CanvasAnnouncement = {
     message: string;
     posted_at: string;
     html_url: string;
+    type: "CanvasAnnouncement";
 };
 
 /* =========================
@@ -66,6 +70,7 @@ export type LMSAssignment = {
     createdAt: string;
 
     overriddenFields: string[];
+    type: "LMSAssignment";
 };
 
 export type LMSAnnouncement = {
@@ -78,6 +83,7 @@ export type LMSAnnouncement = {
     url: string;
 
     updatedAt: string;
+    type: "LMSAnnouncement";
 };
 
 /* =========================
@@ -257,7 +263,10 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
        Fetch Courses
     ========================= */
 
-    const courses: CanvasCourse[] = (await fetchJson(`${canvasBaseUrl}/api/v1/courses`)) || [];
+    const courses: CanvasCourse[] =
+        (await fetchJson(`${canvasBaseUrl}/api/v1/courses?include[]=course_image`)) || [];
+
+    console.log(JSON.stringify(courses[0], null, 2));
 
     const courseMap = Object.fromEntries(courses.map((c) => [c.id.toString(), c.name]));
 
@@ -331,6 +340,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
                 createdAt: existing?.createdAt || new Date().toISOString(),
 
                 overriddenFields: overriddenKeys,
+                type: "LMSAssignment",
             };
 
             for (const key of overriddenKeys) {
@@ -359,6 +369,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
             postedAt: new Date(ann.posted_at).toISOString(),
             url: ann.html_url,
             updatedAt: new Date().toISOString(),
+            type: "LMSAnnouncement",
         };
     }
 
@@ -370,6 +381,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
                 ...existingAssignments[id],
                 missing: true,
                 updatedAt: new Date().toISOString(),
+                type: "LMSAssignment",
             };
         }
     }
@@ -383,6 +395,8 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
             name: c.name,
             url: `${canvasBaseUrl}/courses/${c.id}`,
             updatedAt: new Date().toISOString(),
+            image_download_url: c.image_download_url || null,
+            type: "CanvasCourse",
         };
     }
 

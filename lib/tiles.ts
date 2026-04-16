@@ -20,7 +20,11 @@ export type RegistryRoot = RegistryNode[];
 
 import { ClockTile } from "@/components/tiles/ClockTile";
 import { WeatherTile } from "@/components/tiles/WeatherTile";
-import { TimetableList, TimetableGrid } from "@/components/tiles/Timetable";
+import { TimetableList, TimetableGrid } from "@/components/tiles/Timetable/Timetable";
+import {
+    A as CurrClassStyleA,
+    B as CurrClassStyleB,
+} from "@/components/tiles/Timetable/CurrentClass";
 import { NavPanel } from "@/components/panels/NavPanel";
 
 /* =======================
@@ -60,6 +64,18 @@ export const TileRegistry: RegistryRoot = [
                 id: "timetableGrid",
                 label: "Timetable Grid",
                 component: TimetableGrid,
+                defaultProps: {},
+            },
+            {
+                id: "currentClassA",
+                label: "Current Class (Style A)",
+                component: CurrClassStyleA,
+                defaultProps: {},
+            },
+            {
+                id: "currentClassB",
+                label: "Current Class (Style B)",
+                component: CurrClassStyleB,
                 defaultProps: {},
             },
         ],
