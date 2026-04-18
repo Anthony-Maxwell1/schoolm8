@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/context/themeContext";
 import ClientAuthGuard from "./ClientAuthGuard";
 import { ToastContainer, toast } from "react-toastify";
 import { TaskManager } from "@/components/TaskManager";
+import { Navigation } from "@/components/Navigation";
+import { NavigationProvider } from "@/context/navigationContext";
 
 export const metadata = {
     title: "schoolm8",
@@ -28,15 +30,19 @@ https://github.com/Anthony-Maxwell1/schoolm8
     return (
         <html lang="en">
             <body>
-                <LayoutProvider>
-                    <ThemeProvider>
-                        <AuthProvider>
-                            <TaskManager />
-                            <ToastContainer position="bottom-right" />
-                            <ClientAuthGuard>{children}</ClientAuthGuard>
-                        </AuthProvider>
-                    </ThemeProvider>
-                </LayoutProvider>
+                <NavigationProvider>
+                    <LayoutProvider>
+                        <ThemeProvider>
+                            <AuthProvider>
+                                <TaskManager />
+                                <ToastContainer position="bottom-right" />
+                                <ClientAuthGuard>
+                                    <Navigation>{children}</Navigation>
+                                </ClientAuthGuard>
+                            </AuthProvider>
+                        </ThemeProvider>
+                    </LayoutProvider>
+                </NavigationProvider>
             </body>
         </html>
     );

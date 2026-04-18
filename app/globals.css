@@ -2,10 +2,31 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-@custom-variant hover (&:hover);
 
 @layer base {
+    /* Smooth rendering + better typography defaults */
+    html {
+        @apply antialiased;
+    }
+
     body {
-        @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+        @apply bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+        @apply transition-colors duration-300;
+        @apply min-h-screen;
+    }
+
+    /* Better default font stack */
+    body {
+        @apply font-sans;
+    }
+
+    /* Improve link appearance globally (optional but nice) */
+    a {
+        @apply text-blue-600 dark:text-blue-400 hover:underline;
+    }
+
+    /* Selection styling */
+    ::selection {
+        @apply bg-blue-500 text-white;
     }
 }

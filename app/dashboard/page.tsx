@@ -3,7 +3,7 @@
 import { Dashboard } from "@/components/Dashboard";
 import { useLayout } from "@/context/layoutContext";
 import { useEffect, useState } from "react";
-import { ChevronRight, Edit, Settings } from "lucide-react";
+import { ChevronRight, Edit, HelpCircle, Settings } from "lucide-react";
 
 export default function DashboardPage() {
     const { currentPage, pages, setCurrentPage } = useLayout();
@@ -25,7 +25,36 @@ export default function DashboardPage() {
     // 3️⃣ prevent hydration mismatch by not rendering until mounted
     if (!mounted) return null;
 
-    if (!currentPage) return <div>No pages available</div>;
+    if (!currentPage)
+        return (
+            <div className="h-screen flex items-center justify-center bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
+                <div className="text-center max-w-md px-6">
+                    {/* Icon / visual hint */}
+                    <div className="mx-auto w-14 h-14 rounded-2xl bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center mb-4">
+                        <HelpCircle className="w-6 h-6 text-neutral-600 dark:text-neutral-300" />
+                    </div>
+
+                    {/* Title */}
+                    <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+                        No pages available
+                    </h1>
+
+                    {/* Subtitle */}
+                    <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                        You don’t have any pages yet. Create your first one to get started.
+                    </p>
+
+                    {/* Action button */}
+                    <a
+                        href="/dashboard/editor"
+                        className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                    >
+                        <Edit className="w-4 h-4" />
+                        Editor
+                    </a>
+                </div>
+            </div>
+        );
 
     return (
         <div className="h-screen flex">
