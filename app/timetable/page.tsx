@@ -3,7 +3,6 @@
 import { useAuth } from "@/context/authContext";
 import { useEffect, useState } from "react";
 import { StandardTimetable, StandardEvent, getWeekDates } from "@/lib/timetableNormaliser";
-import Link from "next/link";
 import {
     Clock,
     Calendar,
@@ -16,6 +15,7 @@ import {
     MapPin,
     Users,
 } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
 
 export default function TimetablePage() {
     const { user, token, loading } = useAuth();
@@ -99,17 +99,12 @@ export default function TimetablePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            {/* Header */}
-            <div className="sticky top-0 z-20 bg-slate-800/80 backdrop-blur border-b border-slate-700">
-                <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <Clock className="w-8 h-8 text-emerald-500" />
-                            <h1 className="text-3xl font-bold text-white">Timetable</h1>
-                        </div>
-
-                        {/* View Toggle */}
+        <AppLayout title="Timetable">
+            {/* Toolbar */}
+            <div className="sticky top-14 md:top-0 z-20 bg-slate-800/40 backdrop-blur-md border-b border-slate-700/50 px-6 py-4 space-y-4">
+                <div className="max-w-7xl mx-auto">
+                    {/* View Toggle & Week Navigator */}
+                    <div className="flex items-center justify-between mb-4">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setViewMode("grid")}
@@ -134,30 +129,23 @@ export default function TimetablePage() {
                                 <List className="w-5 h-5" />
                             </button>
                         </div>
-                    </div>
 
-                    {/* Week Navigator & Filters */}
-                    <div className="space-y-4">
-                        {/* Week Navigation */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-center gap-4">
                             <button
                                 onClick={() => changeWeek("prev")}
                                 className="p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
-
-                            <div className="text-center">
+                            <div className="text-center min-w-[200px]">
                                 <p className="text-slate-400 text-sm">Week of</p>
                                 <p className="text-white font-semibold">
                                     {selectedDate.toLocaleDateString("en-US", {
-                                        year: "numeric",
-                                        month: "long",
+                                        month: "short",
                                         day: "numeric",
                                     })}
                                 </p>
                             </div>
-
                             <button
                                 onClick={() => changeWeek("next")}
                                 className="p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
@@ -165,38 +153,38 @@ export default function TimetablePage() {
                                 <ChevronRight className="w-5 h-5" />
                             </button>
                         </div>
+                    </div>
 
-                        {/* Search & Filters */}
-                        <div className="flex gap-3">
-                            <div className="flex-1 relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search by class, room, or teacher..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                                />
-                            </div>
-
-                            <select
-                                value={filterType}
-                                onChange={(e) => setFilterType(e.target.value as any)}
-                                className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600 text-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                            >
-                                <option value="all">All Events</option>
-                                <option value="class">Classes</option>
-                                <option value="break">Breaks</option>
-                                <option value="event">Events</option>
-                                <option value="other">Other</option>
-                            </select>
+                    {/* Search & Filter */}
+                    <div className="flex gap-3">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                placeholder="Search by class, room, or teacher..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            />
                         </div>
+
+                        <select
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value as any)}
+                            className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                        >
+                            <option value="all">All Events</option>
+                            <option value="class">Classes</option>
+                            <option value="break">Breaks</option>
+                            <option value="event">Events</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-6 py-12">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-20">
                         <div className="flex flex-col items-center gap-4">
@@ -261,7 +249,9 @@ export default function TimetablePage() {
                                             {dayEvents.map((event, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className={`border rounded-lg p-4 ${getEventColor(event.type)}`}
+                                                    className={`border rounded-lg p-4 backdrop-blur transition-all hover:shadow-lg hover:shadow-emerald-500/10 ${getEventColor(
+                                                        event.type,
+                                                    )}`}
                                                 >
                                                     <div className="flex items-start justify-between mb-2">
                                                         <h3 className="font-semibold text-lg">
@@ -340,7 +330,7 @@ export default function TimetablePage() {
                                 .map((event, idx) => (
                                     <div
                                         key={idx}
-                                        className={`border rounded-lg p-4 transition-all hover:shadow-lg hover:shadow-emerald-500/10 ${getEventColor(
+                                        className={`border rounded-lg p-4 backdrop-blur transition-all hover:shadow-lg hover:shadow-emerald-500/10 ${getEventColor(
                                             event.type,
                                         )}`}
                                     >
@@ -416,7 +406,7 @@ export default function TimetablePage() {
                         )}
                     </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </AppLayout>
     );
 }
