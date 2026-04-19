@@ -40,35 +40,33 @@ export default function NotesPage() {
     }, [user, loading, router]);
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-12">
-            {/* Create Note Button */}
+        <div className="max-w-7xl mx-auto px-6 py-12 bg-white text-slate-900">
             <div className="mb-8">
                 <Link
                     href="/notes/create"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors font-semibold shadow-sm"
                 >
                     <Plus className="w-5 h-5" />
                     Create Note
                 </Link>
             </div>
 
-            {/* Notes Grid */}
             {fetching ? (
                 <div className="flex items-center justify-center py-20">
                     <div className="flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
-                        <p className="text-slate-400">Loading notes...</p>
+                        <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
+                        <p className="text-slate-600">Loading notes...</p>
                     </div>
                 </div>
             ) : notes.length === 0 ? (
                 <div className="flex items-center justify-center py-20">
                     <div className="text-center">
-                        <StickyNote className="w-16 h-16 text-slate-600 mx-auto mb-4 opacity-50" />
-                        <h2 className="text-2xl font-semibold text-slate-300 mb-2">No notes yet</h2>
-                        <p className="text-slate-400 mb-6">Create your first note to get started</p>
+                        <StickyNote className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                        <h2 className="text-2xl font-semibold text-slate-900 mb-2">No notes yet</h2>
+                        <p className="text-slate-600 mb-6">Create your first note to get started</p>
                         <Link
                             href="/notes/create"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors font-semibold shadow-sm"
                         >
                             <Plus className="w-5 h-5" />
                             Create Note
@@ -80,12 +78,12 @@ export default function NotesPage() {
                     {notes.map((note: any, idx: number) => (
                         <div
                             key={idx}
-                            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-6 cursor-pointer"
+                            className="group relative overflow-hidden rounded-2xl bg-white border border-slate-200 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-lg p-6 cursor-pointer"
                         >
-                            <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-emerald-400 transition-colors line-clamp-2">
+                            <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-2">
                                 {note.title || "Untitled Note"}
                             </h3>
-                            <p className="text-sm text-slate-400 line-clamp-3">
+                            <p className="text-sm text-slate-600 line-clamp-3">
                                 {note.content || note.description || "No preview"}
                             </p>
                             {note.updatedAt && (

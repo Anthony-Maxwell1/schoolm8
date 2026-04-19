@@ -9,6 +9,8 @@ export type NavigationItem = {
     icon?: string;
     children?: NavigationItem[];
     visible: boolean;
+    collapsible?: boolean;
+    collapsed?: boolean;
 };
 
 type NavigationContextValue = {
@@ -27,8 +29,68 @@ type NavigationProviderProps = {
 const items: NavigationItem[] = [
     { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: "LayoutGrid", visible: true },
     { id: "editor", label: "Editor", href: "/dashboard/editor", icon: "Edit", visible: true },
-    { id: "notes", label: "Notes", href: "/notes", icon: "StickyNote", visible: true },
-    { id: "settings", label: "Settings", href: "/settings", icon: "Settings", visible: true },
+    {
+        id: "notes",
+        label: "Notes",
+        href: "/notes",
+        icon: "StickyNote",
+        visible: true,
+        collapsible: true,
+        children: [
+            {
+                id: "create-note",
+                label: "Create Note",
+                href: "/notes/create",
+                icon: "FileText",
+                visible: true,
+            },
+        ],
+    },
+    {
+        id: "settings",
+        label: "Settings",
+        href: "/settings",
+        icon: "Settings",
+        visible: true,
+        collapsible: true,
+        children: [
+            {
+                id: "integrations",
+                label: "Integrations",
+                href: "/settings/integrations",
+                icon: "Settings",
+                visible: true,
+            },
+            {
+                id: "appearance",
+                label: "Themes & Styles",
+                href: "/settings/appearance",
+                icon: "Settings",
+                visible: true,
+            },
+            {
+                id: "advanced",
+                label: "Advanced",
+                href: "/settings/advanced",
+                icon: "Settings",
+                visible: true,
+            },
+            {
+                id: "account",
+                label: "Account",
+                href: "/settings/account",
+                icon: "Settings",
+                visible: true,
+            },
+            {
+                id: "tasks",
+                label: "Tasks/Jobs",
+                href: "/settings/tasks",
+                icon: "Settings",
+                visible: true,
+            },
+        ],
+    },
 ];
 
 export function NavigationProvider({
