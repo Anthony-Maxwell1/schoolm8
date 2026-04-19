@@ -1,11 +1,6 @@
-"use client";
-import { useAuth } from "@/context/authContext";
-
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
-export default function Onboarding() {
-    const { user, token, loading } = useAuth();
-
+export default function Settings() {
     return (
         <div
             className="relative min-h-screen bg-cover bg-center"
@@ -24,7 +19,7 @@ export default function Onboarding() {
                     </a>
                     <a
                         className="text-left w-full p-3 transition text-white hover:bg-black/5 cursor-pointer"
-                        href="/settings/themes"
+                        href="/settings/appearance"
                     >
                         Themes & Styles
                     </a>

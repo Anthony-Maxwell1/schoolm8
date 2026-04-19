@@ -1,0 +1,187 @@
+---
+title: Getting started
+---
+
+## New user
+
+### Onboarding
+
+schoolm8 has an onboarding process designed to get you up and running with the most functional, eye pleasing setup possible.
+
+Each step of the process is outlined here, and is always optional.
+
+import { Stepper, Step } from "@/components/mdx/Stepper";
+
+<Stepper completedIcon={false}>
+    <Step title="Step 1: Showcase features">
+        A corousel of features in schoolm8. Nothing important happens here, can be skipped. 
+        
+        1. All your tools in one portal. 
+        2. Pick the layout that works for you. 
+        3. Themes that look stunning. 
+        4. Customization at its best. 
+        5. AI at school? But LEGAL?
+    </Step>
+    <Step title="Step 2: Disclaimer">
+        Same disclaimer displayed [here](/docs/users/getting-started#disclaimer) and in the footer
+        of the website. Please read it, as it contains important information about the platform and
+        its intended use.
+    </Step>
+    <Step title="Step 3: Connect your LMS">
+        The following types of LMS are currently supported, with many more on the way: 
+        - [Canvas](/docs/users/link-your-lms#canvas)
+        - [Google Classroom](/docs/users/link-your-lms#google-classroom)
+    </Step>
+    <Step title="Step 4: Connect your timetable">
+        You can connect your timetable to schoolm8 to have all your classes and events in one place.
+        The following methods are currently supported, with more on the way: 
+        - [iCal](/docs/users/link-your-timetable#ical) 
+        - [EduMate](/docs/users/link-your-timetable#edumate)
+    </Step>
+    <Step title="Step 5: Pick a starting theme">
+        You can pick a starting theme to customize later, or just start with the default one. Don't
+        worry, you can change this later in the settings.
+    </Step>
+    <Step title="Step 6: Pick a starting layout">
+        A couple starting layouts are automatically generated based on your linked connections, for your dashboard.
+    </Step>
+    <Step title="Step 7: Learn More">
+        Information about settings, adding additional connections, and customization is located here.
+
+        > You're all set up! Click Finish to start using Schoolm8, and if you have any questions or need help, feel free to reach out to us at schoolm8@thatdev.org
+        > There's so much more you could be doing, and it would be impossible to fit it all in one onboarding.
+        > Explore all of our integrations (such as cloud services, calendar sync, and more) in the Settings.
+        > schoolm8 is extremely customizable. On top of our layout editor in our dashboard, we allow you to go deeper into css, styling and DIY layouts and cards in our advanced options, found in settings.
+    </Step>
+
+</Stepper>
+
+## Dashboard
+
+The dashboard is _your page_ and allows full customization. Cards are provided for each service (LMS, Timetable, etc.) along with general purpose and custom cards.
+
+Customization is done through the editor.
+
+### Editor
+
+import { ImageHotspots } from "@/components/mdx/ImageHotspots";
+
+<ImageHotspots
+    src="/images/docs-assets/users/getting-started/dashboard-editor.png"
+    alt="Dashboard Editor Overview"
+    hotspots={[
+        {
+            id: "pages",
+            x: 5,
+            y: 10,
+            width: 9,
+            height: 80,
+            label: "Pages",
+            title: "Pages Panel",
+            content:
+                "This is where you can view and manage your pages. Use the '+ Page' button to create a new page, and click any page to switch between them.",
+        },
+        {
+            id: "editor",
+            x: 14,
+            y: 10,
+            width: 71,
+            height: 80,
+            label: "Editor",
+            title: "Main Editor",
+            content: "This is the main space, where you drag and resize tiles around.",
+        },
+        {
+            id: "components",
+            x: 85,
+            y: 10,
+            width: 14,
+            height: 70,
+            label: "Components",
+            title: "Component Library",
+            content:
+                "Drag and drop components here to add them to your page. Panels are under the heading Panels, and can be dragged to the left, top, bottom or right of the main editor. Tiles can be dragged anywhere, snapped to the grid.",
+        },
+        {
+            id: "actions",
+            x: 85,
+            y: 80,
+            width: 14,
+            height: 12,
+            label: "Actions",
+            title: "Quick Actions",
+            content:
+                'The red "Global Options" button changes style and functional settings across all the tiles on the page at once. The green "Back to Dashboard" button takes you to the dashboard.',
+        },
+    ]}
+/>
+
+Quick tips:
+
+- Keep as little pages as possible, to reduce clutter.
+- Use the "Global Options" button to set a theme across all tiles on the page at once.
+- Note that new tiles don't automatically recieve the global options, you have to resave the global options!
+- Customize your theme and styles in the Themes page in settings.
+
+### Tiles and Panels
+
+For a full description of each, go [here](/docs/users/features#dashboard-panels-and-tiles)
+
+Here's a quick overview:
+
+**Tiles**
+
+- Can be dragged anywhere on the page, and snap to the grid.
+- Can be resized in both dimensions.
+- Have individual options that can be set in the tile editor, such as top bar, etc.
+
+**Panels**
+
+- Snap to the left, top, bottom or right of the main editor.
+- Automatically resize to fit the space available.
+- Have individual options that can be set in the tile editor, such as top bar, etc.
+
+#### **Tiles**
+
+- **Timetable** category
+    - Tiles that show your timetable for the week or day.
+- **LMS** category
+    - Tiles that show your tasks, modules, etc. relating to your school/LMS.
+- **Information** category
+    - Tiles that show you general information and stats.
+
+#### **Panels**
+
+- **Navigation panel**
+    - Contains your dashboard pages.
+
+## Customization
+
+In the settings page (and onboarding for new users), you can select your theme and further deep customization.
+
+schoolm8 contains a visual editor, however the visual editor may oversimplify and exclude some options. For more control, you can dive into the code option and edit the raw tailwind classes. I'd recommend using an LLM for this, however keep a save of your original settings just in case! LLMs are unpredictable.
+
+### Community themes
+
+<Callout type="warning">
+    User generated content is available using this feature. If you wish to disable UGC, you can do
+    so in settings, as described [here](/docs/users/settings#ugc-settings)
+</Callout>
+
+Community themes are useful for when you want to tweak a single thing in the UI, or go full overboard on your customization, letting fans like you do the work for you!
+
+Community themes are available in the onboarding or Themes settings page.
+
+You can create a theme by posting your current styles, via the Community page under Themes in settings. A more in detailed guide to community themes is linked [here](/docs/users/features#community-themes)
+
+### Code editor
+
+The code editor is a powerful tool, customizing raw classes and theme data, bypassing the limitations of the visual editor in a more efficient manner.
+
+Don't like code? Use an LLM or a community theme! The code editor is for power users who want to customize every little detail, and are comfortable with code. It's also useful for debugging and troubleshooting issues with your theme.
+
+Like code? View more info on customizations and the code editor [here](/docs/developers/customization#code-editor)
+
+### Visual editor
+
+[WIP] In depth explanations coming soon when the visual editor is further developed.

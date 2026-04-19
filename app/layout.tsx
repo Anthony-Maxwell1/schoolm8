@@ -27,9 +27,10 @@ Tinker, explore, and contribute directly — no deobfuscation needed.
 Check it out on GitHub: 
 https://github.com/Anthony-Maxwell1/schoolm8
 `);
+
     return (
         <html lang="en">
-            <body>
+            <body className="flex flex-col min-h-screen">
                 <NavigationProvider>
                     <LayoutProvider>
                         <ThemeProvider>

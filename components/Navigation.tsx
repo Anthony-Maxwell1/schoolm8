@@ -50,6 +50,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
     if (!hydrated) return null; // Prevent hydration mismatch
 
+    if (window.location.pathname.startsWith("/docs")) {
+        return <>{children}</>;
+    }
+
     return (
         <div>
             <aside
@@ -150,36 +154,37 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                     </Link>
 
                                     {/* Children */}
-                                    <div
-                                        onTransitionEnd={() => {
-                                            if (collapsedItems[item.id]) {
-                                                setHiddenMap((prev) => ({
-                                                    ...prev,
-                                                    [item.id]: true,
-                                                }));
-                                            }
-                                        }}
-                                        className={`ml-4 space-y-1 transition-all duration-300 ${
-                                            isCollapsed
-                                                ? "opacity-0 -translate-y-20 pointer-events-none"
-                                                : "opacity-100 translate-y-0"
-                                        }`}
-                                        style={{
-                                            display: hiddenMap[item.id] ? "none" : undefined,
-                                        }}
-                                    >
-                                        {item.children.map((child) => {
-                                            const ChildIcon =
-                                                (child.icon && ICON_MAP[child.icon]) ||
-                                                require("lucide-react").LayoutGrid;
+                                    {!sidebarCollapsed && (
+                                        <div
+                                            onTransitionEnd={() => {
+                                                if (collapsedItems[item.id]) {
+                                                    setHiddenMap((prev) => ({
+                                                        ...prev,
+                                                        [item.id]: true,
+                                                    }));
+                                                }
+                                            }}
+                                            className={`ml-4 space-y-1 transition-all duration-300 ${
+                                                isCollapsed
+                                                    ? "opacity-0 -translate-y-20 pointer-events-none"
+                                                    : "opacity-100 translate-y-0"
+                                            }`}
+                                            style={{
+                                                display: hiddenMap[item.id] ? "none" : undefined,
+                                            }}
+                                        >
+                                            {item.children.map((child) => {
+                                                const ChildIcon =
+                                                    (child.icon && ICON_MAP[child.icon]) ||
+                                                    require("lucide-react").LayoutGrid;
 
-                                            const childActive = isActive(child.href);
+                                                const childActive = isActive(child.href);
 
-                                            return (
-                                                <Link
-                                                    key={child.id}
-                                                    href={child.href}
-                                                    className={`
+                                                return (
+                                                    <Link
+                                                        key={child.id}
+                                                        href={child.href}
+                                                        className={`
                                         flex items-center px-3 py-2 rounded-lg transition-all cursor-pointer
                                         ${
                                             childActive
@@ -188,22 +193,23 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                         }
                                         ${sidebarCollapsed ? "" : "gap-3"}
                                     `}
-                                                    title={child.label}
-                                                >
-                                                    <ChildIcon
-                                                        className={`w-5 h-5 flex-shrink-0 ${
-                                                            sidebarCollapsed ? "mx-auto" : ""
-                                                        }`}
-                                                    />
-                                                    {!sidebarCollapsed && (
-                                                        <span className="text-sm">
-                                                            {child.label}
-                                                        </span>
-                                                    )}
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
+                                                        title={child.label}
+                                                    >
+                                                        <ChildIcon
+                                                            className={`w-5 h-5 flex-shrink-0 ${
+                                                                sidebarCollapsed ? "mx-auto" : ""
+                                                            }`}
+                                                        />
+                                                        {!sidebarCollapsed && (
+                                                            <span className="text-sm">
+                                                                {child.label}
+                                                            </span>
+                                                        )}
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         }

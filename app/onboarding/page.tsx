@@ -293,7 +293,7 @@ export default function Onboarding() {
                 </div>
             )}
 
-            <div className="fixed bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
+            <div className="absolute bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
                 <a
                     className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
                     href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
