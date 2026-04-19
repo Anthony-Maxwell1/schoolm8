@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useNavigation } from "@/context/navigationContext";
-import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { BookOpenText, ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { ComponentType, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -241,24 +241,56 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                 </nav>
 
                 {/* Settings Link */}
-                <div className="border-t border-slate-700 p-3">
-                    <Link
-                        href="/settings/navigation"
-                        className={`
-                        flex items-center gap-3 px-3 py-2 rounded-lg transition-all
-                        ${
-                            isActive("/settings/navigation")
-                                ? "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white"
-                                : "text-slate-300 hover:bg-slate-700 hover:text-white"
-                        }
-                    `}
-                        title="Navigation settings"
-                    >
-                        <Menu
-                            className={`w-5 h-5 flex-shrink-0 ${sidebarCollapsed ? "mx-auto" : ""}`}
-                        />
-                        {!sidebarCollapsed && <span className="text-sm">Customize</span>}
-                    </Link>
+                <div
+                    className={`border-t border-slate-700 flex ${sidebarCollapsed ? "flex-col" : ""}`}
+                >
+                    <div className="flex-1 p-3">
+                        <Link
+                            href="/settings/navigation"
+                            title="Navigation settings"
+                            className={`
+        flex items-center justify-center gap-2
+        px-3 py-2 rounded-lg
+        transition-all relative
+        ${
+            isActive("/settings/navigation")
+                ? "bg-emerald-500/20 text-white"
+                : "text-slate-300 hover:bg-slate-700 hover:text-white"
+        }
+      `}
+                        >
+                            <Menu className="w-5 h-5 shrink-0" />
+                            {!sidebarCollapsed && <span className="text-sm">Customize</span>}
+
+                            {isActive("/settings/navigation") && (
+                                <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full" />
+                            )}
+                        </Link>
+                    </div>
+
+                    <div className="flex-1 p-3">
+                        <Link
+                            href="/settings/navigation"
+                            title="Navigation settings"
+                            className={`
+        flex items-center justify-center gap-2
+        px-3 py-2 rounded-lg
+        transition-all relative
+        ${
+            isActive("/settings/navigation")
+                ? "bg-emerald-500/20 text-white"
+                : "text-slate-300 hover:bg-slate-700 hover:text-white"
+        }
+      `}
+                        >
+                            <BookOpenText className="w-5 h-5 shrink-0" />
+                            {!sidebarCollapsed && <span className="text-sm">Docs</span>}
+
+                            {isActive("/settings/navigation") && (
+                                <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full" />
+                            )}
+                        </Link>
+                    </div>
                 </div>
             </aside>
             <main className={`transition-all duration-300 ${sidebarCollapsed ? "ml-18" : "ml-64"}`}>
