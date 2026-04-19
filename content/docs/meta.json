@@ -1,0 +1,5 @@
+{
+    "title": "Welcome!",
+    "root": true,
+    "pages": ["index", "users", "developers", "admins"]
+}

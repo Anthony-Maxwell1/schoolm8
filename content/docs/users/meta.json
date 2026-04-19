@@ -1,0 +1,13 @@
+{
+    "title": "User documentation",
+    "pages": [
+        "index",
+        "getting-started",
+        "faq",
+        "features",
+        "troubleshooting",
+        "settings",
+        "customization",
+        "premium"
+    ]
+}
