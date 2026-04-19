@@ -7,7 +7,6 @@ import { ClassroomCourse } from "../api/googleclassroom/sync/route";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ArrowRight, Search } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
 
 export default function CoursesPage() {
     const { user, token, loading } = useAuth();
@@ -50,7 +49,7 @@ export default function CoursesPage() {
     }, [searchQuery, courses]);
 
     return (
-        <AppLayout title="Courses">
+        <div>
             {/* Search Bar */}
             <div className="sticky top-14 md:top-0 z-20 bg-slate-800/40 backdrop-blur-md border-b border-slate-700/50 px-6 py-4">
                 <div className="max-w-7xl mx-auto">
@@ -134,6 +133,6 @@ export default function CoursesPage() {
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </div>
     );
 }

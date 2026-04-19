@@ -86,7 +86,9 @@ export async function GET(req: NextRequest) {
         console.log("[GET] User authenticated:", userId);
 
         // Get timetable config from new structure
+        console.log("[GET] Fetching timetable config...");
         const timetableFetchData = await getTimetableConfig(userId);
+        console.log("[GET] Got timetable config:", timetableFetchData);
         if (!timetableFetchData) {
             console.log("[GET] No timetable data found");
             return NextResponse.json({ timetable: null });

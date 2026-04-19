@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export type NavigationItem = {
     id: string;
@@ -35,12 +35,22 @@ export function NavigationProvider({
     children,
     defaultSidebarCollapsed = false,
 }: NavigationProviderProps) {
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(defaultSidebarCollapsed);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        if (typeof window === "undefined") return defaultSidebarCollapsed;
+        const stored = localStorage.getItem("sidebarCollapsed");
+        return stored ? JSON.parse(stored) : defaultSidebarCollapsed;
+    });
 
     const value = useMemo(
         () => ({ items, sidebarCollapsed, setSidebarCollapsed }),
         [items, sidebarCollapsed],
     );
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem("sidebarCollapsed", JSON.stringify(sidebarCollapsed));
+        }
+    }, [sidebarCollapsed]);
 
     return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;
 }

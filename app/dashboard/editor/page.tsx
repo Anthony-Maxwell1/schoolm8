@@ -217,7 +217,10 @@ export default function EditorPage() {
             )}
             {/* pages */}
             <aside className="w-48 border-r p-2">
-                <button onClick={addPage} className="w-full mb-2 bg-blue-600 text-white p-1">
+                <button
+                    onClick={addPage}
+                    className="w-full mb-2 bg-blue-600 text-white p-1 cursor-pointer"
+                >
                     + Page
                 </button>
 

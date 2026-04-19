@@ -5,7 +5,6 @@ import { useAuth } from "@/context/authContext";
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AppLayout } from "@/components/AppLayout";
 import { FileText, Calendar, CheckCircle, Circle } from "lucide-react";
 
 export default function Assignments() {
@@ -55,7 +54,7 @@ export default function Assignments() {
     });
 
     return (
-        <AppLayout title="Assignments">
+        <div className="min-h-screen bg-slate-900">
             {/* Filters */}
             <div className="sticky top-14 md:top-0 z-20 bg-slate-800/40 backdrop-blur-md border-b border-slate-700/50 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex flex-wrap gap-3">
@@ -131,7 +130,7 @@ export default function Assignments() {
                         {filteredAssignments.map((a) => (
                             <div
                                 key={a.id}
-                                className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-6"
+                                className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-6"
                             >
                                 {/* Status indicator */}
                                 <div className="absolute top-4 right-4">
@@ -181,14 +180,6 @@ export default function Assignments() {
                     </div>
                 )}
             </div>
-        </AppLayout>
-    );
-}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        </ScrollArea>
+        </div>
     );
 }

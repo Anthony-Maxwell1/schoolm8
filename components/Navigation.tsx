@@ -56,7 +56,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                     )}
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 ml-auto"
+                        className={`text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 cursor-pointer ${sidebarCollapsed ? "mx-auto" : "ml-auto"}`}
                         title={sidebarCollapsed ? "Expand" : "Collapse"}
                     >
                         {sidebarCollapsed ? (
@@ -90,7 +90,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                             `}
                                 title={item.label}
                             >
-                                <IconComponent className="w-5 h-5 flex-shrink-0" />
+                                <IconComponent
+                                    className={`w-5 h-5 flex-shrink-0 ${sidebarCollapsed ? "mx-auto" : ""}`}
+                                />
                                 {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
                             </Link>
                         );
@@ -111,12 +113,14 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                     `}
                         title="Navigation settings"
                     >
-                        <Menu className="w-5 h-5 flex-shrink-0" />
+                        <Menu
+                            className={`w-5 h-5 flex-shrink-0 ${sidebarCollapsed ? "mx-auto" : ""}`}
+                        />
                         {!sidebarCollapsed && <span className="text-sm">Customize</span>}
                     </Link>
                 </div>
             </aside>
-            <main className={`transition-all duration-300 ${sidebarCollapsed ? "ml-20" : "ml-64"}`}>
+            <main className={`transition-all duration-300 ${sidebarCollapsed ? "ml-18" : "ml-64"}`}>
                 {children}
             </main>
         </div>

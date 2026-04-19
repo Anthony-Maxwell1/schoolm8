@@ -11,7 +11,6 @@ import {
     normaliseCourse,
 } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
-import { AppLayout } from "@/components/AppLayout";
 import {
     ClassroomAnnouncement,
     ClassroomAssignment,
@@ -160,77 +159,75 @@ export default function LMS() {
     );
 
     return (
-        <AppLayout title="Learning Management System">
-            <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
-                {/* Announcements */}
-                {announcements.length > 0 && (
-                    <Section
-                        title="Announcements"
-                        redirectTemplate="/lms/announcement/{id}?cameFrom=/lms"
-                        data={announcements}
-                        refProp={announcementRef}
-                    />
-                )}
+        <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+            {/* Announcements */}
+            {announcements.length > 0 && (
+                <Section
+                    title="Announcements"
+                    redirectTemplate="/lms/announcement/{id}?cameFrom=/lms"
+                    data={announcements}
+                    refProp={announcementRef}
+                />
+            )}
 
-                {/* Assignments */}
-                {assignments.length > 0 && (
-                    <Section
-                        title="Assignments"
-                        redirectTemplate="/lms/assignment/{id}?cameFrom=/lms"
-                        data={assignments}
-                        refProp={assignmentRef}
-                    />
-                )}
+            {/* Assignments */}
+            {assignments.length > 0 && (
+                <Section
+                    title="Assignments"
+                    redirectTemplate="/lms/assignment/{id}?cameFrom=/lms"
+                    data={assignments}
+                    refProp={assignmentRef}
+                />
+            )}
 
-                {/* Courses */}
-                {courses.length > 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-white">Your Courses</h2>
+            {/* Courses */}
+            {courses.length > 0 && (
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold text-white">Your Courses</h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {courses.map((course, i) => (
-                                <div
-                                    key={i}
-                                    className="relative overflow-hidden rounded-2xl h-48 cursor-pointer group"
-                                    onClick={function () {
-                                        redirect(`/lms/course/${course.id}?cameFrom=/lms`);
-                                    }}
-                                >
-                                    {/* Image */}
-                                    <img
-                                        src={course.image}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {courses.map((course, i) => (
+                            <div
+                                key={i}
+                                className="relative overflow-hidden rounded-2xl h-48 cursor-pointer group"
+                                onClick={function () {
+                                    redirect(`/lms/course/${course.id}?cameFrom=/lms`);
+                                }}
+                            >
+                                {/* Image */}
+                                <img
+                                    src={course.image}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                />
 
-                                    {/* Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80" />
+                                {/* Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80" />
 
-                                    {/* Text */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
-                                            {course.name}
-                                        </h3>
-                                    </div>
+                                {/* Text */}
+                                <div className="absolute bottom-0 left-0 right-0 p-4">
+                                    <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
+                                        {course.name}
+                                    </h3>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
-                )}
+                </div>
+            )}
 
-                {announcements.length === 0 && assignments.length === 0 && courses.length === 0 && (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-semibold text-slate-300 mb-2">
-                                No LMS data yet
-                            </h2>
-                            <p className="text-slate-400">
-                                Set up your LMS integration in settings to see your courses,
-                                assignments, and announcements.
-                            </p>
-                        </div>
+            {announcements.length === 0 && assignments.length === 0 && courses.length === 0 && (
+                <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-semibold text-slate-300 mb-2">
+                            No LMS data yet
+                        </h2>
+                        <p className="text-slate-400">
+                            Set up your LMS integration in settings to see your courses,
+                            assignments, and announcements.
+                        </p>
                     </div>
-                )}
-            </div>
-        </AppLayout>
+                </div>
+            )}
+        </div>
     );
 }

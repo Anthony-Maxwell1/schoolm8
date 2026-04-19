@@ -15,7 +15,6 @@ import {
     MapPin,
     Users,
 } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
 
 export default function TimetablePage() {
     const { user, token, loading } = useAuth();
@@ -99,7 +98,7 @@ export default function TimetablePage() {
     };
 
     return (
-        <AppLayout title="Timetable">
+        <div>
             {/* Toolbar */}
             <div className="sticky top-14 md:top-0 z-20 bg-slate-800/40 backdrop-blur-md border-b border-slate-700/50 px-6 py-4 space-y-4">
                 <div className="max-w-7xl mx-auto">
@@ -407,6 +406,6 @@ export default function TimetablePage() {
                     </div>
                 )}
             </div>
-        </AppLayout>
+        </div>
     );
 }
