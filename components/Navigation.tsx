@@ -2,11 +2,21 @@
 
 import Link from "next/link";
 import { useNavigation } from "@/context/navigationContext";
-import { BookOpenText, ChevronDown, ChevronLeft, ChevronRight, Menu } from "lucide-react";
-import { ComponentType, useEffect, useState } from "react";
+import {
+    BookOpenText,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    List,
+    Menu,
+    MessageCircle,
+    User,
+} from "lucide-react";
+import { ComponentType, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { css } from "@/lib/css";
 import { cn } from "@/lib/utils";
+import * as Sentry from "@sentry/nextjs";
 
 // Icon mapping - you can expand this with more icons
 const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
@@ -18,6 +28,12 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
     FileText: require("lucide-react").FileText,
     StickyNote: require("lucide-react").StickyNote,
     Settings: require("lucide-react").Settings,
+    Edit: require("lucide-react").Pencil,
+    Link: require("lucide-react").Link,
+    Brush: require("lucide-react").Brush,
+    SlidersHorizontal: require("lucide-react").SlidersHorizontal,
+    User: require("lucide-react").User,
+    List: require("lucide-react").ListChecks,
 };
 
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
@@ -41,6 +57,24 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         const stored = localStorage.getItem("hiddenMap");
         return stored ? JSON.parse(stored) : {};
     });
+
+    const [feedback, setFeedback] = useState<ReturnType<typeof Sentry.getFeedback> | null>(null); // Sentry
+    // Read `getFeedback` on the client only, to avoid hydration errors during server rendering
+    useEffect(() => {
+        async function getFeedback() {
+            setFeedback(Sentry.getFeedback());
+        }
+        getFeedback();
+    }, []);
+
+    const buttonRef = useRef<HTMLButtonElement | null>(null);
+    useEffect(() => {
+        if (feedback && buttonRef.current) {
+            const unsubscribe = feedback.attachTo(buttonRef.current);
+            return unsubscribe;
+        }
+        return () => {};
+    }, [feedback]);
 
     useEffect(() => {
         setHydrated(true);
@@ -380,6 +414,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 isActive("/settings/navigation")
                                     ? navigationCss.main.bottomnav.settings.inner["active-style"]
                                     : navigationCss.main.bottomnav.settings.inner["inactive-style"],
+                                sidebarCollapsed
+                                    ? navigationCss.main.bottomnav.settings.inner[
+                                          "sidebarCollapsed-style"
+                                      ]
+                                    : navigationCss.main.bottomnav.settings.inner[
+                                          "sidebarExpanded-style"
+                                      ],
                             )}
                         >
                             <Menu
@@ -405,7 +446,14 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                         </Link>
                     </div>
 
-                    <div className={navigationCss.main.bottomnav.docs["ROOT-STYLE"]}>
+                    <div
+                        className={cn(
+                            navigationCss.main.bottomnav.docs["ROOT-STYLE"],
+                            sidebarCollapsed
+                                ? navigationCss.main.bottomnav.docs["sidebarCollapsed-style"]
+                                : navigationCss.main.bottomnav.docs["sidebarExpanded-style"],
+                        )}
+                    >
                         <Link
                             href="/docs"
                             title="Docs"
@@ -414,6 +462,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 isActive("/docs")
                                     ? navigationCss.main.bottomnav.docs.inner["active-style"]
                                     : navigationCss.main.bottomnav.docs.inner["inactive-style"],
+                                sidebarCollapsed
+                                    ? navigationCss.main.bottomnav.docs.inner[
+                                          "sidebarCollapsed-style"
+                                      ]
+                                    : navigationCss.main.bottomnav.docs.inner[
+                                          "sidebarExpanded-style"
+                                      ],
                             )}
                         >
                             <BookOpenText
@@ -421,11 +476,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                     navigationCss.main.bottomnav.docs.inner.icon["ROOT-STYLE"]
                                 }
                             />
-                            {!sidebarCollapsed && (
-                                <span className={navigationCss.main.items.item.label["ROOT-STYLE"]}>
-                                    Docs
-                                </span>
-                            )}
 
                             {isActive("/docs") && (
                                 <span
@@ -437,6 +487,48 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 />
                             )}
                         </Link>
+                    </div>
+                    <div
+                        className={cn(
+                            navigationCss.main.bottomnav.feedback["ROOT-STYLE"],
+                            sidebarCollapsed
+                                ? navigationCss.main.bottomnav.feedback["sidebarCollapsed-style"]
+                                : navigationCss.main.bottomnav.feedback["sidebarExpanded-style"],
+                        )}
+                    >
+                        <button
+                            title="Feedback"
+                            ref={buttonRef}
+                            className={cn(
+                                navigationCss.main.bottomnav.feedback.inner["ROOT-STYLE"],
+                                isActive("/feedback")
+                                    ? navigationCss.main.bottomnav.feedback.inner["active-style"]
+                                    : navigationCss.main.bottomnav.feedback.inner["inactive-style"],
+                                sidebarCollapsed
+                                    ? navigationCss.main.bottomnav.feedback.inner[
+                                          "sidebarCollapsed-style"
+                                      ]
+                                    : navigationCss.main.bottomnav.feedback.inner[
+                                          "sidebarExpanded-style"
+                                      ],
+                            )}
+                        >
+                            <MessageCircle
+                                className={
+                                    navigationCss.main.bottomnav.feedback.inner.icon["ROOT-STYLE"]
+                                }
+                            />
+
+                            {isActive("/feedback") && (
+                                <span
+                                    className={
+                                        navigationCss.main.bottomnav.feedback.inner.icon.active[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
+                                />
+                            )}
+                        </button>
                     </div>
                 </div>
             </aside>

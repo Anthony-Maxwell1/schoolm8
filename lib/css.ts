@@ -162,7 +162,7 @@ export const css = {
                         },
                         collapse: {
                             "ROOT-STYLE":
-                                "ml-auto p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer",
+                                "ml-auto p-1 rounded hover:bg-slate-400 hover:text-slate-900 text-slate-400 transition-colors cursor-pointer",
                             icon: {
                                 "ROOT-STYLE": "w-4 h-4",
                             },
@@ -208,18 +208,26 @@ export const css = {
                     },
                 },
                 bottomnav: {
-                    "ROOT-STYLE": "border-t border-slate-700 flex",
+                    "ROOT-STYLE": "border-t border-slate-700 flex items-center gap-2 p-3",
                     "sidebarCollapsed-style": "flex-col",
-                    "sidebarExpanded-style": "",
+                    "sidebarExpanded-style": "flex-row",
+
                     settings: {
-                        "ROOT-STYLE": "flex-1 p-3",
+                        "ROOT-STYLE": "flex-1 min-w-0",
+                        "sidebarCollapsed-style": "",
+                        "sidebarExpanded-style": "",
+
                         inner: {
                             "ROOT-STYLE":
-                                "flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all relative",
+                                "flex w-full items-center rounded-lg px-3 py-2.5 transition-all relative",
                             "active-style": "bg-emerald-500/20 text-white",
                             "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "sidebarCollapsed-style": "justify-center",
+                            "sidebarExpanded-style": "justify-start gap-2",
+
                             icon: {
                                 "ROOT-STYLE": "w-5 h-5 shrink-0",
+
                                 active: {
                                     "ROOT-STYLE":
                                         "absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full",
@@ -227,15 +235,47 @@ export const css = {
                             },
                         },
                     },
+
                     docs: {
-                        "ROOT-STYLE": "flex-1 p-3",
+                        "ROOT-STYLE": "flex-none",
+                        "sidebarCollapsed-style": "",
+                        "sidebarExpanded-style": "",
+
                         inner: {
                             "ROOT-STYLE":
-                                "flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all relative",
+                                "inline-flex items-center justify-center rounded-lg p-2.5 transition-all relative",
                             "active-style": "bg-emerald-500/20 text-white",
                             "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "sidebarCollapsed-style": "",
+                            "sidebarExpanded-style": "",
+
                             icon: {
                                 "ROOT-STYLE": "w-5 h-5 shrink-0",
+
+                                active: {
+                                    "ROOT-STYLE":
+                                        "absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full",
+                                },
+                            },
+                        },
+                    },
+
+                    feedback: {
+                        "ROOT-STYLE": "flex-none",
+                        "sidebarCollapsed-style": "",
+                        "sidebarExpanded-style": "",
+
+                        inner: {
+                            "ROOT-STYLE":
+                                "inline-flex items-center justify-center rounded-lg p-2.5 transition-all relative cursor-pointer",
+                            "active-style": "bg-emerald-500/20 text-white",
+                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "sidebarCollapsed-style": "",
+                            "sidebarExpanded-style": "",
+
+                            icon: {
+                                "ROOT-STYLE": "w-5 h-5 shrink-0",
+
                                 active: {
                                     "ROOT-STYLE":
                                         "absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full",
