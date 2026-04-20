@@ -22,25 +22,27 @@
 - Edumate integration built on reverse engineered login flow
 - Onedrive integration
 - Styling system (Raw)
+- Themes
+- Frontend for raw style data
+- Actual frontend for things like LMS access and full timetable view
+- Dashboard and dashboard editor
+- Sentry & Feedback
+- Navigation
+- Google Classroom integration
 
 ### Almost finished/Testing
 
-- Google Classroom integration
-- Dashboard and dashboard editor
-- Themes
 
 ### 🚧 In Progress
 
 - Onboarding (Nearly done)
-- Engage integration
 - Built-in editor suite
 - Schedule system
 - Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
 - Google Drive integration
-- Frontend for raw style data
+- Community Themes
 - GUI Style editor for users who don't want to enter raw tailwindcss data
 - Dashboard tiles
-- Actual frontend for things like LMS access and full timetable view
 
 ### 🔮 Planned
 
@@ -51,6 +53,9 @@
 - Expanding LMS support
 - Expanding Timetable support
 - Adding support for teachers and administrators onto the platform to manage schools
+- Revamped notes system, with quick notes (notes) and knowledge (wiki) and shared knowledge (school shared knowledge)
+- ✨ Premium ✨ - purchased or earnt through willingly placing ads in your dashboard. Higher customizability, and more resource intensive features.
+- BYO Api Key
 
 ---
 
