@@ -117,6 +117,140 @@ export const css = {
                 },
             },
         },
+        Navigation: {
+            main: {
+                "ROOT-STYLE":
+                    "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 ease-in-out shadow-xl",
+                "sidebarCollapsed-style": "w-18",
+                "sidebarExpanded-style": "w-64",
+                branding: {
+                    "ROOT-STYLE":
+                        "p-4 border-b border-slate-700 flex items-center justify-between gap-2",
+                    logotext: {
+                        "ROOT-STYLE": "text-white text-lg font-bold",
+                        CONTENT: "schoolm8",
+                    },
+                    expandcollapse: {
+                        "ROOT-STYLE":
+                            "text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 cursor-pointer",
+                        "sidebarCollapsed-style": "mx-auto",
+                        "sidebarExpanded-style": "ml-auto",
+                        icon: {
+                            "ROOT-STYLE": "w-5 h-5",
+                        },
+                    },
+                },
+                items: {
+                    "ROOT-STYLE": "flex-1 overflow-y-auto p-3 space-y-2",
+                    itemwithchildren: {
+                        wrapper: {
+                            "ROOT-STYLE": "space-y-1",
+                        },
+                        "ROOT-STYLE": "flex items-center px-3 py-2 rounded-lg transition-all",
+                        "active-style":
+                            "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white",
+                        "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                        "sidebarCollapsed-style": "",
+                        "sidebarExpanded-style": "gap-3",
+                        icon: {
+                            "ROOT-STYLE": "w-5 h-5 flex-shrink-0",
+                            "sidebarCollapsed-style": "mx-auto",
+                            "sidebarExpanded-style": "",
+                        },
+                        label: {
+                            "ROOT-STYLE": "text-sm",
+                        },
+                        collapse: {
+                            "ROOT-STYLE":
+                                "ml-auto p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer",
+                            icon: {
+                                "ROOT-STYLE": "w-4 h-4",
+                            },
+                        },
+                        children: {
+                            wrapper: {
+                                "ROOT-STYLE": "ml-4 space-y-1 transition-all duration-300",
+                                "collapsed-style": "opacity-0 -translate-y-20 pointer-events-none",
+                                "expanded-style": "opacity-100 translate-y-0",
+                            },
+                            "ROOT-STYLE":
+                                "flex items-center px-3 py-2 rounded-lg transition-all cursor-pointer",
+                            "active-style":
+                                "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white",
+                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "sidebarCollapsed-style": "",
+                            "sidebarExpanded-style": "gap-3",
+                            icon: {
+                                "ROOT-STYLE": "w-5 h-5 flex-shrink-0",
+                                "sidebarCollapsed-style": "mx-auto",
+                                "sidebarExpanded-style": "",
+                            },
+                            label: {
+                                "ROOT-STYLE": "text-sm",
+                            },
+                        },
+                    },
+                    item: {
+                        "ROOT-STYLE": "flex items-center px-3 py-2 rounded-lg transition-all",
+                        "active-style":
+                            "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white",
+                        "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                        "sidebarCollapsed-style": "",
+                        "sidebarExpanded-style": "gap-3",
+                        icon: {
+                            "ROOT-STYLE": "w-5 h-5 flex-shrink-0",
+                            "sidebarCollapsed-style": "mx-auto",
+                            "sidebarExpanded-style": "",
+                        },
+                        label: {
+                            "ROOT-STYLE": "text-sm",
+                        },
+                    },
+                },
+                bottomnav: {
+                    "ROOT-STYLE": "border-t border-slate-700 flex",
+                    "sidebarCollapsed-style": "flex-col",
+                    "sidebarExpanded-style": "",
+                    settings: {
+                        "ROOT-STYLE": "flex-1 p-3",
+                        inner: {
+                            "ROOT-STYLE":
+                                "flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all relative",
+                            "active-style": "bg-emerald-500/20 text-white",
+                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            icon: {
+                                "ROOT-STYLE": "w-5 h-5 shrink-0",
+                                active: {
+                                    "ROOT-STYLE":
+                                        "absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full",
+                                },
+                            },
+                        },
+                    },
+                    docs: {
+                        "ROOT-STYLE": "flex-1 p-3",
+                        inner: {
+                            "ROOT-STYLE":
+                                "flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all relative",
+                            "active-style": "bg-emerald-500/20 text-white",
+                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            icon: {
+                                "ROOT-STYLE": "w-5 h-5 shrink-0",
+                                active: {
+                                    "ROOT-STYLE":
+                                        "absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full",
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            contents: {
+                "ROOT-STYLE": "transition-all duration-300",
+                "sidebarCollapsed-style": "ml-18",
+                "sidebarExpanded-style": "ml-64",
+            },
+        },
     },
     app: {
         lms: {

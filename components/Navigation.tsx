@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useNavigation } from "@/context/navigationContext";
-import { BookOpenText, ChevronDown, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { BookOpenText, ChevronDown, ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { ComponentType, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { css } from "@/lib/css";
+import { cn } from "@/lib/utils";
 
 // Icon mapping - you can expand this with more icons
 const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
@@ -21,6 +23,7 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
     const { items, sidebarCollapsed, setSidebarCollapsed } = useNavigation();
     const pathname = usePathname();
+    const navigationCss = css.components.Navigation;
 
     const visibleItems = items.filter((item) => item.visible);
 
@@ -57,34 +60,52 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
     return (
         <div>
             <aside
-                className={`
-                bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700
-                flex flex-col h-screen fixed left-0 top-0 z-50
-                transition-all duration-300 ease-in-out
-                ${sidebarCollapsed ? "w-18" : "w-64"}
-                shadow-xl
-            `}
+                className={cn(
+                    navigationCss.main["ROOT-STYLE"],
+                    sidebarCollapsed
+                        ? navigationCss.main["sidebarCollapsed-style"]
+                        : navigationCss.main["sidebarExpanded-style"],
+                )}
             >
                 {/* Logo */}
-                <div className="p-4 border-b border-slate-700 flex items-center justify-between gap-2">
+                <div className={navigationCss.main.branding["ROOT-STYLE"]}>
                     {!sidebarCollapsed && (
-                        <h2 className="text-white font-bold text-lg">schoolm8</h2>
+                        <h2 className={navigationCss.main.branding.logotext["ROOT-STYLE"]}>
+                            {navigationCss.main.branding.logotext.CONTENT}
+                        </h2>
                     )}
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className={`text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 cursor-pointer ${sidebarCollapsed ? "mx-auto" : "ml-auto"}`}
+                        className={cn(
+                            navigationCss.main.branding.expandcollapse["ROOT-STYLE"],
+                            sidebarCollapsed
+                                ? navigationCss.main.branding.expandcollapse[
+                                      "sidebarCollapsed-style"
+                                  ]
+                                : navigationCss.main.branding.expandcollapse[
+                                      "sidebarExpanded-style"
+                                  ],
+                        )}
                         title={sidebarCollapsed ? "Expand" : "Collapse"}
                     >
                         {sidebarCollapsed ? (
-                            <ChevronRight className="w-5 h-5" />
+                            <ChevronRight
+                                className={
+                                    navigationCss.main.branding.expandcollapse.icon["ROOT-STYLE"]
+                                }
+                            />
                         ) : (
-                            <ChevronLeft className="w-5 h-5" />
+                            <ChevronLeft
+                                className={
+                                    navigationCss.main.branding.expandcollapse.icon["ROOT-STYLE"]
+                                }
+                            />
                         )}
                     </button>
                 </div>
 
                 {/* Navigation Items */}
-                <nav className="flex-1 overflow-y-auto p-3 space-y-2">
+                <nav className={navigationCss.main.items["ROOT-STYLE"]}>
                     {visibleItems.map((item) => {
                         const IconComponent =
                             (item.icon && ICON_MAP[item.icon]) ||
@@ -95,33 +116,66 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
                         if (item.children && item.children.length > 0) {
                             return (
-                                <div key={item.id} className="space-y-1">
+                                <div
+                                    key={item.id}
+                                    className={
+                                        navigationCss.main.items.itemwithchildren.wrapper[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
+                                >
                                     <Link
                                         href={item.href}
-                                        className={`
-                            flex items-center px-3 py-2 rounded-lg transition-all
-                            ${
-                                active
-                                    ? "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white"
-                                    : "text-slate-300 hover:bg-slate-700 hover:text-white"
-                            }
-                            ${sidebarCollapsed ? "" : "gap-3"}
-                        `}
+                                        className={cn(
+                                            navigationCss.main.items.itemwithchildren["ROOT-STYLE"],
+                                            active
+                                                ? navigationCss.main.items.itemwithchildren[
+                                                      "active-style"
+                                                  ]
+                                                : navigationCss.main.items.itemwithchildren[
+                                                      "inactive-style"
+                                                  ],
+                                            sidebarCollapsed
+                                                ? navigationCss.main.items.itemwithchildren[
+                                                      "sidebarCollapsed-style"
+                                                  ]
+                                                : navigationCss.main.items.itemwithchildren[
+                                                      "sidebarExpanded-style"
+                                                  ],
+                                        )}
                                         title={item.label}
                                     >
                                         <IconComponent
-                                            className={`w-5 h-5 flex-shrink-0 ${
-                                                sidebarCollapsed ? "mx-auto" : ""
-                                            }`}
+                                            className={cn(
+                                                navigationCss.main.items.itemwithchildren.icon[
+                                                    "ROOT-STYLE"
+                                                ],
+                                                sidebarCollapsed
+                                                    ? navigationCss.main.items.itemwithchildren
+                                                          .icon["sidebarCollapsed-style"]
+                                                    : navigationCss.main.items.itemwithchildren
+                                                          .icon["sidebarExpanded-style"],
+                                            )}
                                         />
 
                                         {!sidebarCollapsed && (
-                                            <span className="text-sm">{item.label}</span>
+                                            <span
+                                                className={
+                                                    navigationCss.main.items.itemwithchildren.label[
+                                                        "ROOT-STYLE"
+                                                    ]
+                                                }
+                                            >
+                                                {item.label}
+                                            </span>
                                         )}
 
                                         {!sidebarCollapsed && item.collapsible && (
                                             <button
-                                                className="ml-auto p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                                                className={
+                                                    navigationCss.main.items.itemwithchildren
+                                                        .collapse["ROOT-STYLE"]
+                                                }
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
@@ -145,9 +199,23 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                 }}
                                             >
                                                 {isCollapsed ? (
-                                                    <ChevronRight className="w-4 h-4" />
+                                                    <ChevronRight
+                                                        className={
+                                                            navigationCss.main.items
+                                                                .itemwithchildren.collapse.icon[
+                                                                "ROOT-STYLE"
+                                                            ]
+                                                        }
+                                                    />
                                                 ) : (
-                                                    <ChevronDown className="w-4 h-4" />
+                                                    <ChevronDown
+                                                        className={
+                                                            navigationCss.main.items
+                                                                .itemwithchildren.collapse.icon[
+                                                                "ROOT-STYLE"
+                                                            ]
+                                                        }
+                                                    />
                                                 )}
                                             </button>
                                         )}
@@ -164,11 +232,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                     }));
                                                 }
                                             }}
-                                            className={`ml-4 space-y-1 transition-all duration-300 ${
+                                            className={cn(
+                                                navigationCss.main.items.itemwithchildren.children
+                                                    .wrapper["ROOT-STYLE"],
                                                 isCollapsed
-                                                    ? "opacity-0 -translate-y-20 pointer-events-none"
-                                                    : "opacity-100 translate-y-0"
-                                            }`}
+                                                    ? navigationCss.main.items.itemwithchildren
+                                                          .children.wrapper["collapsed-style"]
+                                                    : navigationCss.main.items.itemwithchildren
+                                                          .children.wrapper["expanded-style"],
+                                            )}
                                             style={{
                                                 display: hiddenMap[item.id] ? "none" : undefined,
                                             }}
@@ -184,24 +256,59 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                     <Link
                                                         key={child.id}
                                                         href={child.href}
-                                                        className={`
-                                        flex items-center px-3 py-2 rounded-lg transition-all cursor-pointer
-                                        ${
-                                            childActive
-                                                ? "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white"
-                                                : "text-slate-300 hover:bg-slate-700 hover:text-white"
-                                        }
-                                        ${sidebarCollapsed ? "" : "gap-3"}
-                                    `}
+                                                        className={cn(
+                                                            navigationCss.main.items
+                                                                .itemwithchildren.children[
+                                                                "ROOT-STYLE"
+                                                            ],
+                                                            childActive
+                                                                ? navigationCss.main.items
+                                                                      .itemwithchildren.children[
+                                                                      "active-style"
+                                                                  ]
+                                                                : navigationCss.main.items
+                                                                      .itemwithchildren.children[
+                                                                      "inactive-style"
+                                                                  ],
+                                                            sidebarCollapsed
+                                                                ? navigationCss.main.items
+                                                                      .itemwithchildren.children[
+                                                                      "sidebarCollapsed-style"
+                                                                  ]
+                                                                : navigationCss.main.items
+                                                                      .itemwithchildren.children[
+                                                                      "sidebarExpanded-style"
+                                                                  ],
+                                                        )}
                                                         title={child.label}
                                                     >
                                                         <ChildIcon
-                                                            className={`w-5 h-5 flex-shrink-0 ${
-                                                                sidebarCollapsed ? "mx-auto" : ""
-                                                            }`}
+                                                            className={cn(
+                                                                navigationCss.main.items
+                                                                    .itemwithchildren.children.icon[
+                                                                    "ROOT-STYLE"
+                                                                ],
+                                                                sidebarCollapsed
+                                                                    ? navigationCss.main.items
+                                                                          .itemwithchildren.children
+                                                                          .icon[
+                                                                          "sidebarCollapsed-style"
+                                                                      ]
+                                                                    : navigationCss.main.items
+                                                                          .itemwithchildren.children
+                                                                          .icon[
+                                                                          "sidebarExpanded-style"
+                                                                      ],
+                                                            )}
                                                         />
                                                         {!sidebarCollapsed && (
-                                                            <span className="text-sm">
+                                                            <span
+                                                                className={
+                                                                    navigationCss.main.items
+                                                                        .itemwithchildren.children
+                                                                        .label["ROOT-STYLE"]
+                                                                }
+                                                            >
                                                                 {child.label}
                                                             </span>
                                                         )}
@@ -218,82 +325,129 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                             <Link
                                 key={item.id}
                                 href={item.href}
-                                className={`
-                    flex items-center px-3 py-2 rounded-lg transition-all
-                    ${
-                        active
-                            ? "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white"
-                            : "text-slate-300 hover:bg-slate-700 hover:text-white"
-                    }
-                    ${sidebarCollapsed ? "" : "gap-3"}
-                `}
+                                className={cn(
+                                    navigationCss.main.items.item["ROOT-STYLE"],
+                                    active
+                                        ? navigationCss.main.items.item["active-style"]
+                                        : navigationCss.main.items.item["inactive-style"],
+                                    sidebarCollapsed
+                                        ? navigationCss.main.items.item["sidebarCollapsed-style"]
+                                        : navigationCss.main.items.item["sidebarExpanded-style"],
+                                )}
                                 title={item.label}
                             >
                                 <IconComponent
-                                    className={`w-5 h-5 flex-shrink-0 ${
-                                        sidebarCollapsed ? "mx-auto" : ""
-                                    }`}
+                                    className={cn(
+                                        navigationCss.main.items.item.icon["ROOT-STYLE"],
+                                        sidebarCollapsed
+                                            ? navigationCss.main.items.item.icon[
+                                                  "sidebarCollapsed-style"
+                                              ]
+                                            : navigationCss.main.items.item.icon[
+                                                  "sidebarExpanded-style"
+                                              ],
+                                    )}
                                 />
-                                {!sidebarCollapsed && <span className="text-sm">{item.label}</span>}
+                                {!sidebarCollapsed && (
+                                    <span
+                                        className={
+                                            navigationCss.main.items.item.label["ROOT-STYLE"]
+                                        }
+                                    >
+                                        {item.label}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}
                 </nav>
 
-                {/* Settings Link */}
+                {/* Bottom Navigation */}
                 <div
-                    className={`border-t border-slate-700 flex ${sidebarCollapsed ? "flex-col" : ""}`}
+                    className={cn(
+                        navigationCss.main.bottomnav["ROOT-STYLE"],
+                        sidebarCollapsed
+                            ? navigationCss.main.bottomnav["sidebarCollapsed-style"]
+                            : navigationCss.main.bottomnav["sidebarExpanded-style"],
+                    )}
                 >
-                    <div className="flex-1 p-3">
+                    <div className={navigationCss.main.bottomnav.settings["ROOT-STYLE"]}>
                         <Link
                             href="/settings/navigation"
                             title="Navigation settings"
-                            className={`
-        flex items-center justify-center gap-2
-        px-3 py-2 rounded-lg
-        transition-all relative
-        ${
-            isActive("/settings/navigation")
-                ? "bg-emerald-500/20 text-white"
-                : "text-slate-300 hover:bg-slate-700 hover:text-white"
-        }
-      `}
+                            className={cn(
+                                navigationCss.main.bottomnav.settings.inner["ROOT-STYLE"],
+                                isActive("/settings/navigation")
+                                    ? navigationCss.main.bottomnav.settings.inner["active-style"]
+                                    : navigationCss.main.bottomnav.settings.inner["inactive-style"],
+                            )}
                         >
-                            <Menu className="w-5 h-5 shrink-0" />
-                            {!sidebarCollapsed && <span className="text-sm">Customize</span>}
+                            <Menu
+                                className={
+                                    navigationCss.main.bottomnav.settings.inner.icon["ROOT-STYLE"]
+                                }
+                            />
+                            {!sidebarCollapsed && (
+                                <span className={navigationCss.main.items.item.label["ROOT-STYLE"]}>
+                                    Customize
+                                </span>
+                            )}
 
                             {isActive("/settings/navigation") && (
-                                <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full" />
+                                <span
+                                    className={
+                                        navigationCss.main.bottomnav.settings.inner.icon.active[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
+                                />
                             )}
                         </Link>
                     </div>
 
-                    <div className="flex-1 p-3">
+                    <div className={navigationCss.main.bottomnav.docs["ROOT-STYLE"]}>
                         <Link
-                            href="/settings/navigation"
-                            title="Navigation settings"
-                            className={`
-        flex items-center justify-center gap-2
-        px-3 py-2 rounded-lg
-        transition-all relative
-        ${
-            isActive("/settings/navigation")
-                ? "bg-emerald-500/20 text-white"
-                : "text-slate-300 hover:bg-slate-700 hover:text-white"
-        }
-      `}
+                            href="/docs"
+                            title="Docs"
+                            className={cn(
+                                navigationCss.main.bottomnav.docs.inner["ROOT-STYLE"],
+                                isActive("/docs")
+                                    ? navigationCss.main.bottomnav.docs.inner["active-style"]
+                                    : navigationCss.main.bottomnav.docs.inner["inactive-style"],
+                            )}
                         >
-                            <BookOpenText className="w-5 h-5 shrink-0" />
-                            {!sidebarCollapsed && <span className="text-sm">Docs</span>}
+                            <BookOpenText
+                                className={
+                                    navigationCss.main.bottomnav.docs.inner.icon["ROOT-STYLE"]
+                                }
+                            />
+                            {!sidebarCollapsed && (
+                                <span className={navigationCss.main.items.item.label["ROOT-STYLE"]}>
+                                    Docs
+                                </span>
+                            )}
 
-                            {isActive("/settings/navigation") && (
-                                <span className="absolute left-0 top-2 bottom-2 w-[2px] bg-emerald-500 rounded-full" />
+                            {isActive("/docs") && (
+                                <span
+                                    className={
+                                        navigationCss.main.bottomnav.docs.inner.icon.active[
+                                            "ROOT-STYLE"
+                                        ]
+                                    }
+                                />
                             )}
                         </Link>
                     </div>
                 </div>
             </aside>
-            <main className={`transition-all duration-300 ${sidebarCollapsed ? "ml-18" : "ml-64"}`}>
+            <main
+                className={cn(
+                    navigationCss.contents["ROOT-STYLE"],
+                    sidebarCollapsed
+                        ? navigationCss.contents["sidebarCollapsed-style"]
+                        : navigationCss.contents["sidebarExpanded-style"],
+                )}
+            >
                 {children}
             </main>
         </div>
