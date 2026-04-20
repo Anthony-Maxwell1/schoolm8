@@ -1,5 +1,5 @@
 "use client";
-import { css } from "@/lib/css";
+import { useCss } from "@/lib/css";
 import { redirect } from "next/dist/client/components/navigation";
 import { useRef, useState, useEffect } from "react";
 import {
@@ -22,6 +22,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function LMS() {
     const announcementRef = useRef<HTMLDivElement>(null);
     const assignmentRef = useRef<HTMLDivElement>(null);
+    const { css, setCss } = useCss();
     const style = css.app.lms.page;
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);

@@ -1,7 +1,7 @@
 "use client";
 // app/lms/assignment/[id]/page.tsx
 
-import { css } from "@/lib/css";
+import { useCss } from "@/lib/css";
 import { useState, useEffect } from "react";
 import { Assignment, normaliseAssignment } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
@@ -16,7 +16,7 @@ function getMaxRows(obj: Record<string, any[]>) {
 export default function AssignmentPage({ params }: { params: { id: string; cameFrom: string } }) {
     const { id } = useParams();
     const { user, token, loading } = useAuth();
-
+    const { css } = useCss();
     const style = css.app.lms.assignment;
 
     const [data, setData] = useState<Assignment | null>(null);

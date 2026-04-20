@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/authContext";
-import { css } from "@/lib/css";
+import { useCss } from "@/lib/css";
 
 type TimetableEvent = {
     id?: string;
@@ -43,6 +43,7 @@ async function fetchDayCached(day: string, token: string): Promise<TimetableDay 
 export function TimetableList() {
     const [timetable, setTimetable] = useState<TimetableDay[]>([]);
     const { token, loading } = useAuth();
+    const { css } = useCss();
     const style = css.components.tiles.Timetable.TimetableList;
 
     useEffect(() => {
@@ -149,6 +150,8 @@ export function TimetableGrid() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const { token, loading } = useAuth();
+
+    const { css } = useCss();
 
     const style = css.components.tiles.Timetable.TimetableGrid;
 

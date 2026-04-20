@@ -1,5 +1,11 @@
-// This is styling, mainly for components and pages not affected by dashboard themes.
-export const css = {
+"use client";
+
+import { useState } from "react";
+
+const STORAGE_KEY = "app-css";
+
+// your original object
+const defaultCss = {
     components: {
         tiles: {
             Timetable: {
@@ -504,3 +510,94 @@ export const css = {
         },
     },
 };
+
+// 🔹 in-memory fallback (for non-hook usage)
+let cssCache = defaultCss;
+
+function mergeCss(defaultObj: any, userObj: any): any {
+    // if user didn't provide anything, use default
+    if (userObj === undefined || userObj === null) {
+        return defaultObj;
+    }
+
+    // primitives → user overrides
+    if (typeof defaultObj !== "object" || defaultObj === null) {
+        return userObj;
+    }
+
+    // arrays → replace (not merge)
+    if (Array.isArray(defaultObj)) {
+        return Array.isArray(userObj) ? userObj : defaultObj;
+    }
+
+    const result: any = {};
+
+    // merge all keys from default
+    for (const key of Object.keys(defaultObj)) {
+        result[key] = mergeCss(defaultObj[key], userObj[key]);
+    }
+
+    // include extra user keys (optional, but usually good)
+    for (const key of Object.keys(userObj)) {
+        if (!(key in defaultObj)) {
+            result[key] = userObj[key];
+        }
+    }
+
+    return result;
+}
+
+// 🔹 load once
+function loadCss() {
+    if (typeof window === "undefined") return defaultCss;
+
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        const parsed = stored ? JSON.parse(stored) : {};
+
+        cssCache = mergeCss(defaultCss, parsed);
+    } catch {
+        cssCache = defaultCss;
+    }
+
+    return cssCache;
+}
+
+// 🔹 save
+function saveCss(newCss: typeof defaultCss) {
+    const merged = mergeCss(defaultCss, newCss);
+
+    cssCache = merged;
+
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newCss));
+        // store RAW user overrides, not merged version
+    } catch {}
+}
+// ✅ MAIN HOOK (reactive)
+export function useCss() {
+    const [css, setCssState] = useState(loadCss);
+
+    const setCss = (
+        value: typeof defaultCss | ((prev: typeof defaultCss) => typeof defaultCss),
+    ) => {
+        setCssState((prev) => {
+            const newValue = typeof value === "function" ? value(prev) : value;
+
+            saveCss(newValue);
+            return newValue;
+        });
+    };
+
+    return { css, setCss };
+}
+
+// ✅ OPTIONAL: non-react getter (read-only-ish)
+export function getCss() {
+    return cssCache;
+}
+
+// ✅ OPTIONAL: global setter (non-react, rare use)
+export function setCssGlobal(newCss: typeof defaultCss) {
+    saveCss(newCss);
+}

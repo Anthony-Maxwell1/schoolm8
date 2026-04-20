@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Switcher from "@/components/Switcher";
 import Editor from "@monaco-editor/react";
-import { css } from "@/lib/css";
+import { useCss } from "@/lib/css";
 import * as prettier from "prettier";
 import prettierPluginBabel from "prettier/plugins/babel";
 import prettierPluginEstree from "prettier/plugins/estree";
@@ -11,10 +11,28 @@ const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function AppearanceSettings() {
     const [mode, setMode] = useState("themes");
+    const { css, setCss } = useCss();
     const [defaultCode, setDefaultCode] = useState(`{
     "websiteStyle": ${JSON.stringify(css)}
 }`);
     const [code, setCode] = useState(defaultCode);
+
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSave = () => {
+        try {
+            const parsed = JSON.parse(code);
+
+            if (!parsed?.websiteStyle) {
+                throw new Error("Missing websiteStyle key");
+            }
+
+            setCss(parsed.websiteStyle);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || "Invalid JSON");
+        }
+    };
 
     useEffect(() => {
         async function formatCode() {
@@ -83,11 +101,23 @@ export default function AppearanceSettings() {
                             </h2>
                             <a href=""></a>
                             <Editor
-                                height="800px"
+                                height="500px"
                                 language="json"
                                 value={code}
-                                onChange={(val) => setCode(val || "")}
+                                onChange={(val) => {
+                                    setCode(val || "");
+                                }}
                             />
+                            <div className="mt-4 flex items-center gap-3">
+                                <button
+                                    onClick={handleSave}
+                                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
+                                >
+                                    Save
+                                </button>
+
+                                {error && <span className="text-red-300 text-sm">{error}</span>}
+                            </div>
                         </div>
                     )}
                 </div>

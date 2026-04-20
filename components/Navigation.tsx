@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { ComponentType, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { css } from "@/lib/css";
+import { useCss } from "@/lib/css";
 import { cn } from "@/lib/utils";
 import * as Sentry from "@sentry/nextjs";
 
@@ -39,6 +39,8 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
     const { items, sidebarCollapsed, setSidebarCollapsed } = useNavigation();
     const pathname = usePathname();
+    const { css } = useCss();
+
     const navigationCss = css.components.Navigation;
 
     const visibleItems = items.filter((item) => item.visible);

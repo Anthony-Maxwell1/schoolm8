@@ -1,5 +1,7 @@
 onlyBuiltDependencies:
   - '@firebase/util'
+  - '@sentry/cli'
   - es5-ext
+  - esbuild
   - protobufjs
   - sharp
