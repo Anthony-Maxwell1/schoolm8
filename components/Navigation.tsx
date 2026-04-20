@@ -53,7 +53,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
     if (!hydrated) return null; // Prevent hydration mismatch
 
-    if (window.location.pathname.startsWith("/docs")) {
+    if (pathname.startsWith("/docs")) {
         return <>{children}</>;
     }
 

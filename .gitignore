@@ -49,3 +49,5 @@ next-env.d.ts
 /DONOTCOMMIT/*
 /DONOTCOMMIT/
 DONOTCOMMIT
+
+/.source/

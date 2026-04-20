@@ -6,6 +6,7 @@ import { css } from "@/lib/css";
 import * as prettier from "prettier";
 import prettierPluginBabel from "prettier/plugins/babel";
 import prettierPluginEstree from "prettier/plugins/estree";
+import Link from "next/link";
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function AppearanceSettings() {
@@ -73,7 +74,13 @@ export default function AppearanceSettings() {
                     )}
                     {mode === "code" && (
                         <div className="p-4 text-white">
-                            <h2 className="text-lg font-bold mb-2">Code (Advanced)</h2>
+                            <h2 className="text-lg font-bold mb-2">
+                                Code (Advanced)
+                                <Link
+                                    href="/docs/developers/customization#code-editor"
+                                    className="text-white bg-green-300 rounded-full"
+                                ></Link>
+                            </h2>
                             <a href=""></a>
                             <Editor
                                 height="800px"
