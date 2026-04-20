@@ -1,75 +1,78 @@
 "use client";
 
-// context/ThemeContext.tsx
-import { createContext, useContext, useState, ReactNode } from "react";
-import {
-    defaultClasses,
-    ClassMap,
-    themes,
-    defaultTopBar,
-    defaultExtraHtml,
-} from "@/lib/themeClasses";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { useThemes, Theme, ClassKey } from "@/lib/themeClasses";
 
 type ThemeContextType = {
-    classes: ClassMap;
-    updateClass: (key: keyof ClassMap, value: string) => void;
-    setClasses: (classes: ClassMap) => void;
+    themes: Record<string, Theme>;
+    currentTheme: string;
+
+    classes: Record<ClassKey, string>;
     topBar: string;
-    updateTopBar: (value: string) => void;
-    fetchFromTheme: (themeKey: string) => void;
-    extraHtml?: string;
-    defaultExtraHtml?: string;
-    updateExtraHtml?: (value: string) => void;
+    extraHtml: string;
+
+    setTheme: (themeKey: string) => void;
+    setThemes: (themes: Record<string, Theme>) => void;
 };
 
-const ThemeContext = createContext<ThemeContextType>({
-    classes: defaultClasses,
-    updateClass: () => {},
-    setClasses: () => {},
-    topBar: "",
-    extraHtml: "",
-    updateTopBar: () => {},
-    fetchFromTheme: () => {},
-    updateExtraHtml: () => {},
-});
+const THEME_KEY_STORAGE = "app-current-theme";
+
+const ThemeContext = createContext<ThemeContextType>({} as any);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-    const [classes, setClasses] = useState<ClassMap>(defaultClasses);
-    const [topBar, setTopBar] = useState<string>(defaultTopBar);
-    const [extraHtml, setExtraHtml] = useState<string>(defaultExtraHtml);
+    const { themes, setThemes } = useThemes();
 
-    const updateClass = (key: keyof ClassMap, value: string) => {
-        setClasses((prev: any) => ({ ...prev, [key]: value }));
+    /* ---------------- INIT THEME (from localStorage) ---------------- */
+
+    const [currentTheme, setCurrentTheme] = useState<string>(() => {
+        if (typeof window === "undefined") return "basic-minimal";
+        return localStorage.getItem(THEME_KEY_STORAGE) || "basic-minimal";
+    });
+
+    /* ---------------- ACTIVE THEME ---------------- */
+
+    const activeTheme: Theme = themes[currentTheme] || themes[Object.keys(themes)[0]];
+
+    /* ---------------- SET THEME ---------------- */
+
+    const setTheme = (themeKey: string) => {
+        if (!themes[themeKey]) return;
+
+        setCurrentTheme(themeKey);
+
+        try {
+            localStorage.setItem(THEME_KEY_STORAGE, themeKey);
+        } catch {}
     };
 
-    const updateTopBar = (value: string) => {
-        setTopBar(value);
-    };
+    /* ---------------- FALLBACK SAFETY ---------------- */
 
-    const updateExtraHtml = (value: string) => {
-        setExtraHtml(value);
-    };
+    useEffect(() => {
+        if (!themes[currentTheme]) {
+            const fallback = Object.keys(themes)[0];
 
-    const fetchFromTheme = (themeKey: string) => {
-        const theme = themes[themeKey as keyof typeof themes];
-        if (theme) {
-            setClasses(theme.classes);
-            setTopBar(theme.TopBar || "");
-            setExtraHtml(theme.extraHtml || "");
+            if (fallback) {
+                setCurrentTheme(fallback);
+
+                try {
+                    localStorage.setItem(THEME_KEY_STORAGE, fallback);
+                } catch {}
+            }
         }
-    };
+    }, [themes, currentTheme]);
 
     return (
         <ThemeContext.Provider
             value={{
-                classes,
-                updateClass,
-                setClasses,
-                topBar,
-                extraHtml,
-                updateTopBar,
-                fetchFromTheme,
-                updateExtraHtml,
+                themes,
+                currentTheme,
+
+                classes: activeTheme.classes,
+                topBar: activeTheme.TopBar || "",
+                extraHtml: activeTheme.extraHtml || "",
+
+                setTheme,
+                setThemes, // full override
             }}
         >
             {children}

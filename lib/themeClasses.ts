@@ -1,4 +1,9 @@
-// utils/themeClasses.ts
+"use client";
+
+import { useState } from "react";
+
+/* ---------------- TYPES ---------------- */
+
 export type ClassKey = "Tile" | "TileOuter" | "TileOuterNoTopBar";
 
 export type Theme = {
@@ -8,14 +13,13 @@ export type Theme = {
     Data?: Record<string, any>;
 };
 
-export type ThemeKey = "basic-minimal" | "retro" | "retro-mac" | "os" | "glass" | "blur";
-
-export type ClassMap = Record<ClassKey, string>;
-export type ThemeMap = Record<ThemeKey, Theme>;
+export type ThemeMap = Record<string, Theme>;
 
 export const tw = (classes: string) => classes;
 
-export const themes: ThemeMap = {
+/* ---------------- DEFAULT THEMES ---------------- */
+
+export const defaultThemes: ThemeMap = {
     "basic-minimal": {
         classes: {
             TileOuter: tw("p-6"),
@@ -321,8 +325,97 @@ export const themes: ThemeMap = {
     },
 };
 
-const DEFAULT_THEME = "retro-mac";
+/* ---------------- MERGE ---------------- */
 
-export const defaultClasses: ClassMap = themes[DEFAULT_THEME].classes;
-export const defaultTopBar: string = themes[DEFAULT_THEME].TopBar || "";
-export const defaultExtraHtml: string = themes[DEFAULT_THEME].extraHtml || "";
+function mergeDeep(defaultObj: any, userObj: any): any {
+    if (userObj === undefined || userObj === null) return defaultObj;
+
+    if (typeof defaultObj !== "object" || defaultObj === null) {
+        return userObj;
+    }
+
+    if (Array.isArray(defaultObj)) {
+        return Array.isArray(userObj) ? userObj : defaultObj;
+    }
+
+    const result: any = {};
+
+    for (const key of Object.keys(defaultObj)) {
+        result[key] = mergeDeep(defaultObj[key], userObj?.[key]);
+    }
+
+    for (const key of Object.keys(userObj || {})) {
+        if (!(key in defaultObj)) {
+            result[key] = userObj[key];
+        }
+    }
+
+    return result;
+}
+
+function mergeThemes(defaults: ThemeMap, user: ThemeMap): ThemeMap {
+    const result: ThemeMap = {};
+
+    // merge existing
+    for (const key of Object.keys(defaults)) {
+        result[key] = mergeDeep(defaults[key], user?.[key]);
+    }
+
+    // add new (community/custom)
+    for (const key of Object.keys(user || {})) {
+        if (!(key in defaults)) {
+            result[key] = user[key];
+        }
+    }
+
+    return result;
+}
+
+/* ---------------- STORAGE ---------------- */
+
+const STORAGE_KEY = "app-themes";
+
+let cache: ThemeMap = defaultThemes;
+
+function loadThemes(): ThemeMap {
+    if (typeof window === "undefined") return defaultThemes;
+
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        const parsed = stored ? JSON.parse(stored) : {};
+
+        cache = mergeThemes(defaultThemes, parsed);
+    } catch {
+        cache = defaultThemes;
+    }
+
+    return cache;
+}
+
+function saveThemes(newThemes: ThemeMap) {
+    cache = mergeThemes(defaultThemes, newThemes);
+
+    try {
+        // store RAW JSON (full override)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newThemes));
+    } catch {}
+}
+
+/* ---------------- HOOK ---------------- */
+
+export function useThemes() {
+    const [themes, setThemesState] = useState(loadThemes);
+
+    const setThemes = (newThemes: ThemeMap) => {
+        saveThemes(newThemes);
+        setThemesState(mergeThemes(defaultThemes, newThemes));
+    };
+
+    return { themes, setThemes };
+}
+
+/* ---------------- NON-REACT ---------------- */
+
+export function getThemes() {
+    return cache;
+}

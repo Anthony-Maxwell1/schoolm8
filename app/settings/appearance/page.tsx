@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Switcher from "@/components/Switcher";
 import Editor from "@monaco-editor/react";
 import { useCss } from "@/lib/css";
+import { useTheme } from "@/context/themeContext";
 import * as prettier from "prettier";
 import prettierPluginBabel from "prettier/plugins/babel";
 import prettierPluginEstree from "prettier/plugins/estree";
@@ -12,8 +13,10 @@ const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 export default function AppearanceSettings() {
     const [mode, setMode] = useState("themes");
     const { css, setCss } = useCss();
+    const { themes, setThemes } = useTheme();
     const [defaultCode, setDefaultCode] = useState(`{
-    "websiteStyle": ${JSON.stringify(css)}
+    "websiteStyle": ${JSON.stringify(css)},
+    "themes": ${JSON.stringify(themes)}
 }`);
     const [code, setCode] = useState(defaultCode);
 
@@ -27,7 +30,12 @@ export default function AppearanceSettings() {
                 throw new Error("Missing websiteStyle key");
             }
 
+            if (!parsed?.themes) {
+                throw new Error("Missing themes key");
+            }
+
             setCss(parsed.websiteStyle);
+            setThemes(parsed.themes);
             setError(null);
         } catch (err: any) {
             setError(err.message || "Invalid JSON");
