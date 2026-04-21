@@ -12,8 +12,9 @@ const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function AppearanceSettings() {
     const [mode, setMode] = useState("themes");
+    const [editorMode, setEditorMode] = useState("themes");
     const { css, setCss } = useCss();
-    const { themes, setThemes } = useTheme();
+    const { themes, setThemes, currentTheme } = useTheme();
     const [defaultCode, setDefaultCode] = useState(`{
     "websiteStyle": ${JSON.stringify(css)},
     "themes": ${JSON.stringify(themes)}
@@ -91,11 +92,29 @@ export default function AppearanceSettings() {
 
                     {mode === "editor" && (
                         <div className="p-4 text-white">
-                            <h2 className="text-lg font-bold mb-2">Visual Editor</h2>
-                            <p>
-                                Customize the visual editor settings to enhance your editing
-                                experience.
-                            </p>
+                            <Switcher
+                                options={[
+                                    { label: "Dashboard editor", value: "themes" },
+                                    { label: "Website editor", value: "website" },
+                                ]}
+                                value={editorMode}
+                                onChange={(val: string) => setEditorMode(val)}
+                            />
+                            {editorMode === "themes" && (
+                                <div>
+                                    {currentTheme == "current" ? (
+                                        <div></div>
+                                    ) : (
+                                        <div>
+                                            <h3>You are currently not on a custom theme.</h3>
+                                            <button>Fork current theme and switch</button>
+                                            <button>Switch to custom</button>
+                                            Note: forking will override your current custom theme.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {editorMode === "website" && <div></div>}
                         </div>
                     )}
                     {mode === "code" && (
