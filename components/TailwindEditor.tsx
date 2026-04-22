@@ -1,5 +1,6 @@
 import { useState, type ComponentType } from "react";
-
+import { Lightbulb } from "lucide-react";
+import { embeddedDocs } from "../lib/docs";
 export type TailwindParsed = {
     class: string;
     label: string;
@@ -250,23 +251,11 @@ function TailwindSizePicker({
 }
 
 function TailwindNumberPicker({ arg }: { arg: string }) {
-    return (
-        <input
-            type="number"
-            defaultValue={arg}
-            className="rounded border border-gray-300 px-2 py-1 text-black"
-        />
-    );
+    return <input type="number" defaultValue={arg} className="text-black" />;
 }
 
 function TailwindTextInputPicker({ arg }: { arg: string }) {
-    return (
-        <input
-            type="text"
-            defaultValue={arg}
-            className="rounded border border-gray-300 px-2 py-1 text-black"
-        />
-    );
+    return <input type="text" defaultValue={arg} className="text-black" />;
 }
 
 const TransitionSelector = makeTailwindSelectComponent([
@@ -1146,28 +1135,84 @@ export function parseTailwindClass(input: string): TailwindParsed {
 }
 
 export function TailwindEditor({ classes }: { classes: string[] }) {
-    console.log(classes);
     return (
-        <div>
+        <div className="flex flex-col gap-3">
             {classes.map((cls) => {
                 const parsed = parseTailwindClass(cls);
-                console.log(parsed);
-                if (parsed.class === "unknown") {
-                    return null;
-                } else if (parsed.component) {
-                    const Component = parsed.component;
-                    return (
-                        <div key={cls} className="mb-3 flex flex-row items-center gap-3">
-                            <span className="text-black">{parsed.label}</span>
-                            <Component arg={parsed.arg} />
-                        </div>
-                    );
-                }
+                if (parsed.class === "unknown") return null;
+
+                const Component = parsed.component;
 
                 return (
-                    <div key={cls} className="mb-3 flex flex-row items-center gap-3">
-                        <span className="text-black">{parsed.label}</span>
-                        <TailwindTextInputPicker arg={parsed.arg} />
+                    <div
+                        key={cls}
+                        className="
+                            group flex items-center justify-between
+                            bg-white/70 backdrop-blur-md
+                            border border-gray-200
+                            rounded-xl px-4 py-3
+                            shadow-sm
+                            hover:shadow-md hover:border-gray-300
+                            transition-all duration-200
+                        "
+                    >
+                        {/* LEFT: label */}
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-gray-800">
+                                    {parsed.label}
+                                </span>
+
+                                <button
+                                    className="
+            flex items-center justify-center
+            w-5 h-5
+            rounded-full
+            bg-green-100 text-green-600
+            cursor-pointer
+            hover:bg-green-200
+        "
+                                    onClick={() => {
+                                        if (
+                                            embeddedDocs.customization.visualEditor.classes[
+                                                parsed.class
+                                            ]
+                                        ) {
+                                            alert(
+                                                embeddedDocs.customization.visualEditor.classes[
+                                                    parsed.class
+                                                ],
+                                            );
+                                        } else {
+                                            alert("No documentation available for this class.");
+                                        }
+                                    }}
+                                >
+                                    <Lightbulb size={14} />
+                                </button>
+                            </div>
+
+                            <span className="text-xs text-gray-500 font-mono">{parsed.class}</span>
+                        </div>
+
+                        {/* RIGHT: control */}
+                        <div className="flex items-center">
+                            <div
+                                className="
+                                    bg-white border border-gray-300
+                                    rounded-md px-2 py-1
+                                    shadow-inner
+                                    group-hover:border-gray-400
+                                    transition
+                                "
+                            >
+                                {Component ? (
+                                    <Component arg={parsed.arg} />
+                                ) : (
+                                    <TailwindTextInputPicker arg={parsed.arg} />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 );
             })}

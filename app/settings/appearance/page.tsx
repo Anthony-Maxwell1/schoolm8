@@ -1,7 +1,11 @@
 "use client";
-import { useState, useEffect, type ComponentType } from "react";
+import { useState, useEffect, useRef } from "react";
 import Switcher from "@/components/Switcher";
-import Editor from "@monaco-editor/react";
+import CodeMirror from "@uiw/react-codemirror";
+import { json } from "@codemirror/lang-json";
+import { EditorView, Decoration, ViewPlugin } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
+import { EditorSelection } from "@codemirror/state";
 import { useCss } from "@/lib/css";
 import { useTheme } from "@/context/themeContext";
 import * as prettier from "prettier";
@@ -11,20 +15,74 @@ import Link from "next/link";
 import JSONNavigator from "@/components/JSONNavigation";
 import { Node } from "@/components/JSONNavigation";
 import { TailwindEditor } from "@/components/TailwindEditor";
+import { parseTree, findNodeAtLocation } from "jsonc-parser";
+import { atomone } from "@uiw/codemirror-theme-atomone";
+import { html } from "@codemirror/lang-html";
+
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
+
+function getJsonPathRange(json: string, path: (string | number)[]) {
+    const tree = parseTree(json);
+    if (!tree) return null;
+
+    const node = findNodeAtLocation(tree, path);
+    if (!node) return null;
+
+    return {
+        start: node.offset,
+        end: node.offset + node.length,
+    };
+}
 
 export default function AppearanceSettings() {
     const [mode, setMode] = useState("themes");
     const [editorMode, setEditorMode] = useState("themes");
     const { css, setCss } = useCss();
-    const { themes, setThemes, currentTheme } = useTheme();
+    const { themes, setThemes, currentTheme, setTheme } = useTheme();
     const [defaultCode, setDefaultCode] = useState(`{
     "websiteStyle": ${JSON.stringify(css)},
     "themes": ${JSON.stringify(themes)}
 }`);
+    const [pendingSelection, setPendingSelection] = useState<{
+        start: number;
+        end: number;
+    } | null>(null);
     const [code, setCode] = useState(defaultCode);
 
     const [error, setError] = useState<string | null>(null);
+
+    const editorViewRef = useRef<EditorView | null>(null);
+
+    useEffect(() => {
+        if (mode !== "code") return;
+        if (!pendingSelection) return;
+
+        const view = editorViewRef.current;
+        if (!view) return;
+
+        const apply = () => {
+            const state = view.state;
+
+            if (!state) {
+                requestAnimationFrame(apply);
+                return;
+            }
+
+            const { start, end } = pendingSelection;
+
+            const selection = EditorSelection.range(start, end);
+
+            view.dispatch({
+                selection,
+                scrollIntoView: true,
+            });
+
+            view.focus();
+            setPendingSelection(null);
+        };
+
+        requestAnimationFrame(apply);
+    }, [mode, pendingSelection]);
 
     const DataPanel = ({ path }: { path: string[] }) => {
         // id is a path {id}.{id}.{id} and so on
@@ -36,7 +94,7 @@ export default function AppearanceSettings() {
             }
             node = node[segment];
         }
-        if (!node) return <div>Node not found</div>;
+        if (!node) return <div className="text-black">Node not found</div>;
         let styles = node["ROOT-STYLE"] || "";
         let conditionals: Record<string, string | string[]> = {
             "Sidebar Collapsed": node["sidebarCollapsed-style"] || "",
@@ -60,8 +118,80 @@ export default function AppearanceSettings() {
         }
         return (
             <div className="p-5 h-105 w-96 overflow-scroll flex-none">
-                <h2 className="text-black">Editing</h2>
                 <TailwindEditor classes={styles} />
+                <button
+                    className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
+                    onClick={() => {
+                        const range = getJsonPathRange(code, ["websiteStyle", ...path]);
+                        if (!range) return;
+
+                        setPendingSelection(range);
+                        setMode("code");
+                    }}
+                >
+                    Open in code editor
+                </button>
+            </div>
+        );
+    };
+
+    const ThemeDataPanel = ({ path }: { path: string[] }) => {
+        // id is a path {id}.{id}.{id} and so on
+        let node: any = themes[currentTheme];
+        for (const segment of path) {
+            if (!node[segment]) {
+                node = null;
+                break;
+            }
+            node = node[segment];
+        }
+        if (!node) return <div className="text-black">Node not found</div>;
+        if (node.trim()[0] === "<") {
+            return (
+                <div className="p-5 h-105 w-96 overflow-scroll flex-none">
+                    <CodeMirror
+                        value={node}
+                        height="500px"
+                        extensions={[html()]}
+                        // onChange={(value) => setCode(value)}
+                        theme={atomone}
+                    />
+                    <button
+                        className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
+                        onClick={() => {
+                            const range = getJsonPathRange(code, ["themes", currentTheme, ...path]);
+                            if (!range) return;
+
+                            setPendingSelection(range);
+                            setMode("code");
+                        }}
+                    >
+                        Open in code editor
+                    </button>
+                </div>
+            );
+        }
+        let styles = node || "";
+        styles = styles
+            .trim()
+            .split(" ")
+            .map((s: string) => s.trim())
+            .filter((s: string) => s.length > 0);
+        return (
+            <div className="p-5 h-105 w-96 overflow-scroll flex-none">
+                <TailwindEditor classes={styles} />
+                <button
+                    className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
+                    onClick={() => {
+                        const range = getJsonPathRange(code, ["themes", currentTheme, ...path]);
+                        if (!range) return;
+
+                        setPendingSelection(range);
+                        setMode("code");
+                    }}
+                >
+                    Open in code editor
+                </button>
             </div>
         );
     };
@@ -85,6 +215,37 @@ export default function AppearanceSettings() {
         return nodes;
     };
 
+    const formatNodesRecursiveTheme = (themeObj: Record<string, any>) => {
+        const nodes: Node[] = [];
+        for (const [key, value] of Object.entries(themeObj)) {
+            const hasNonObjectValue = Object.values(value).some(
+                (child) => child === null || typeof child !== "object",
+            );
+
+            console.log(key);
+
+            if (typeof value !== "object") {
+                const node: Node = {
+                    name: key,
+                    id: key,
+                    hasData: true,
+                    children: [],
+                };
+                nodes.push(node);
+                continue;
+            }
+
+            const node: Node = {
+                name: key,
+                id: key,
+                hasData: hasNonObjectValue,
+                children: formatNodesRecursiveTheme(value),
+            };
+            nodes.push(node);
+        }
+        return nodes;
+    };
+
     const formatNodes = () => {
         const nodes: any[] = [];
         for (const [key, value] of Object.entries(css)) {
@@ -98,6 +259,36 @@ export default function AppearanceSettings() {
                 id: key,
                 hasData: hasNonObjectValue,
                 children: formatNodesRecursive(value),
+            };
+            nodes.push(node);
+        }
+        console.log(nodes);
+        return nodes;
+    };
+
+    const formatNodesTheme = () => {
+        const nodes: any[] = [];
+        for (const [key, value] of Object.entries(themes[currentTheme])) {
+            const hasNonObjectValue = Object.values(value).some((child) => false);
+
+            if (typeof value !== "object") {
+                const node: any = {
+                    name: key,
+                    id: key,
+                    hasData: true,
+                    children: [],
+                };
+                nodes.push(node);
+                continue;
+            }
+
+            console.log("a");
+
+            const node: any = {
+                name: key,
+                id: key,
+                hasData: hasNonObjectValue,
+                children: formatNodesRecursiveTheme(value),
             };
             nodes.push(node);
         }
@@ -185,14 +376,36 @@ export default function AppearanceSettings() {
                             {editorMode === "themes" && (
                                 <div>
                                     {currentTheme == "custom" ? (
-                                        <div></div>
+                                        <div>
+                                            <JSONNavigator
+                                                nodes={formatNodesTheme()}
+                                                title="Custom Theme Editor"
+                                                DataComponent={ThemeDataPanel}
+                                            ></JSONNavigator>
+                                        </div>
                                     ) : (
                                         <div>
                                             <h3>You are currently not on a custom theme.</h3>
-                                            <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition">
+                                            <button
+                                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
+                                                onClick={() => {
+                                                    setThemes({
+                                                        ...themes,
+                                                        custom: themes[currentTheme],
+                                                    });
+                                                    setTheme("custom");
+                                                    window.location.reload();
+                                                }}
+                                            >
                                                 Fork current theme and switch
                                             </button>
-                                            <button className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition">
+                                            <button
+                                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
+                                                onClick={() => {
+                                                    setTheme("custom");
+                                                    window.location.reload();
+                                                }}
+                                            >
                                                 Switch to custom
                                             </button>
                                             Note: forking will override your current custom theme.
@@ -221,13 +434,15 @@ export default function AppearanceSettings() {
                                 ></Link>
                             </h2>
                             <a href=""></a>
-                            <Editor
-                                height="500px"
-                                language="json"
+                            <CodeMirror
                                 value={code}
-                                onChange={(val) => {
-                                    setCode(val || "");
+                                height="500px"
+                                extensions={[json()]}
+                                onChange={(value) => setCode(value)}
+                                onCreateEditor={(view) => {
+                                    editorViewRef.current = view;
                                 }}
+                                theme={atomone}
                             />
                             <div className="mt-4 flex items-center gap-3">
                                 <button
