@@ -162,7 +162,7 @@ export default function Schedule() {
                                 ).map((item: any, index: number) => (
                                     <div
                                         key={index}
-                                        className="rounded-lg bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 backdrop-blur p-4 flex items-start justify-between"
+                                        className="rounded-lg bg-linear-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 backdrop-blur p-4 flex items-start justify-between"
                                     >
                                         <div className="flex-1">
                                             <h4 className="font-semibold text-white mb-2">

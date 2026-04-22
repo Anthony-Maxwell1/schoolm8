@@ -279,7 +279,7 @@ export default function Onboarding() {
             style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
         >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
 
             {loadingState && (
                 <div
@@ -335,7 +335,7 @@ export default function Onboarding() {
                     {/* Step 1: Carousel */}
                     {step === 0 && (
                         <div>
-                            <div className="relative w-full h-[300px] rounded-2xl overflow-hidden mb-6">
+                            <div className="relative w-full h-75 rounded-2xl overflow-hidden mb-6">
                                 <Image
                                     src={carouselItems[carouselIndex].image}
                                     alt={carouselItems[carouselIndex].title}

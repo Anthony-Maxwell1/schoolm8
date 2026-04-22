@@ -8,7 +8,7 @@ export default function Auth() {
             className="relative min-h-screen bg-cover bg-center"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
 
             <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
                 <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-2xl ring-1 ring-black/10 dark:bg-slate-900/80 dark:ring-white/5">

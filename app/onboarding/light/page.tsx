@@ -279,7 +279,7 @@ export default function Onboarding() {
             style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
         >
             {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
 
             {loadingState && (
                 <div
@@ -314,7 +314,7 @@ export default function Onboarding() {
             {/* Main container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
                 {/* LEFT PANEL: step list */}
-                <div className="w-full max-w-[280px] rounded-2xl bg-white/90 overflow-hidden flex flex-col shadow-xl">
+                <div className="w-full max-w-70 rounded-2xl bg-white/90 overflow-hidden flex flex-col shadow-xl">
                     {steps.map((s, i) => (
                         <button
                             key={i}
@@ -335,7 +335,7 @@ export default function Onboarding() {
                     {/* Step 1: Carousel */}
                     {step === 0 && (
                         <div>
-                            <div className="relative w-full h-[300px] rounded-2xl overflow-hidden mb-6">
+                            <div className="relative w-full h-75 rounded-2xl overflow-hidden mb-6">
                                 <Image
                                     src={carouselItems[carouselIndex].image}
                                     alt={carouselItems[carouselIndex].title}

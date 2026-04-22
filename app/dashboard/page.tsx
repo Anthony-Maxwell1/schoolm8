@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
     if (!currentPage)
         return (
-            <div className="h-screen flex items-center justify-center bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
+            <div className="h-screen flex items-center justify-center bg-linear-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
                 <div className="text-center max-w-md px-6">
                     {/* Icon / visual hint */}
                     <div className="mx-auto w-14 h-14 rounded-2xl bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center mb-4">

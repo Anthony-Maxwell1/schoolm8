@@ -19,7 +19,7 @@ function Panel({
     onSelect: (node: Node, layer: number) => void;
 }) {
     return (
-        <div className="min-w-[260px] border-r border-zinc-200 bg-white p-1.5">
+        <div className="min-w-65 border-r border-zinc-200 bg-white p-1.5">
             {nodes.map((node) => {
                 const isSelected = selectedId === node.id;
                 return (
@@ -27,7 +27,7 @@ function Panel({
                         key={node.id}
                         onClick={() => onSelect(node, layer)}
                         className={[
-                            "flex h-[30px] cursor-default select-none items-center justify-between rounded-md px-2.5 text-[13px]",
+                            "flex h-7.5 cursor-default select-none items-center justify-between rounded-md px-2.5 text-[13px]",
                             isSelected ? "bg-blue-500 text-white" : "text-zinc-900",
                         ].join(" ")}
                     >
@@ -84,11 +84,11 @@ export default function JSONNavigator({
 
     return (
         <div className="overflow-hidden rounded-[10px] border border-zinc-300 bg-zinc-100 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-            <div className="flex h-10 items-center border-b border-zinc-300 bg-gradient-to-b from-zinc-50 to-zinc-200 px-3.5 text-[13px] font-semibold text-zinc-700">
+            <div className="flex h-10 items-center border-b border-zinc-300 bg-linear-to-b from-zinc-50 to-zinc-200 px-3.5 text-[13px] font-semibold text-zinc-700">
                 {title || "JSON Navigator"}
             </div>
 
-            <div ref={columnsRef} className="flex min-h-[420px] overflow-x-auto bg-white">
+            <div ref={columnsRef} className="flex min-h-105 overflow-x-auto bg-white">
                 <Panel
                     nodes={nodes}
                     layer={0}

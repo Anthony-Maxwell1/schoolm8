@@ -95,7 +95,7 @@ export default function CoursesPage() {
                             <Link
                                 key={course.id}
                                 href={`/courses/${course.id}`}
-                                className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10"
+                                className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10"
                             >
                                 {/* Course Image */}
                                 {course.image && (
@@ -105,7 +105,7 @@ export default function CoursesPage() {
                                             alt={course.name}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80" />
+                                        <div className="absolute inset-0 bg-linear-to-b from-transparent to-slate-900/80" />
                                     </div>
                                 )}
 

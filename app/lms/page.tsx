@@ -110,7 +110,7 @@ export default function LMS() {
                     {data.map((item, i) => (
                         <div
                             key={i}
-                            className="flex-shrink-0 w-80 h-48 rounded-lg bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-4 cursor-pointer overflow-hidden group"
+                            className="shrink-0 w-80 h-48 rounded-lg bg-linear-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-4 cursor-pointer overflow-hidden group"
                             onClick={function () {
                                 redirect(redirectTemplate.replace("{id}", item.id));
                             }}
@@ -202,7 +202,7 @@ export default function LMS() {
                                 />
 
                                 {/* Overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80" />
+                                <div className="absolute inset-0 bg-linear-to-b from-transparent to-slate-900/80" />
 
                                 {/* Text */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
