@@ -12,6 +12,37 @@
 
 import { db } from "./firebaseAdmin";
 
+const isPlainObject = (value: unknown): value is Record<string, any> => {
+    if (!value || typeof value !== "object") return false;
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+};
+
+const removeUndefinedDeep = <T>(value: T): T => {
+    if (value === undefined) {
+        return undefined as T;
+    }
+
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => removeUndefinedDeep(item))
+            .filter((item) => item !== undefined) as T;
+    }
+
+    if (isPlainObject(value)) {
+        const cleaned: Record<string, any> = {};
+        for (const [key, nestedValue] of Object.entries(value)) {
+            const sanitized = removeUndefinedDeep(nestedValue);
+            if (sanitized !== undefined) {
+                cleaned[key] = sanitized;
+            }
+        }
+        return cleaned as T;
+    }
+
+    return value;
+};
+
 /* =====================================================
    LMS SCHEMA HELPERS
 ===================================================== */
@@ -42,7 +73,9 @@ export const saveLMSCourse = async (
     courseId: string,
     courseData: Record<string, any>,
 ) => {
-    return getLMSCoursesRef(userId).doc(courseId).set(courseData, { merge: true });
+    return getLMSCoursesRef(userId).doc(courseId).set(removeUndefinedDeep(courseData), {
+        merge: true,
+    });
 };
 
 /**
@@ -53,7 +86,9 @@ export const saveLMSAssignment = async (
     assignmentId: string,
     assignmentData: Record<string, any>,
 ) => {
-    return getLMSAssignmentsRef(userId).doc(assignmentId).set(assignmentData, { merge: true });
+    return getLMSAssignmentsRef(userId)
+        .doc(assignmentId)
+        .set(removeUndefinedDeep(assignmentData), { merge: true });
 };
 
 /**
@@ -64,9 +99,11 @@ export const saveLMSAnnouncement = async (
     announcementId: string,
     announcementData: Record<string, any>,
 ) => {
-    return getLMSAnnouncementsRef(userId).doc(announcementId).set(announcementData, {
-        merge: true,
-    });
+    return getLMSAnnouncementsRef(userId)
+        .doc(announcementId)
+        .set(removeUndefinedDeep(announcementData), {
+            merge: true,
+        });
 };
 
 /**
@@ -77,7 +114,7 @@ export const saveLMSCourses = async (userId: string, coursesMap: Record<string, 
     const coursesRef = getLMSCoursesRef(userId);
 
     for (const [courseId, courseData] of Object.entries(coursesMap)) {
-        batch.set(coursesRef.doc(courseId), courseData, { merge: true });
+        batch.set(coursesRef.doc(courseId), removeUndefinedDeep(courseData), { merge: true });
     }
 
     return batch.commit();
@@ -91,7 +128,9 @@ export const saveLMSAssignments = async (userId: string, assignmentsMap: Record<
     const assignmentsRef = getLMSAssignmentsRef(userId);
 
     for (const [assignmentId, assignmentData] of Object.entries(assignmentsMap)) {
-        batch.set(assignmentsRef.doc(assignmentId), assignmentData, { merge: true });
+        batch.set(assignmentsRef.doc(assignmentId), removeUndefinedDeep(assignmentData), {
+            merge: true,
+        });
     }
 
     return batch.commit();
@@ -108,7 +147,9 @@ export const saveLMSAnnouncements = async (
     const announcementsRef = getLMSAnnouncementsRef(userId);
 
     for (const [announcementId, announcementData] of Object.entries(announcementsMap)) {
-        batch.set(announcementsRef.doc(announcementId), announcementData, { merge: true });
+        batch.set(announcementsRef.doc(announcementId), removeUndefinedDeep(announcementData), {
+            merge: true,
+        });
     }
 
     return batch.commit();
@@ -170,7 +211,7 @@ export const getTimetableDaysRef = (userId: string) =>
  * Save timetable configuration
  */
 export const saveTimetableConfig = async (userId: string, configData: Record<string, any>) => {
-    return getTimetableConfigRef(userId).set(configData, { merge: true });
+    return getTimetableConfigRef(userId).set(removeUndefinedDeep(configData), { merge: true });
 };
 
 /**
@@ -183,14 +224,15 @@ export const saveTimetableDay = async (
     cacheDurationMs: number = 3600000,
 ) => {
     const expiry = Date.now() + cacheDurationMs;
+
     return getTimetableDaysRef(userId)
         .doc(date)
         .set(
-            {
+            removeUndefinedDeep({
                 ...dayData,
                 date,
                 expiry,
-            },
+            }),
             { merge: true },
         );
 };

@@ -18,6 +18,7 @@ import { TailwindEditor } from "@/components/TailwindEditor";
 import { parseTree, findNodeAtLocation } from "jsonc-parser";
 import { atomone } from "@uiw/codemirror-theme-atomone";
 import { html } from "@codemirror/lang-html";
+import Image from "next/image";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -51,38 +52,24 @@ export default function AppearanceSettings() {
 
     const [error, setError] = useState<string | null>(null);
 
-    const editorViewRef = useRef<EditorView | null>(null);
+    const [view, setView] = useState<EditorView | null>(null);
 
     useEffect(() => {
         if (mode !== "code") return;
         if (!pendingSelection) return;
-
-        const view = editorViewRef.current;
+        console.log(view);
         if (!view) return;
 
-        const apply = () => {
-            const state = view.state;
+        console.log(pendingSelection);
+        console.log(view.state);
 
-            if (!state) {
-                requestAnimationFrame(apply);
-                return;
-            }
+        view.dispatch({
+            selection: { anchor: pendingSelection.start, head: pendingSelection.end },
+            scrollIntoView: true,
+        });
 
-            const { start, end } = pendingSelection;
-
-            const selection = EditorSelection.range(start, end);
-
-            view.dispatch({
-                selection,
-                scrollIntoView: true,
-            });
-
-            view.focus();
-            setPendingSelection(null);
-        };
-
-        requestAnimationFrame(apply);
-    }, [mode, pendingSelection]);
+        view.focus();
+    }, [view]);
 
     const DataPanel = ({ path }: { path: string[] }) => {
         // id is a path {id}.{id}.{id} and so on
@@ -292,6 +279,29 @@ export default function AppearanceSettings() {
             };
             nodes.push(node);
         }
+        if (!nodes.find((n) => n.id === "TopBar")) {
+            const topBarNode: any = {
+                name: "TopBar",
+                id: "TopBar",
+                hasData: true,
+                children: [],
+            };
+            nodes.push(topBarNode);
+            setThemes({ ...themes, [currentTheme]: { ...themes[currentTheme], TopBar: "<></>" } });
+        }
+        if (!nodes.find((n) => n.id === "extraHtml")) {
+            const extraHtmlNode: any = {
+                name: "ExtraHtml",
+                id: "extraHtml",
+                hasData: true,
+                children: [],
+            };
+            nodes.push(extraHtmlNode);
+            setThemes({
+                ...themes,
+                [currentTheme]: { ...themes[currentTheme], extraHtml: "<></>" },
+            });
+        }
         console.log(nodes);
         return nodes;
     };
@@ -355,11 +365,124 @@ export default function AppearanceSettings() {
                     </div>
                     {mode === "themes" && (
                         <div className="p-4 text-white">
-                            <h2 className="text-lg font-bold mb-2">Themes</h2>
-                            <p>
-                                Choose from a variety of themes to customize the look and feel of
-                                the app.
+                            <h3 className="text-white text-xl font-bold">Dashboard Themes</h3>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 mt-3">
+                                {Object.keys(themes).map((key) => (
+                                    <button
+                                        key={key}
+                                        className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
+                                        onClick={() => {
+                                            setTheme(key);
+                                            window.location.reload();
+                                        }}
+                                    >
+                                        <div className="relative aspect-4/3 w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200">
+                                            {themes[key].imageUrl ? (
+                                                <img
+                                                    src={themes[key].imageUrl}
+                                                    alt={key}
+                                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                />
+                                            ) : (
+                                                <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-slate-700 via-slate-600 to-slate-900 text-white">
+                                                    <div className="text-center px-4">
+                                                        <div className="text-sm uppercase tracking-[0.35em] text-white/70">
+                                                            Preview unavailable
+                                                        </div>
+                                                        <div className="mt-2 text-lg font-semibold">
+                                                            {key}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 text-left text-white">
+                                                <div className="text-xs uppercase tracking-[0.3em] text-white/70">
+                                                    Theme
+                                                </div>
+                                                <div className="text-lg font-semibold capitalize">
+                                                    {key}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                                <a
+                                    key="view-community"
+                                    className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
+                                    href="/themes?filter-type=dashboard"
+                                >
+                                    <div className="relative aspect-4/3 w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200">
+                                        <Image
+                                            src={"https://picsum.photos/600/400"}
+                                            alt="Community Themes"
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 text-left text-white">
+                                            <div className="text-lg font-semibold capitalize">
+                                                Browse Community Themes
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <h3 className="text-white text-xl font-bold mt-6">Website Themes</h3>
+                            <p className="mt-1 text-sm text-white/80">
+                                Personalize your website look, or reset back to defaults.
                             </p>
+                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+                                <Link
+                                    href="/themes?filter-type=website"
+                                    className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30"
+                                >
+                                    <div className="relative h-full w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200">
+                                        <Image
+                                            src={"https://picsum.photos/600/400"}
+                                            alt="Website Community Themes"
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+
+                                        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 text-left text-white">
+                                            <div className="text-xs uppercase tracking-[0.3em] text-white/70">
+                                                Website Themes
+                                            </div>
+                                            <div className="text-lg font-semibold capitalize">
+                                                Browse Community Themes
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+
+                                <button
+                                    key="reset-theme"
+                                    type="button"
+                                    className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
+                                    onClick={() => {
+                                        // Handle reset theme logic
+                                    }}
+                                >
+                                    <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
+
+                                    <div className="relative flex h-full w-full items-end p-4">
+                                        <div>
+                                            <div className="text-xs uppercase tracking-[0.3em] text-red-700/80">
+                                                Reset
+                                            </div>
+                                            <div className="mt-1 text-lg font-semibold text-red-900">
+                                                Reset Website Theme
+                                            </div>
+                                            <div className="mt-1 text-xs text-red-900/70">
+                                                Revert style changes and return to default appearance.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -440,7 +563,7 @@ export default function AppearanceSettings() {
                                 extensions={[json()]}
                                 onChange={(value) => setCode(value)}
                                 onCreateEditor={(view) => {
-                                    editorViewRef.current = view;
+                                    setView(view);
                                 }}
                                 theme={atomone}
                             />

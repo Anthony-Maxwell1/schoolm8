@@ -11,6 +11,7 @@ export type Theme = {
     TopBar?: string;
     extraHtml?: string;
     Data?: Record<string, any>;
+    imageUrl?: string;
 };
 
 export type ThemeMap = Record<string, Theme>;
@@ -28,6 +29,7 @@ export const defaultThemes: ThemeMap = {
                 "h-full w-full bg-white rounded-2xl border border-neutral-200 shadow-sm flex flex-col overflow-hidden p-5",
             ),
         },
+        imageUrl: "/images/themes/basic-minimal/preview.png",
     },
     retro: {
         classes: {
