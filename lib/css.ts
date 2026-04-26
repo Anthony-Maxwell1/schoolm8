@@ -589,7 +589,12 @@ export function useCss() {
         });
     };
 
-    return { css, setCss };
+    const resetCss = () => {
+        saveCss(defaultCss);
+        setCssState(defaultCss);
+    };
+
+    return { css, setCss, resetCss };
 }
 
 // ✅ OPTIONAL: non-react getter (read-only-ish)

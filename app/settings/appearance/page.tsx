@@ -39,7 +39,7 @@ function getJsonPathRange(json: string, path: (string | number)[]) {
 export default function AppearanceSettings() {
     const [mode, setMode] = useState("themes");
     const [editorMode, setEditorMode] = useState("themes");
-    const { css, setCss } = useCss();
+    const { css, setCss, resetCss } = useCss();
     const { themes, setThemes, currentTheme, setTheme } = useTheme();
     const [defaultCode, setDefaultCode] = useState(`{
     "websiteStyle": ${JSON.stringify(css)},
@@ -523,9 +523,7 @@ export default function AppearanceSettings() {
                                     key="reset-theme"
                                     type="button"
                                     className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
-                                    onClick={() => {
-                                        // Handle reset theme logic
-                                    }}
+                                    onClick={resetCss}
                                 >
                                     <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
