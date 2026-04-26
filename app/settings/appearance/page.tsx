@@ -287,7 +287,9 @@ export default function AppearanceSettings() {
                 children: [],
             };
             nodes.push(topBarNode);
-            setThemes({ ...themes, [currentTheme]: { ...themes[currentTheme], TopBar: "<></>" } });
+            setThemes({
+                [currentTheme]: { ...themes[currentTheme], TopBar: " " },
+            });
         }
         if (!nodes.find((n) => n.id === "extraHtml")) {
             const extraHtmlNode: any = {
@@ -299,7 +301,7 @@ export default function AppearanceSettings() {
             nodes.push(extraHtmlNode);
             setThemes({
                 ...themes,
-                [currentTheme]: { ...themes[currentTheme], extraHtml: "<></>" },
+                [currentTheme]: { ...themes[currentTheme], extraHtml: " " },
             });
         }
         console.log(nodes);
@@ -477,7 +479,8 @@ export default function AppearanceSettings() {
                                                 Reset Website Theme
                                             </div>
                                             <div className="mt-1 text-xs text-red-900/70">
-                                                Revert style changes and return to default appearance.
+                                                Revert style changes and return to default
+                                                appearance.
                                             </div>
                                         </div>
                                     </div>
@@ -517,7 +520,6 @@ export default function AppearanceSettings() {
                                                         custom: themes[currentTheme],
                                                     });
                                                     setTheme("custom");
-                                                    window.location.reload();
                                                 }}
                                             >
                                                 Fork current theme and switch
@@ -526,7 +528,6 @@ export default function AppearanceSettings() {
                                                 className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
                                                 onClick={() => {
                                                     setTheme("custom");
-                                                    window.location.reload();
                                                 }}
                                             >
                                                 Switch to custom
