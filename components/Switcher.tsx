@@ -9,10 +9,12 @@ export default function AnimatedSwitcher({
     options,
     value,
     onChange,
+    className,
 }: {
     options: Option[];
     value?: string;
     onChange?: (value: string) => void;
+    className?: string;
 }) {
     const [indicatorStyle, setIndicatorStyle] = useState({
         left: 0,
@@ -47,7 +49,7 @@ export default function AnimatedSwitcher({
     return (
         <div
             ref={containerRef}
-            className="relative flex w-fit rounded-xl bg-white/10 backdrop-blur-lg p-1"
+            className={`relative flex w-fit rounded-xl bg-white/10 backdrop-blur-lg p-1 ${className || ""}`}
         >
             {/* sliding highlight */}
             <div

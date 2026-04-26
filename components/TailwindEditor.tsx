@@ -1134,7 +1134,13 @@ export function parseTailwindClass(input: string): TailwindParsed {
     };
 }
 
-export function TailwindEditor({ classes }: { classes: string[] }) {
+export function TailwindEditor({
+    classes,
+    updateClasses,
+}: {
+    classes: string[];
+    updateClasses?: (newClasses: string[]) => void;
+}) {
     return (
         <div className="flex flex-col gap-3">
             {classes.map((cls) => {

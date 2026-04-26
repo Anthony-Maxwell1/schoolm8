@@ -70,62 +70,66 @@ Customization is done through the editor.
 
 import { ImageHotspots } from "@/components/mdx/ImageHotspots";
 
-<ImageHotspots
-    src="/images/docs-assets/users/getting-started/dashboard-editor.png"
-    alt="Dashboard Editor Overview"
-    hotspots={[
-        {
-            id: "pages",
-            x: 5,
-            y: 10,
-            width: 9,
-            height: 80,
-            label: "Pages",
-            title: "Pages Panel",
-            content:
-                "This is where you can view and manage your pages. Use the '+ Page' button to create a new page, and click any page to switch between them.",
-        },
-        {
-            id: "editor",
-            x: 14,
-            y: 10,
-            width: 71,
-            height: 80,
-            label: "Editor",
-            title: "Main Editor",
-            content: "This is the main space, where you drag and resize tiles around.",
-        },
-        {
-            id: "components",
-            x: 85,
-            y: 10,
-            width: 14,
-            height: 70,
-            label: "Components",
-            title: "Component Library",
-            content:
-                "Drag and drop components here to add them to your page. Panels are under the heading Panels, and can be dragged to the left, top, bottom or right of the main editor. Tiles can be dragged anywhere, snapped to the grid.",
-        },
-        {
-            id: "actions",
-            x: 85,
-            y: 80,
-            width: 14,
-            height: 12,
-            label: "Actions",
-            title: "Quick Actions",
-            content:
-                'The red "Global Options" button changes style and functional settings across all the tiles on the page at once. The green "Back to Dashboard" button takes you to the dashboard.',
-        },
-    ]}
-/>
+<div className="flex flex-row gap-1">
+    <ImageHotspots
+        src="/images/docs-assets/users/getting-started/dashboard-editor.png"
+        alt="Dashboard Editor Overview"
+        hotspots={[
+            {
+                id: "pages",
+                x: 5,
+                y: 10,
+                width: 9,
+                height: 80,
+                label: "Pages",
+                title: "Pages Panel",
+                content:
+                    "This is where you can view and manage your pages. Use the '+ Page' button to create a new page, and click any page to switch between them.",
+            },
+            {
+                id: "editor",
+                x: 14,
+                y: 10,
+                width: 71,
+                height: 80,
+                label: "Editor",
+                title: "Main Editor",
+                content: "This is the main space, where you drag and resize tiles around.",
+            },
+            {
+                id: "components",
+                x: 85,
+                y: 10,
+                width: 14,
+                height: 70,
+                label: "Components",
+                title: "Component Library",
+                content:
+                    "Drag and drop components here to add them to your page. Panels are under the heading Panels, and can be dragged to the left, top, bottom or right of the main editor. Tiles can be dragged anywhere, snapped to the grid.",
+            },
+            {
+                id: "actions",
+                x: 85,
+                y: 80,
+                width: 14,
+                height: 12,
+                label: "Actions",
+                title: "Quick Actions",
+                content:
+                    'The red "Global Options" button changes style and functional settings across all the tiles on the page at once. The green "Back to Dashboard" button takes you to the dashboard.',
+            },
+        ]}
+    />
+    <div>
+    Quick tips:
 
-Quick tips:
+    - Keep as little pages as possible, to reduce clutter.
+    - Use the "Global Options" button to set a theme across all tiles on the page at once.
+    - Note that new tiles don't automatically recieve the global options, you have to resave the global options!
+    - Customize your theme and styles in the Themes page in settings.
+    </div>
 
-- Keep as little pages as possible, to reduce clutter.
-- Use the "Global Options" button to set a theme across all tiles on the page at once.
-- Note that new tiles don't automatically recieve the global options, you have to resave the global options!
-- Customize your theme and styles in the Themes page in settings.
+</div>
 
 ### Tiles and Panels
 

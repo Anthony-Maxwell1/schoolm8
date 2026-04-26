@@ -19,6 +19,7 @@ import { parseTree, findNodeAtLocation } from "jsonc-parser";
 import { atomone } from "@uiw/codemirror-theme-atomone";
 import { html } from "@codemirror/lang-html";
 import Image from "next/image";
+import { Book } from "lucide-react";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -103,9 +104,34 @@ export default function AppearanceSettings() {
                 .map((s: string) => s.trim())
                 .filter((s: string) => s.length > 0);
         }
+        function setClasses(newClasses: string[], conditional?: string) {
+            // Implementation for updating classes
+        }
+
         return (
             <div className="p-5 h-105 w-96 overflow-scroll flex-none">
-                <TailwindEditor classes={styles} />
+                <TailwindEditor classes={styles} updateClasses={setClasses} />
+                {Object.entries(conditionals).map(([key, value]) => {
+                    return (
+                        <details
+                            key={key}
+                            className="group mb-2 w-full overflow-hidden rounded-xl border border-slate-200/80 bg-white/90 text-slate-800 shadow-sm transition-all duration-200 hover:border-slate-300 open:shadow-md"
+                        >
+                            <summary className="flex list-none cursor-pointer items-center justify-between gap-3 bg-linear-to-r from-slate-50 via-white to-slate-100 px-3 py-2.5 font-medium marker:hidden">
+                                <span className="truncate">{key}</span>
+                                <span className="text-xs text-slate-500 transition-transform duration-200 group-open:rotate-180">
+                                    ▼
+                                </span>
+                            </summary>
+                            <div className="border-t border-slate-200/80 bg-white p-2.5">
+                                <TailwindEditor
+                                    classes={value as string[]}
+                                    updateClasses={(newClasses) => setClasses(newClasses, key)}
+                                />
+                            </div>
+                        </details>
+                    );
+                })}
                 <button
                     className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
                     onClick={() => {
@@ -133,7 +159,7 @@ export default function AppearanceSettings() {
             node = node[segment];
         }
         if (!node) return <div className="text-black">Node not found</div>;
-        if (node.trim()[0] === "<") {
+        if (node.trim()[0] === "<" || node == " ") {
             return (
                 <div className="p-5 h-105 w-96 overflow-scroll flex-none">
                     <CodeMirror
@@ -287,7 +313,7 @@ export default function AppearanceSettings() {
                 children: [],
             };
             nodes.push(topBarNode);
-            setThemes({ ...themes, [currentTheme]: { ...themes[currentTheme], TopBar: "<></>" } });
+            setThemes({ ...themes, [currentTheme]: { ...themes[currentTheme], TopBar: "" } });
         }
         if (!nodes.find((n) => n.id === "extraHtml")) {
             const extraHtmlNode: any = {
@@ -299,7 +325,7 @@ export default function AppearanceSettings() {
             nodes.push(extraHtmlNode);
             setThemes({
                 ...themes,
-                [currentTheme]: { ...themes[currentTheme], extraHtml: "<></>" },
+                [currentTheme]: { ...themes[currentTheme], extraHtml: " " },
             });
         }
         console.log(nodes);
@@ -350,9 +376,8 @@ export default function AppearanceSettings() {
             <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
             {/* Main container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
-                {/* LEFT PANEL: step list */}
                 <div className="w-full min-w-70 rounded-2xl ring-1 ring-white/50 bg-white/30 backdrop-blur-lg overflow-hidden flex flex-col shadow-xl">
-                    <div className="content-center p-4">
+                    <div className="content-center p-4 flex flex-row gap-6">
                         <Switcher
                             options={[
                                 { label: "Themes", value: "themes" },
@@ -362,6 +387,40 @@ export default function AppearanceSettings() {
                             value={mode}
                             onChange={(val: string) => setMode(val)}
                         />
+                        {mode === "editor" && (
+                            <Switcher
+                                options={[
+                                    { label: "Dashboard editor", value: "themes" },
+                                    { label: "Website editor", value: "website" },
+                                ]}
+                                value={editorMode}
+                                onChange={(val: string) => setEditorMode(val)}
+                            />
+                        )}
+                        {mode === "code" && (
+                            <Link
+                                href="/docs/developers/customization#code-editor"
+                                className="flex items-center gap-2 text-white hover:bg-blue-800 hover:scale-110 transition-all bg-blue-400 px-2 rounded-md"
+                            >
+                                <Book />
+                            </Link>
+                        )}
+                        {mode === "editor" && (
+                            <Link
+                                href="/docs/users/customization#visual-editor"
+                                className="flex items-center gap-2 text-white hover:bg-blue-800 hover:scale-110 transition-all bg-blue-400 px-2 rounded-md"
+                            >
+                                <Book />
+                            </Link>
+                        )}
+                        {mode === "themes" && (
+                            <Link
+                                href="/docs/developers/customization#ugc"
+                                className="flex items-center gap-2 text-white hover:bg-blue-800 hover:scale-110 transition-all bg-blue-400 px-2 rounded-md"
+                            >
+                                <Book />
+                            </Link>
+                        )}
                     </div>
                     {mode === "themes" && (
                         <div className="p-4 text-white">
@@ -477,7 +536,8 @@ export default function AppearanceSettings() {
                                                 Reset Website Theme
                                             </div>
                                             <div className="mt-1 text-xs text-red-900/70">
-                                                Revert style changes and return to default appearance.
+                                                Revert style changes and return to default
+                                                appearance.
                                             </div>
                                         </div>
                                     </div>
@@ -488,14 +548,12 @@ export default function AppearanceSettings() {
 
                     {mode === "editor" && (
                         <div className="p-4 text-white">
-                            <Switcher
-                                options={[
-                                    { label: "Dashboard editor", value: "themes" },
-                                    { label: "Website editor", value: "website" },
-                                ]}
-                                value={editorMode}
-                                onChange={(val: string) => setEditorMode(val)}
-                            />
+                            <button
+                                onClick={handleSave}
+                                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
+                            >
+                                Save
+                            </button>
                             {editorMode === "themes" && (
                                 <div>
                                     {currentTheme == "custom" ? (
