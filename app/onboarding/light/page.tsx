@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
-import { set } from "date-fns";
-
+import { useRouter } from "next/navigation";
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function Onboarding() {
     const { user, token, loading } = useAuth();
+    const router = useRouter();
 
     const [step, setStep] = useState(0);
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -293,7 +293,7 @@ export default function Onboarding() {
                 </div>
             )}
 
-            <div className="absolute bottom-0 left-0 w-full rounded-2xl m-1.5 gap-1 flex flex-row z-20">
+            <div className="absolute bottom-0 p-3 left-0 w-full rounded-2xl gap-1 flex flex-row z-20">
                 <a
                     className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
                     href={`/onboarding?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
@@ -777,9 +777,7 @@ export default function Onboarding() {
                         </button>
                         <button
                             onClick={() =>
-                                step < steps.length - 1
-                                    ? goNextStep()
-                                    : alert("Onboarding finished!")
+                                step < steps.length - 1 ? goNextStep() : router.push("/dashboard")
                             }
                             className="px-6 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700"
                         >

@@ -17,7 +17,7 @@ export default function SignInPage() {
     const createFirestoreDoc = async (user: any) => {
         const token = await user.getIdToken();
 
-        await fetch("/api/auth/init", {
+        return fetch("/api/auth/init", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -27,7 +27,23 @@ export default function SignInPage() {
                 name: user.displayName || "",
                 email: user.email || "",
             }),
-        });
+        })
+            .then((res: any) => res.json())
+            .then((data: any) => {
+                if (!data.status) {
+                    throw new Error(data.error || "Failed to initialize user data");
+                }
+                console.log(data);
+                if (data.created) {
+                    router.push("/onboarding");
+                } else {
+                    router.push("/dashboard");
+                }
+            })
+            .catch((err: any) => {
+                console.error("Error initializing user data:", err);
+                throw err;
+            });
     };
 
     const handleSignIn = async (e: React.FormEvent) => {
@@ -38,7 +54,7 @@ export default function SignInPage() {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             await createFirestoreDoc(userCredential.user);
-            router.push("/dashboard");
+            // router.push("/dashboard");
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -54,7 +70,7 @@ export default function SignInPage() {
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             await createFirestoreDoc(result.user);
-            router.push("/dashboard");
+            // router.push("/dashboard");
         } catch (err: any) {
             setError(err.message);
         } finally {
