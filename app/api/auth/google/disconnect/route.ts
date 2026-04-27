@@ -1,6 +1,6 @@
 import { db } from "@/lib/firebaseAdmin";
 import admin from "firebase-admin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 export async function GET(req: Request) {
     const url = new URL(req.url);
     const state = url.searchParams.get("state");

@@ -1,7 +1,7 @@
 import { getTokens } from "@/lib/googleClient";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function GET(req: Request) {
     const url = new URL(req.url);

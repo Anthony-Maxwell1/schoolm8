@@ -4,7 +4,7 @@ import { auth, db } from "@/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
 import { Readable } from "stream";
 import { FormData, File } from "formdata-node";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";

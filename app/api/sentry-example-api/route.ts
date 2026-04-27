@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 export const dynamic = "force-dynamic";
 
 class SentryExampleAPIError extends Error {

@@ -1,7 +1,7 @@
 import { source } from "@/lib/source";
 import { createFromSource } from "fumadocs-core/search/server";
 import { auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 const { GET: searchGET } = createFromSource(source, {
     // https://docs.orama.com/docs/orama-js/supported-languages

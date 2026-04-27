@@ -1,4 +1,4 @@
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 import { auth, db } from "@/lib/firebaseAdmin";
 
 export async function GET(req: Request) {

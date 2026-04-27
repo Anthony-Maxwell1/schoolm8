@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { google, classroom_v1 } from "googleapis";
 import { htmlToText } from "html-to-text";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 import {
     saveLMSAssignments,
     saveLMSAnnouncements,
@@ -99,7 +99,10 @@ export async function GET(req: NextRequest) {
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
 
-        const accessResult = await assertAccess(userId, ["api/googleclassroom/*", "apiAccessLevel1"]);
+        const accessResult = await assertAccess(userId, [
+            "api/googleclassroom/*",
+            "apiAccessLevel1",
+        ]);
 
         if (accessResult.status !== 200) {
             return new Response(JSON.stringify({ error: accessResult.body!.error }), {

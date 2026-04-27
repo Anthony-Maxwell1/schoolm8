@@ -3,7 +3,7 @@
 // api/auth/onedrive/callback/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function GET(req: Request) {
     try {

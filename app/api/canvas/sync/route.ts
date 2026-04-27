@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { htmlToText } from "html-to-text";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 import {
     saveLMSAssignments,
     saveLMSAnnouncements,

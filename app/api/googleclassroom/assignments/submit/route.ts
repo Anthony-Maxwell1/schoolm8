@@ -3,7 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { google } from "googleapis";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { getStudentSubmissionId, submitAssignment } from "@/lib/googleClassroom";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405).end();
@@ -17,7 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
 
-        const accessResult = await assertAccess(userId, ["api/googleclassroom/*", "apiAccessLevel1"]);
+        const accessResult = await assertAccess(userId, [
+            "api/googleclassroom/*",
+            "apiAccessLevel1",
+        ]);
 
         if (accessResult.status !== 200) {
             return res.status(accessResult.status).json({ error: accessResult.body!.error });

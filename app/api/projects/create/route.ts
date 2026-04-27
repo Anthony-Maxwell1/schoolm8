@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { v4 as uuidv4 } from "uuid";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function GET(req: Request) {
     try {
@@ -15,7 +15,10 @@ export async function GET(req: Request) {
         const decoded = await auth.verifyIdToken(idToken);
         const authedUserId = decoded.uid;
 
-        const accessResult = await assertAccess(authedUserId, ["api/projects/*", "apiAccessLevel0"]);
+        const accessResult = await assertAccess(authedUserId, [
+            "api/projects/*",
+            "apiAccessLevel0",
+        ]);
 
         if (accessResult.status !== 200) {
             return new Response(JSON.stringify({ error: accessResult.body!.error }), {

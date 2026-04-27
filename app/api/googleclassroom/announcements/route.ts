@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { getLMSAnnouncements } from "@/lib/firebaseSchema";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function GET(req: Request) {
     try {

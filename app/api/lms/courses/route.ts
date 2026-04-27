@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { redirect } from "next/navigation";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 const LMS_API_ENDPOINT = "/courses";
 

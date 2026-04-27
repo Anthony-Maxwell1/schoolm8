@@ -10,7 +10,7 @@ import {
     saveTimetableDay,
     getTimetableDay,
 } from "@/lib/firebaseSchema";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 // ======================================================
 // CONFIG

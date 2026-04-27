@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { ObtainAuthCredentials, FetchTimetableDay } from "@/lib/edumateClient";
 import { saveTimetableConfig } from "@/lib/firebaseSchema";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function POST(req: Request) {
     try {

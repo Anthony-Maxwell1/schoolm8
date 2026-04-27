@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { auth, db } from "@/lib/firebaseAdmin";
 import Assignments from "@/app/assignments/page";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function POST(req: Request) {
     try {

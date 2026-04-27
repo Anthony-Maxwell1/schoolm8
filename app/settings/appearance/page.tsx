@@ -1,11 +1,9 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Switcher from "@/components/Switcher";
 import CodeMirror from "@uiw/react-codemirror";
 import { json } from "@codemirror/lang-json";
-import { EditorView, Decoration, ViewPlugin } from "@codemirror/view";
-import { EditorState } from "@codemirror/state";
-import { EditorSelection } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
 import { useCss } from "@/lib/css";
 import { useTheme } from "@/context/themeContext";
 import * as prettier from "prettier";

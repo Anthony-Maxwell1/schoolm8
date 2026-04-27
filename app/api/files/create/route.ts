@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export const maxDuration = 300; // 5 minutes
 export const dynamic = "force-dynamic";

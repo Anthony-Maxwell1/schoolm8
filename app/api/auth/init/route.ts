@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { userDataTemplate } from "@/lib/templates";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function POST(req: Request) {
     try {

@@ -1,5 +1,5 @@
 import { auth, db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/ServerAccessControl";
+import { assertAccess } from "@/lib/access/serverAccessControl";
 
 export async function POST(req: Request) {
     try {
