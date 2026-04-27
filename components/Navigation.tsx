@@ -7,37 +7,19 @@ import {
     ChevronDown,
     ChevronLeft,
     ChevronRight,
-    List,
     Menu,
     MessageCircle,
-    User,
 } from "lucide-react";
-import { ComponentType, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useCss } from "@/lib/css";
 import { cn } from "@/lib/utils";
 import * as Sentry from "@sentry/nextjs";
 
 // Icon mapping - you can expand this with more icons
-const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
-    Home: require("lucide-react").Home,
-    LayoutGrid: require("lucide-react").LayoutGrid,
-    Clock: require("lucide-react").Clock,
-    BookOpen: require("lucide-react").BookOpen,
-    GraduationCap: require("lucide-react").GraduationCap,
-    FileText: require("lucide-react").FileText,
-    StickyNote: require("lucide-react").StickyNote,
-    Settings: require("lucide-react").Settings,
-    Edit: require("lucide-react").Pencil,
-    Link: require("lucide-react").Link,
-    Brush: require("lucide-react").Brush,
-    SlidersHorizontal: require("lucide-react").SlidersHorizontal,
-    User: require("lucide-react").User,
-    List: require("lucide-react").ListChecks,
-};
 
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
-    const { items, sidebarCollapsed, setSidebarCollapsed } = useNavigation();
+    const { items, sidebarCollapsed, setSidebarCollapsed, ICON_MAP } = useNavigation();
     const pathname = usePathname();
     const { css } = useCss();
 

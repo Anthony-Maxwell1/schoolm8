@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+    ComponentType,
+    createContext,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 export type NavigationItem = {
     id: string;
@@ -15,8 +22,10 @@ export type NavigationItem = {
 
 type NavigationContextValue = {
     items: NavigationItem[];
+    setItems: React.Dispatch<React.SetStateAction<NavigationItem[]>>;
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
+    ICON_MAP: Record<string, ComponentType<{ className?: string }>>;
 };
 
 const NavigationContext = createContext<NavigationContextValue | undefined>(undefined);
@@ -26,7 +35,7 @@ type NavigationProviderProps = {
     defaultSidebarCollapsed?: boolean;
 };
 
-const items: NavigationItem[] = [
+const DEFAULT_ITEMS: NavigationItem[] = [
     { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: "LayoutGrid", visible: true },
     { id: "editor", label: "Editor", href: "/dashboard/editor", icon: "Edit", visible: true },
     {
@@ -93,24 +102,66 @@ const items: NavigationItem[] = [
     },
 ];
 
+const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
+    Home: require("lucide-react").Home,
+    LayoutGrid: require("lucide-react").LayoutGrid,
+    Clock: require("lucide-react").Clock,
+    BookOpen: require("lucide-react").BookOpen,
+    GraduationCap: require("lucide-react").GraduationCap,
+    FileText: require("lucide-react").FileText,
+    StickyNote: require("lucide-react").StickyNote,
+    Settings: require("lucide-react").Settings,
+    Edit: require("lucide-react").Pencil,
+    Link: require("lucide-react").Link,
+    Brush: require("lucide-react").Brush,
+    SlidersHorizontal: require("lucide-react").SlidersHorizontal,
+    User: require("lucide-react").User,
+    List: require("lucide-react").ListChecks,
+};
+
+const ITEMS_STORAGE_KEY = "navigationItems";
+const SIDEBAR_STORAGE_KEY = "sidebarCollapsed";
+
 export function NavigationProvider({
     children,
     defaultSidebarCollapsed = false,
 }: NavigationProviderProps) {
+    const [items, setItems] = useState<NavigationItem[]>(() => {
+        if (typeof window === "undefined") return DEFAULT_ITEMS;
+
+        try {
+            const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
+            return stored ? (JSON.parse(stored) as NavigationItem[]) : DEFAULT_ITEMS;
+        } catch {
+            return DEFAULT_ITEMS;
+        }
+    });
+
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         if (typeof window === "undefined") return defaultSidebarCollapsed;
-        const stored = localStorage.getItem("sidebarCollapsed");
-        return stored ? JSON.parse(stored) : defaultSidebarCollapsed;
+
+        try {
+            const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+            return stored ? (JSON.parse(stored) as boolean) : defaultSidebarCollapsed;
+        } catch {
+            return defaultSidebarCollapsed;
+        }
     });
 
     const value = useMemo(
-        () => ({ items, sidebarCollapsed, setSidebarCollapsed }),
+        () => ({ items, setItems, sidebarCollapsed, setSidebarCollapsed, ICON_MAP }),
         [items, sidebarCollapsed],
     );
 
     useEffect(() => {
         if (typeof window !== "undefined") {
-            localStorage.setItem("sidebarCollapsed", JSON.stringify(sidebarCollapsed));
+            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
+        }
+    }, [items]);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(sidebarCollapsed));
         }
     }, [sidebarCollapsed]);
 

@@ -8,6 +8,8 @@ export const useAccessControl = (page: string) => {
     const { user, loading } = useAccessControlContext();
     const [allowed, setAllowed] = useState<boolean | null>(null);
 
+    page = page.replaceAll("/", ".");
+
     useEffect(() => {
         if (loading) return;
 
