@@ -4,6 +4,7 @@ import { useLayout } from "@/context/layoutContext";
 import { TileRegistry, PanelRegistry, RegistryNode } from "@/lib/tiles";
 import { Dashboard } from "@/components/Dashboard";
 import { useState, useRef, useEffect } from "react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export const RegistryBrowser = ({
     nodes,
@@ -40,6 +41,7 @@ export const RegistryBrowser = ({
 );
 
 export default function EditorPage() {
+    const { allowed, loading: accessLoading } = useAccessControl("dashboard/editor");
     const {
         currentPage,
         gridSize,
@@ -132,6 +134,9 @@ export default function EditorPage() {
             window.removeEventListener("mouseup", handleMouseUp);
         };
     }, [draggingNode, dragType, gridSize]);
+
+    if (accessLoading) return null;
+    if (!allowed) return <div>Unauthorized</div>;
 
     if (!mounted) return null;
 

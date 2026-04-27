@@ -6,9 +6,11 @@ import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function Onboarding() {
+    const { allowed, loading: accessLoading } = useAccessControl("onboarding/dark");
     const { user, token, loading } = useAuth();
     const router = useRouter();
 
@@ -262,6 +264,14 @@ export default function Onboarding() {
         if (params.has("timetable")) setTimetable(params.get("timetable") || "");
         if (params.has("timetableMethod")) setTimetableMethod(params.get("timetableMethod") || "");
     }, []);
+
+    if (loading || accessLoading) {
+        return <div className="min-h-screen" />;
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     return (
         <div

@@ -4,6 +4,7 @@ import { auth, db } from "@/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
 import { Readable } from "stream";
 import { FormData, File } from "formdata-node";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -20,6 +21,14 @@ export async function POST(req: Request) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+        const accessResult = await assertAccess(userId, ["api/canvas/*", "apiAccessLevel1"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
+
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();
         if (!doc.exists) throw new Error("User not found");

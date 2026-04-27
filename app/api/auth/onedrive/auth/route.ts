@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/firebaseAdmin";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export default async function GET(req: Request) {
     const url = new URL(req.url);
@@ -11,6 +12,14 @@ export default async function GET(req: Request) {
     if (!userId) {
         return new Response("Invalid state", { status: 400 });
     }
+    const accessResult = await assertAccess(userId, ["api/auth/onedrive/*", "apiAccessLevel1"]);
+
+    if (accessResult.status !== 200) {
+        return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+            status: accessResult.status,
+        });
+    }
+
     const userRef = db.collection("users").doc(userId);
     const doc = await userRef.get();
     if (!doc.exists) throw new Error("User not found");

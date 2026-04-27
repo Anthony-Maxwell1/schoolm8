@@ -15,8 +15,10 @@ import {
     MapPin,
     Users,
 } from "lucide-react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function TimetablePage() {
+    const { allowed, loading: accessLoading } = useAccessControl("timetable");
     const { user, token, loading } = useAuth();
     const [timetableData, setTimetableData] = useState<StandardTimetable[]>([]);
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -29,7 +31,7 @@ export default function TimetablePage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (loading || !user || !token) return;
+        if (loading || accessLoading || !allowed || !user || !token) return;
 
         setIsLoading(true);
         setError(null);
@@ -59,7 +61,22 @@ export default function TimetablePage() {
                 setError("Failed to load timetable");
             })
             .finally(() => setIsLoading(false));
-    }, [user, token, loading, selectedDate]);
+    }, [user, token, loading, selectedDate, accessLoading, allowed]);
+
+    if (loading || accessLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-slate-700 border-t-emerald-400 rounded-full animate-spin" />
+                    <p className="text-slate-300">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     const getAllEvents = (): (StandardEvent & { date: string })[] => {
         return timetableData.flatMap((day) =>

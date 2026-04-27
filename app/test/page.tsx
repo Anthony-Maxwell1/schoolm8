@@ -1,9 +1,20 @@
 "use client";
 
 import { useAuth } from "@/context/authContext";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function test() {
+    const { allowed, loading: accessLoading } = useAccessControl("test");
     const { user, token, loading } = useAuth();
+
+    if (accessLoading) {
+        return null;
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
+
     return (
         <main className="max-w-4xl mx-auto p-6 space-y-6">
             <h1 className="text-3xl font-bold">Test Page</h1>

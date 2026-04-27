@@ -10,6 +10,7 @@ import {
     saveTimetableDay,
     getTimetableDay,
 } from "@/lib/firebaseSchema";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 // ======================================================
 // CONFIG
@@ -83,6 +84,13 @@ export async function GET(req: NextRequest) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+        const result = await assertAccess(userId, ["api/timetable/*", "apiAccessLevel0"]);
+
+        if (result.status !== 200) {
+            return new Response(JSON.stringify({ error: result.body!.error }), {
+                status: result.status,
+            });
+        }
         console.log("[GET] User authenticated:", userId);
 
         // Get timetable config from new structure

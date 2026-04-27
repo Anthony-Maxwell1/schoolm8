@@ -18,8 +18,10 @@ import {
 } from "../api/googleclassroom/sync/route";
 import { CanvasCourse, LMSAnnouncement, LMSAssignment } from "../api/canvas/sync/route";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function LMS() {
+    const { allowed, loading: accessLoading } = useAccessControl("lms");
     const announcementRef = useRef<HTMLDivElement>(null);
     const assignmentRef = useRef<HTMLDivElement>(null);
     const { css, setCss } = useCss();
@@ -30,7 +32,7 @@ export default function LMS() {
     const { user, token, loading } = useAuth();
 
     useEffect(() => {
-        if (loading || !user || !token) return;
+        if (loading || accessLoading || !allowed || !user || !token) return;
         // Fetch data from API and update state
         fetch("/api/lms/announcements", { headers: { Authorization: `Bearer ${token}` } })
             .then((res) => res.json())
@@ -65,7 +67,22 @@ export default function LMS() {
                 setCourses(courses.map((c) => normaliseCourse(c)));
             })
             .catch((err) => console.error(err));
-    }, [user, token, loading]);
+    }, [user, token, loading, accessLoading, allowed]);
+
+    if (loading || accessLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+                    <p className="text-slate-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     const scroll = (ref: any, direction: "left" | "right") => {
         if (!ref.current) return;

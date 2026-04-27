@@ -7,6 +7,8 @@ import { ClassroomCourse } from "../api/googleclassroom/sync/route";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ArrowRight, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function CoursesPage() {
     const { user, token, loading } = useAuth();
@@ -14,6 +16,24 @@ export default function CoursesPage() {
     const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+    const { allowed, loading: accessLoading } = useAccessControl("courses");
+
+    if (loading || accessLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+                    <p className="text-slate-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!allowed) {
+        router.replace("/unauthorized");
+        return null;
+    }
 
     useEffect(() => {
         if (loading || !user || !token) return;

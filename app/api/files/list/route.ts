@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function GET(req: Request) {
     try {
@@ -18,6 +19,14 @@ export async function GET(req: Request) {
 
         const decoded = await auth.verifyIdToken(idToken);
         const userId = decoded.uid;
+
+        const accessResult = await assertAccess(userId, ["api/files/*", "apiAccessLevel1"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();

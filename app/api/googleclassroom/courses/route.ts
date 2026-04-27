@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { getLMSCourses } from "@/lib/firebaseSchema";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function GET(req: Request) {
     try {
@@ -16,6 +17,14 @@ export async function GET(req: Request) {
         // Verify Firebase ID token
         const decodedToken = await auth.verifyIdToken(idToken);
         const uid = decodedToken.uid;
+
+        const accessResult = await assertAccess(uid, ["api/googleclassroom/*", "apiAccessLevel1"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         // Fetch courses from new collection structure
         const courses = await getLMSCourses(uid);

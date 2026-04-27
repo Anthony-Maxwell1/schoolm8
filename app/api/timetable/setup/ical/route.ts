@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
 import { saveTimetableConfig } from "@/lib/firebaseSchema";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function POST(req: Request) {
     try {
@@ -14,6 +15,13 @@ export async function POST(req: Request) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+        const result_ = await assertAccess(userId, ["api/timetable/*", "apiAccessLevel0"]);
+
+        if (result_.status !== 200) {
+            return new Response(JSON.stringify({ error: result_.body!.error }), {
+                status: result_.status,
+            });
+        }
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();
         if (!doc.exists) throw new Error("User not found");

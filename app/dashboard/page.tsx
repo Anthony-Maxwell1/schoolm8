@@ -4,8 +4,10 @@ import { Dashboard } from "@/components/Dashboard";
 import { useLayout } from "@/context/layoutContext";
 import { useEffect, useState } from "react";
 import { ChevronRight, Edit, HelpCircle, Settings } from "lucide-react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function DashboardPage() {
+    const { allowed, loading: accessLoading } = useAccessControl("dashboard");
     const { currentPage, pages, setCurrentPage } = useLayout();
     const [mounted, setMounted] = useState(false);
     const [open, setOpen] = useState(false);
@@ -21,6 +23,9 @@ export default function DashboardPage() {
             setCurrentPage(pages[0].id); // ✅ safe inside useEffect
         }
     }, [currentPage, pages, setCurrentPage]);
+
+    if (accessLoading) return null;
+    if (!allowed) return <div>Unauthorized</div>;
 
     // 3️⃣ prevent hydration mismatch by not rendering until mounted
     if (!mounted) return null;

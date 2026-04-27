@@ -7,15 +7,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { StickyNote, Plus } from "lucide-react";
 import Link from "next/link";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function NotesPage() {
+    const { allowed, loading: accessLoading } = useAccessControl("notes");
     const { user, loading } = useAuth();
     const router = useRouter();
     const [notes, setNotes] = useState<any[]>([]);
     const [fetching, setFetching] = useState(true);
 
     useEffect(() => {
-        if (loading) return;
+        if (loading || accessLoading || !allowed) return;
 
         if (!user) {
             router.push("/signin");
@@ -37,7 +39,22 @@ export default function NotesPage() {
         };
 
         fetchNotes();
-    }, [user, loading, router]);
+    }, [user, loading, router, accessLoading, allowed]);
+
+    if (loading || accessLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
+                    <p className="text-slate-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-12 bg-white text-slate-900">

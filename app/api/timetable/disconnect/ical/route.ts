@@ -1,3 +1,4 @@
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 import { auth, db } from "@/lib/firebaseAdmin";
 
 export async function GET(req: Request) {
@@ -12,6 +13,13 @@ export async function GET(req: Request) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+        const result = await assertAccess(userId, ["api/timetable/*", "apiAccessLevel0"]);
+
+        if (result.status !== 200) {
+            return new Response(JSON.stringify({ error: result.body!.error }), {
+                status: result.status,
+            });
+        }
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();
         if (!doc.exists) throw new Error("User not found");

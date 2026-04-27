@@ -4,8 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
 import { db } from "@/lib/firebaseClient";
 import { collection, doc, getDoc } from "firebase/firestore";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function CreateNotePage() {
+    const { allowed, loading: accessLoading } = useAccessControl("notes/create");
     const { user, token } = useAuth();
     const [projects, setProjects] = useState<[string, string][]>([]);
 
@@ -26,8 +28,17 @@ export default function CreateNotePage() {
     };
 
     useEffect(() => {
+        if (accessLoading || !allowed) return;
         fetchProjects();
-    }, [user]);
+    }, [user, accessLoading, allowed]);
+
+    if (accessLoading) {
+        return <div className="min-h-screen" />;
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     const handleAddProject = () => {
         setSelectedProjects([...selectedProjects, ""]);

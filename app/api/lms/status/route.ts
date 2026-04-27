@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { redirect } from "next/navigation";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 const LMS_API_ENDPOINT = "/status";
 
@@ -14,6 +15,14 @@ export async function handler(req: NextRequest) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+
+        const accessResult = await assertAccess(userId, ["api/lms/*", "apiAccessLevel0"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         const userRef = db.collection("users").doc(userId);
         const userDoc = await userRef.get();

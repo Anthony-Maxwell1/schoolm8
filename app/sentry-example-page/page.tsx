@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import Head from "next/head";
 import { useEffect, useState } from "react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 class SentryExampleFrontendError extends Error {
     constructor(message: string | undefined) {
@@ -12,17 +13,27 @@ class SentryExampleFrontendError extends Error {
 }
 
 export default function Page() {
+    const { allowed, loading } = useAccessControl("sentry-example-page");
     const [hasSentError, setHasSentError] = useState(false);
     const [isConnected, setIsConnected] = useState(true);
 
     useEffect(() => {
+        if (loading || !allowed) return;
         Sentry.logger.info("Sentry example page loaded");
         async function checkConnectivity() {
             const result = await Sentry.diagnoseSdkConnectivity();
             setIsConnected(result !== "sentry-unreachable");
         }
         checkConnectivity();
-    }, []);
+    }, [loading, allowed]);
+
+    if (loading) {
+        return <div className="min-h-screen" />;
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     return (
         <div>

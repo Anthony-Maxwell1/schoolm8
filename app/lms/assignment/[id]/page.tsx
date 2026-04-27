@@ -8,6 +8,7 @@ import { useAuth } from "@/context/authContext";
 import { useParams } from "next/navigation";
 import { ClassroomAssignment } from "@/app/api/googleclassroom/sync/route";
 import { LMSAssignment } from "@/app/api/canvas/sync/route";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 function getMaxRows(obj: Record<string, any[]>) {
     return Math.max(...Object.values(obj).map((arr) => arr.length));
@@ -15,6 +16,7 @@ function getMaxRows(obj: Record<string, any[]>) {
 
 export default function AssignmentPage({ params }: { params: { id: string; cameFrom: string } }) {
     const { id } = useParams();
+    const { allowed, loading: accessLoading } = useAccessControl("lms/assignment/[id]");
     const { user, token, loading } = useAuth();
     const { css } = useCss();
     const style = css.app.lms.assignment;
@@ -25,7 +27,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     const maxRows = data?.rubric && getMaxRows(data?.rubric);
 
     useEffect(() => {
-        if (loading || !user || !token) return;
+        if (loading || accessLoading || !allowed || !user || !token) return;
 
         fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
             .then((res) => res.json())
@@ -42,7 +44,15 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
                 }
             })
             .catch((err) => console.error(err));
-    }, [loading, user, token, id]); // <== run only when these change
+    }, [loading, user, token, id, accessLoading, allowed]); // <== run only when these change
+
+    if (loading || accessLoading) {
+        return <div className="min-h-screen" />;
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     return (
         <div className={style.main["ROOT-STYLE"]}>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function POST(req: Request) {
     try {
@@ -14,6 +15,14 @@ export async function POST(req: Request) {
         // Verify Firebase token
         const decoded = await auth.verifyIdToken(idToken);
         const authedUserId = decoded.uid;
+
+        const accessResult = await assertAccess(authedUserId, ["api/notes/*", "apiAccessLevel0"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         // ---------- QUERY PARAMS ----------
         const url = new URL(req.url);

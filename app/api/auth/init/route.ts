@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { userDataTemplate } from "@/lib/templates";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function POST(req: Request) {
     try {
@@ -17,6 +18,14 @@ export async function POST(req: Request) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+
+        const accessResult = await assertAccess(userId, ["api/auth/init/*", "apiAccessLevel0"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         // Get client data
         const { name, email } = await req.json();

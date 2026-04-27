@@ -1,6 +1,7 @@
 // app/api/tasks/status/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth, db } from "@/lib/firebaseAdmin";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function POST(req: NextRequest) {
     try {
@@ -13,6 +14,14 @@ export async function POST(req: NextRequest) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const uid = decodedToken.uid;
+        const accessResult = await assertAccess(uid, ["api/tasks/*", "apiAccessLevel0"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
+
         const userRef = db.collection("users").doc(uid);
         const doc = await userRef.get();
         const data = doc.data();

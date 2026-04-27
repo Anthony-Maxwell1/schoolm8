@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export default async function GET(req: Request) {
     try {
@@ -17,6 +18,14 @@ export default async function GET(req: Request) {
         const idToken = authHeader.split(" ")[1];
         const decoded = await auth.verifyIdToken(idToken);
         const uid = decoded.uid;
+        const accessResult = await assertAccess(uid, ["api/files/*", "apiAccessLevel1"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
+
         const userRef = db.collection("users").doc(uid);
         const doc = await userRef.get();
         const accessToken = doc.data()?.onedrive?.access_token;

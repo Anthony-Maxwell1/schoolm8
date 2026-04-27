@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import { db } from "@/lib/firebaseClient";
 import { getDoc, doc } from "firebase/firestore";
 import { Calendar, Plus, Trash2 } from "lucide-react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function Schedule() {
+    const { allowed, loading: accessLoading } = useAccessControl("schedule");
     const { user, token, loading } = useAuth();
     const router = useRouter();
     const [schedules, setSchedules] = useState<any>({});
@@ -49,7 +51,7 @@ export default function Schedule() {
     };
 
     useEffect(() => {
-        if (loading) return;
+        if (loading || accessLoading || !allowed) return;
 
         if (!user) {
             router.push("/signin");
@@ -57,7 +59,22 @@ export default function Schedule() {
         }
 
         fetchSchedule();
-    }, [user, loading, router]);
+    }, [user, loading, router, accessLoading, allowed]);
+
+    if (loading || accessLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+                    <p className="text-slate-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
 
     const createElement = async () => {
         await fetch("/api/schedule/addElement", {

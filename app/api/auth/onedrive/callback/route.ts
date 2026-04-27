@@ -3,6 +3,7 @@
 // api/auth/onedrive/callback/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebaseAdmin";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 
 export async function GET(req: Request) {
     try {
@@ -16,6 +17,14 @@ export async function GET(req: Request) {
         const { uid } = state;
 
         if (!uid) throw new Error("Missing UID in state");
+
+        const accessResult = await assertAccess(uid, ["api/auth/onedrive/*", "apiAccessLevel1"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         // Exchange code for token
         const tokenRes = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {

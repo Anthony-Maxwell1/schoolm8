@@ -6,9 +6,11 @@ import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Calendar, CheckCircle, Circle } from "lucide-react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function Assignments() {
-    const { user, loading } = useAuth();
+    const { loading: accessLoading, allowed } = useAccessControl("assignments");
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [assignments, setAssignments] = useState<any[]>([]);
     const [fetching, setFetching] = useState(true);
@@ -18,7 +20,7 @@ export default function Assignments() {
     const [dateTo, setDateTo] = useState("");
 
     useEffect(() => {
-        if (loading) return;
+        if (authLoading || accessLoading) return;
 
         if (!user) {
             router.push("/signin");
@@ -40,7 +42,7 @@ export default function Assignments() {
         };
 
         fetchAssignments();
-    }, [user, loading, router]);
+    }, [user, authLoading, accessLoading, router]);
 
     const subjects = Array.from(new Set(assignments.map((a) => a.courseName)));
 
@@ -52,6 +54,22 @@ export default function Assignments() {
         if (dateTo && new Date(a.dueAt) > new Date(dateTo)) return false;
         return true;
     });
+
+    if (authLoading || accessLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+                    <p className="text-slate-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!allowed) {
+        router.replace("/unauthorized");
+        return null;
+    }
 
     return (
         <div className="min-h-screen bg-slate-900">

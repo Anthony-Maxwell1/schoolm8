@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { htmlToText } from "html-to-text";
+import { assertAccess } from "@/lib/access/ServerAccessControl";
 import {
     saveLMSAssignments,
     saveLMSAnnouncements,
@@ -135,6 +136,14 @@ export async function GET(req: NextRequest) {
 
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+
+        const accessResult = await assertAccess(userId, ["api/canvas/*", "apiAccessLevel1"]);
+
+        if (accessResult.status !== 200) {
+            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
+                status: accessResult.status,
+            });
+        }
 
         const { assignments, announcements, courses } = await syncCanvasForUser(userId);
 

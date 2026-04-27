@@ -20,6 +20,7 @@ import { atomone } from "@uiw/codemirror-theme-atomone";
 import { html } from "@codemirror/lang-html";
 import Image from "next/image";
 import { Book } from "lucide-react";
+import { useAccessControl } from "@/lib/access/useAccessControl";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -37,6 +38,7 @@ function getJsonPathRange(json: string, path: (string | number)[]) {
 }
 
 export default function AppearanceSettings() {
+    const { allowed, loading: accessLoading } = useAccessControl("settings/appearance");
     const [mode, setMode] = useState("themes");
     const [editorMode, setEditorMode] = useState("themes");
     const { css, setCss, resetCss } = useCss();
@@ -371,6 +373,15 @@ export default function AppearanceSettings() {
 
         formatCode();
     }, []);
+
+    if (accessLoading) {
+        return <div className="min-h-screen" />;
+    }
+
+    if (!allowed) {
+        return <div>Unauthorized</div>;
+    }
+
     return (
         <div
             className="relative min-h-screen bg-cover bg-center"
