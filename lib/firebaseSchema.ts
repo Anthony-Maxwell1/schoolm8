@@ -332,3 +332,19 @@ export const postTheme = async (themeData: Record<string, any>) => {
     const docRef = await db.collection("themes").add(themeData);
     return { id: docRef.id, ...themeData };
 };
+
+export const updateThemeData = async (themeId: string, newData: Record<string, any>) => {
+    const docRef = db.collection("themes").doc(themeId);
+    await docRef.update(newData);
+    return { id: themeId, ...newData };
+};
+
+export const getOwnerTheme = async (themeId: string) => {
+    const doc = await db.collection("themes").doc(themeId).get();
+    return doc.exists ? doc.data()?.owner : null;
+};
+
+export const deleteThemeData = async (themeId: string) => {
+    const docRef = db.collection("themes").doc(themeId);
+    await docRef.delete();
+};
