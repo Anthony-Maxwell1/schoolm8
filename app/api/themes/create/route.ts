@@ -6,7 +6,6 @@ import { postTheme } from "@/lib/firebaseSchema";
 
 export async function POST(req: NextRequest) {
     try {
-        console.log("d");
         const authHeader = req.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer ")) {
             return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
@@ -15,7 +14,6 @@ export async function POST(req: NextRequest) {
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
-        console.log("b");
 
         const accessResult = await assertAccess(userId, [
             "api/themes/*",
@@ -29,17 +27,14 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        console.log("c");
-
         const { name, data, type } = await req.json();
+        console.log(data);
         const sanitizedData = sanitizeHtmlRecursive(data);
+        console.log(sanitizedData);
         const sanitizedName = sanitizeNameStrict(name).slice(0, 20);
-
-        console.log("Before getUser");
 
         const userRecord = await auth.getUser(userId);
 
-        console.log("After getUser");
         const ownerName = userRecord.displayName || "Unknown User";
 
         const themeData = {

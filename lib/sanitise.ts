@@ -19,11 +19,28 @@ export function sanitizeHtmlRecursive(data: Record<string, any>): Record<string,
 export function sanitizeUserHtml(html: string): string {
     return sanitizeHtml(html, {
         // Only allow simple, safe formatting
-        allowedTags: ["p", "b", "i", "em", "strong", "ul", "ol", "li", "br", "span", "a", "img"],
+        allowedTags: [
+            "div",
+            "span",
+            "button",
+            "p",
+            "b",
+            "i",
+            "em",
+            "strong",
+            "ul",
+            "ol",
+            "li",
+            "br",
+            "a",
+            "img",
+        ],
 
         allowedAttributes: {
+            "*": ["class"], // 👈 THIS is the big one
             a: ["href", "title"],
             img: ["src", "alt", "title"],
+            button: ["type"],
         },
 
         // Only allow safe URL schemes

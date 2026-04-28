@@ -5,6 +5,42 @@ import { useTheme } from "@/context/themeContext";
 import { useCss } from "@/lib/css";
 import { useEffect, useState } from "react";
 
+function Theme({ theme, onClick }: { theme: any; onClick: () => void }) {
+    return (
+        <button
+            key={theme.id}
+            className="mb-3 bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition group"
+            onClick={onClick}
+        >
+            <h3 className="font-bold text-lg group-hover:text-purple-400 transition">
+                {theme.name}
+            </h3>
+            <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+                {theme.ownerName && (
+                    <span className="text-xs text-slate-500">by {theme.ownerName}</span>
+                )}
+                <br />
+                {new Date(theme.created) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) ? (
+                    new Date(theme.updated) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) ? (
+                        <span className="text-xs text-slate-500">{theme.installs} installs</span>
+                    ) : (
+                        <span className="text-xs text-slate-500">✨ Recently updated</span>
+                    )
+                ) : (
+                    <span className="text-xs text-slate-500">✨ Recently added</span>
+                )}
+                {theme.description}
+            </p>
+        </button>
+    );
+}
+
+const types = [
+    { key: "dashboard", label: "Dashboard Theme" },
+    { key: "website", label: "Website Theme" },
+    { key: "tilepack", label: "Tilepack" },
+] as const;
+
 export default function CommunityThemesPage() {
     const [popularThemes, setPopularThemes] = useState([]);
     const [newThemes, setNewThemes] = useState([]);
@@ -12,19 +48,18 @@ export default function CommunityThemesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [createType, setCreateType] = useState<
-        "Dashboard Theme" | "Website Theme" | "Tilepack" | null
-    >(null);
+    const [createType, setCreateType] = useState<string | null>(null);
     const [themeName, setThemeName] = useState("");
     const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
     const [searchResults, setSearchResults] = useState([]);
+    const [popupTheme, setPopupTheme] = useState<any>(null);
     const [sanitizationPopup, setSanitizationPopup] = useState<{
         nameSanitized: boolean;
         dataSanitized: boolean;
         newName?: string;
     } | null>(null);
-    const { themes, tileThemes } = useCss();
-    const { themes: themes_ } = useTheme();
+    const { themes, tileThemes, addTheme, addTileTheme } = useCss();
+    const { themes: themes_, setThemes } = useTheme();
     const { loading, token } = useAuth();
     // Helper to build the search URL according to the rules:
     // - count: number to fetch
@@ -78,7 +113,11 @@ export default function CommunityThemesPage() {
                 setSearchResults([]);
                 return;
             }
-            const results = await fetchThemesWithOptions({ count: 50, query: searchQuery });
+            const results = await fetchThemesWithOptions({
+                count: 50,
+                query: searchQuery,
+                filter: selectedTypeFilter ?? undefined,
+            });
             setSearchResults(results);
         } catch (err) {
             console.error(err);
@@ -107,7 +146,7 @@ export default function CommunityThemesPage() {
                     body: JSON.stringify({
                         type: "dashboard",
                         name: themeName,
-                        data: themes_[selectedTheme!] || {},
+                        data: themes_["custom"] || {},
                     }),
                 });
                 if (!res.ok) throw new Error(`Failed to create theme: ${res.status}`);
@@ -236,9 +275,7 @@ export default function CommunityThemesPage() {
                     <p className="text-sm font-semibold text-slate-300 mb-3">Filter by Type</p>
                     <div className="flex flex-wrap gap-2">
                         <button
-                            onClick={() =>
-                                setSelectedTypeFilter(selectedTypeFilter === null ? null : null)
-                            }
+                            onClick={() => setSelectedTypeFilter(null)}
                             className={`px-4 py-2 rounded-lg font-medium transition ${
                                 selectedTypeFilter === null
                                     ? "bg-blue-600 text-white"
@@ -247,19 +284,21 @@ export default function CommunityThemesPage() {
                         >
                             All
                         </button>
-                        {["Website Theme", "Tilepack", "Dashboard Theme"].map((type) => (
+                        {types.map((type) => (
                             <button
-                                key={type}
-                                onClick={() =>
-                                    setSelectedTypeFilter(selectedTypeFilter === type ? null : type)
-                                }
-                                className={`px-4 py-2 rounded-lg font-medium transition ${
-                                    selectedTypeFilter === type
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                                key={type.key}
+                                onClick={() => {
+                                    setSelectedTypeFilter(type.key);
+                                    setThemeName("");
+                                    setSelectedTheme(null);
+                                }}
+                                className={`px-4 py-3 rounded-lg font-medium border transition text-left${
+                                    selectedTypeFilter === type.key
+                                        ? "bg-blue-600 border-blue-500 text-white"
+                                        : "bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600"
                                 }`}
                             >
-                                {type}
+                                {type.label}
                             </button>
                         ))}
                     </div>
@@ -273,24 +312,12 @@ export default function CommunityThemesPage() {
                         Search Results
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {searchResults.map((theme: any) => (
-                            <button
-                                key={theme.id}
-                                className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition group"
-                            >
-                                <h3 className="font-bold text-lg group-hover:text-purple-400 transition">
-                                    {theme.name}
-                                </h3>
-                                <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                    {theme.ownerName && (
-                                        <span className="text-xs text-slate-500">
-                                            by {theme.ownerName}
-                                        </span>
-                                    )}
-                                    {theme.description}
-                                </p>
-                            </button>
-                        ))}
+                        {searchResults.map(
+                            (theme: any) =>
+                                (!selectedTypeFilter || theme.type === selectedTypeFilter) && (
+                                    <Theme theme={theme} onClick={() => setPopupTheme(theme)} />
+                                ),
+                        )}
                     </div>
                 </div>
             ) : (
@@ -302,29 +329,12 @@ export default function CommunityThemesPage() {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {popularThemes.length > 0 ? (
-                                popularThemes.map((theme: any) => (
-                                    <button
-                                        key={theme.id}
-                                        className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition group"
-                                    >
-                                        <h3 className="font-bold text-lg group-hover:text-blue-400 transition">
-                                            {theme.name}
-                                        </h3>
-                                        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                            {theme.ownerName && (
-                                                <span className="text-xs text-slate-500">
-                                                    by {theme.ownerName}
-                                                </span>
-                                            )}
-                                            {theme.description}
-                                        </p>
-                                        {theme.install && (
-                                            <p className="text-xs text-slate-500 mt-3">
-                                                📥 {theme.install} installs
-                                            </p>
-                                        )}
-                                    </button>
-                                ))
+                                popularThemes.map((theme: any) =>
+                                    selectedTypeFilter === null ||
+                                    selectedTypeFilter === theme.type ? (
+                                        <Theme theme={theme} onClick={() => setPopupTheme(theme)} />
+                                    ) : null,
+                                )
                             ) : (
                                 <div className="col-span-full text-center py-12">
                                     <p className="text-slate-400">No popular themes yet</p>
@@ -341,29 +351,12 @@ export default function CommunityThemesPage() {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {newThemes.length > 0 ? (
-                                newThemes.map((theme: any) => (
-                                    <button
-                                        key={theme.id}
-                                        className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20 transition group"
-                                    >
-                                        <h3 className="font-bold text-lg group-hover:text-green-400 transition">
-                                            {theme.name}
-                                        </h3>
-                                        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                            {theme.ownerName && (
-                                                <span className="text-xs text-slate-500">
-                                                    by {theme.ownerName}
-                                                </span>
-                                            )}
-                                            {theme.description}
-                                        </p>
-                                        {theme.created && (
-                                            <p className="text-xs text-slate-500 mt-3">
-                                                ✨ Recently added
-                                            </p>
-                                        )}
-                                    </button>
-                                ))
+                                newThemes.map((theme: any) =>
+                                    selectedTypeFilter === null ||
+                                    selectedTypeFilter === theme.type ? (
+                                        <Theme theme={theme} onClick={() => setPopupTheme(theme)} />
+                                    ) : null,
+                                )
                             ) : (
                                 <div className="col-span-full text-center py-12">
                                     <p className="text-slate-400">No new themes yet</p>
@@ -380,29 +373,33 @@ export default function CommunityThemesPage() {
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {recentUpdated.length > 0 ? (
-                                recentUpdated.map((theme: any) => (
-                                    <button
-                                        key={theme.id}
-                                        className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition group"
-                                    >
-                                        <h3 className="font-bold text-lg group-hover:text-orange-400 transition">
-                                            {theme.name}
-                                        </h3>
-                                        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                            {theme.ownerName && (
-                                                <span className="text-xs text-slate-500">
-                                                    by {theme.ownerName}
-                                                </span>
-                                            )}
-                                            {theme.description}
-                                        </p>
-                                        {theme.updated && (
-                                            <p className="text-xs text-slate-500 mt-3">
-                                                🔄 Updated recently
-                                            </p>
-                                        )}
-                                    </button>
-                                ))
+                                recentUpdated.map(
+                                    (theme: any) =>
+                                        selectedTypeFilter === null ||
+                                        (selectedTypeFilter === theme.type && (
+                                            <button
+                                                key={theme.id}
+                                                className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition group"
+                                            >
+                                                <h3 className="font-bold text-lg group-hover:text-orange-400 transition">
+                                                    {theme.name}
+                                                </h3>
+                                                <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+                                                    {theme.ownerName && (
+                                                        <span className="text-xs text-slate-500">
+                                                            by {theme.ownerName}
+                                                        </span>
+                                                    )}
+                                                    {theme.description}
+                                                </p>
+                                                {theme.updated && (
+                                                    <p className="text-xs text-slate-500 mt-3">
+                                                        🔄 Updated recently
+                                                    </p>
+                                                )}
+                                            </button>
+                                        )),
+                                )
                             ) : (
                                 <div className="col-span-full text-center py-12">
                                     <p className="text-slate-400">No recently updated themes</p>
@@ -557,6 +554,51 @@ export default function CommunityThemesPage() {
                         </div>
                         <button
                             onClick={() => setSanitizationPopup(null)}
+                            className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
+            {popupTheme && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-slate-800 rounded-lg border border-slate-700 max-w-md w-full p-8 shadow-xl">
+                        <h3 className="text-xl font-bold mb-4">{popupTheme.name}</h3>
+                        <h4 className="text-lg font-semibold mb-2">By {popupTheme.ownerName}</h4>
+                        <span className="font-semibold">Description:</span>
+                        <p className="text-sm text-slate-400">
+                            {popupTheme.description ?? "No description available."}
+                        </p>
+                        <button
+                            onClick={() => {
+                                if (popupTheme.type == "dashboard") {
+                                    setThemes({
+                                        ...themes_,
+                                        [popupTheme.name + "-" + Date.now()]: popupTheme.data,
+                                    });
+                                } else if (popupTheme.type == "tile") {
+                                    addTileTheme(
+                                        popupTheme.name + "-" + Date.now(),
+                                        popupTheme.data,
+                                    );
+                                } else if (popupTheme.type == "website") {
+                                    addTheme(popupTheme.name + "-" + Date.now(), popupTheme.data);
+                                }
+                                alert(
+                                    "Theme installed successfully! It will be available in your theme library as " +
+                                        popupTheme.name +
+                                        "-" +
+                                        Date.now(),
+                                );
+                                setPopupTheme(null);
+                            }}
+                            className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition mb-2"
+                        >
+                            Install
+                        </button>
+                        <button
+                            onClick={() => setPopupTheme(null)}
                             className="w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition"
                         >
                             Close
