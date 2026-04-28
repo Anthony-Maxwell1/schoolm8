@@ -38,12 +38,31 @@ function getJsonPathRange(json: string, path: (string | number)[]) {
 export default function AppearanceSettings() {
     const { allowed, loading: accessLoading } = useAccessControl("settings/appearance");
     const [mode, setMode] = useState("themes");
-    const [editorMode, setEditorMode] = useState("themes");
-    const { css, setCss, resetCss } = useCss();
-    const { themes, setThemes, currentTheme, setTheme } = useTheme();
+    const [editorMode, setEditorMode] = useState("dashboard");
+    const {
+        css,
+        setCss,
+        resetCss,
+        themes: websiteThemes,
+        tileThemes,
+        currentTheme: currentWebsiteTheme,
+        currentTileTheme,
+        setTheme: setWebsiteTheme,
+        setTileTheme,
+        addTheme: addWebsiteTheme,
+        addTileTheme,
+        removeTheme: removeWebsiteTheme,
+        removeTileTheme,
+    } = useCss();
+    const {
+        themes: dashboardThemes,
+        setThemes: setDashboardThemes,
+        currentTheme: currentDashboardTheme,
+        setTheme: setDashboardTheme,
+    } = useTheme();
     const [defaultCode, setDefaultCode] = useState(`{
     "websiteStyle": ${JSON.stringify(css)},
-    "themes": ${JSON.stringify(themes)}
+    "themes": ${JSON.stringify(dashboardThemes)}
 }`);
     const [pendingSelection, setPendingSelection] = useState<{
         start: number;
@@ -150,7 +169,7 @@ export default function AppearanceSettings() {
 
     const ThemeDataPanel = ({ path }: { path: string[] }) => {
         // id is a path {id}.{id}.{id} and so on
-        let node: any = themes[currentTheme];
+        let node: any = dashboardThemes[currentDashboardTheme];
         for (const segment of path) {
             if (!node[segment]) {
                 node = null;
@@ -172,7 +191,11 @@ export default function AppearanceSettings() {
                     <button
                         className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
                         onClick={() => {
-                            const range = getJsonPathRange(code, ["themes", currentTheme, ...path]);
+                            const range = getJsonPathRange(code, [
+                                "themes",
+                                currentDashboardTheme,
+                                ...path,
+                            ]);
                             if (!range) return;
 
                             setPendingSelection(range);
@@ -196,7 +219,96 @@ export default function AppearanceSettings() {
                 <button
                     className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
                     onClick={() => {
-                        const range = getJsonPathRange(code, ["themes", currentTheme, ...path]);
+                        const range = getJsonPathRange(code, [
+                            "themes",
+                            currentDashboardTheme,
+                            ...path,
+                        ]);
+                        if (!range) return;
+
+                        setPendingSelection(range);
+                        setMode("code");
+                    }}
+                >
+                    Open in code editor
+                </button>
+            </div>
+        );
+    };
+
+    const TileDataPanel = ({ path }: { path: string[] }) => {
+        let node: any = css.components.tiles;
+        for (const segment of path) {
+            if (!node[segment]) {
+                node = null;
+                break;
+            }
+            node = node[segment];
+        }
+
+        if (!node) return <div className="text-black">Node not found</div>;
+
+        let styles = node["ROOT-STYLE"] || "";
+        let conditionals: Record<string, string | string[]> = {
+            "Sidebar Collapsed": node["sidebarCollapsed-style"] || "",
+            "Sidebar Expanded": node["sidebarExpanded-style"] || "",
+            Active: node["active-style"] || "",
+            inactive: node["inactive-style"] || "",
+            Collapsed: node["collapsed-style"] || "",
+            Expanded: node["expanded-style"] || "",
+        };
+
+        styles = styles
+            .trim()
+            .split(" ")
+            .map((s: string) => s.trim())
+            .filter((s: string) => s.length > 0);
+
+        for (const key in conditionals) {
+            conditionals[key] = (conditionals[key] as string)
+                .trim()
+                .split(" ")
+                .map((s: string) => s.trim())
+                .filter((s: string) => s.length > 0);
+        }
+
+        function setClasses(newClasses: string[], conditional?: string) {
+            // Implementation for updating classes
+        }
+
+        return (
+            <div className="p-5 h-105 w-96 overflow-scroll flex-none">
+                <TailwindEditor classes={styles} updateClasses={setClasses} />
+                {Object.entries(conditionals).map(([key, value]) => {
+                    return (
+                        <details
+                            key={key}
+                            className="group mb-2 w-full overflow-hidden rounded-xl border border-slate-200/80 bg-white/90 text-slate-800 shadow-sm transition-all duration-200 hover:border-slate-300 open:shadow-md"
+                        >
+                            <summary className="flex list-none cursor-pointer items-center justify-between gap-3 bg-linear-to-r from-slate-50 via-white to-slate-100 px-3 py-2.5 font-medium marker:hidden">
+                                <span className="truncate">{key}</span>
+                                <span className="text-xs text-slate-500 transition-transform duration-200 group-open:rotate-180">
+                                    ▼
+                                </span>
+                            </summary>
+                            <div className="border-t border-slate-200/80 bg-white p-2.5">
+                                <TailwindEditor
+                                    classes={value as string[]}
+                                    updateClasses={(newClasses) => setClasses(newClasses, key)}
+                                />
+                            </div>
+                        </details>
+                    );
+                })}
+                <button
+                    className="mt-2 p-0.5 px-2 rounded-full bg-blue-600 cursor-pointer hover:bg-blue-400 transition-all"
+                    onClick={() => {
+                        const range = getJsonPathRange(code, [
+                            "websiteStyle",
+                            "components",
+                            "tiles",
+                            ...path,
+                        ]);
                         if (!range) return;
 
                         setPendingSelection(range);
@@ -281,7 +393,7 @@ export default function AppearanceSettings() {
 
     const formatNodesTheme = () => {
         const nodes: any[] = [];
-        for (const [key, value] of Object.entries(themes[currentTheme])) {
+        for (const [key, value] of Object.entries(dashboardThemes[currentDashboardTheme])) {
             const hasNonObjectValue = Object.values(value).some((child) => false);
 
             if (typeof value !== "object") {
@@ -313,9 +425,12 @@ export default function AppearanceSettings() {
                 children: [],
             };
             nodes.push(topBarNode);
-            setThemes({ ...themes, [currentTheme]: { ...themes[currentTheme], TopBar: "" } });
-            setThemes({
-                [currentTheme]: { ...themes[currentTheme], TopBar: " " },
+            setDashboardThemes({
+                ...dashboardThemes,
+                [currentDashboardTheme]: {
+                    ...dashboardThemes[currentDashboardTheme],
+                    TopBar: " ",
+                },
             });
         }
         if (!nodes.find((n) => n.id === "extraHtml")) {
@@ -326,12 +441,35 @@ export default function AppearanceSettings() {
                 children: [],
             };
             nodes.push(extraHtmlNode);
-            setThemes({
-                ...themes,
-                [currentTheme]: { ...themes[currentTheme], extraHtml: " " },
+            setDashboardThemes({
+                ...dashboardThemes,
+                [currentDashboardTheme]: {
+                    ...dashboardThemes[currentDashboardTheme],
+                    extraHtml: " ",
+                },
             });
         }
         console.log(nodes);
+        return nodes;
+    };
+
+    const formatNodesTile = () => {
+        const nodes: any[] = [];
+        for (const [key, value] of Object.entries(css.components.tiles || {})) {
+            if (typeof value !== "object") continue;
+
+            const hasNonObjectValue = Object.values(value as Record<string, any>).some(
+                (child) => child === null || typeof child !== "object",
+            );
+
+            const node: any = {
+                name: key,
+                id: key,
+                hasData: hasNonObjectValue,
+                children: formatNodesRecursive(value as Record<string, any>),
+            };
+            nodes.push(node);
+        }
         return nodes;
     };
 
@@ -348,7 +486,7 @@ export default function AppearanceSettings() {
             }
 
             setCss(parsed.websiteStyle);
-            setThemes(parsed.themes);
+            setDashboardThemes(parsed.themes);
             setError(null);
         } catch (err: any) {
             setError(err.message || "Invalid JSON");
@@ -402,8 +540,9 @@ export default function AppearanceSettings() {
                         {mode === "editor" && (
                             <Switcher
                                 options={[
-                                    { label: "Dashboard editor", value: "themes" },
+                                    { label: "Dashboard editor", value: "dashboard" },
                                     { label: "Website editor", value: "website" },
+                                    { label: "Tile editor", value: "tiles" },
                                 ]}
                                 value={editorMode}
                                 onChange={(val: string) => setEditorMode(val)}
@@ -442,19 +581,19 @@ export default function AppearanceSettings() {
                                 also be functional.
                             </p>
                             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 mt-3">
-                                {Object.keys(themes).map((key) => (
+                                {Object.keys(dashboardThemes).map((key) => (
                                     <button
                                         key={key}
                                         className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
                                         onClick={() => {
-                                            setTheme(key);
+                                            setDashboardTheme(key);
                                             window.location.reload();
                                         }}
                                     >
                                         <div className="relative aspect-4/3 w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200">
-                                            {themes[key].imageUrl ? (
+                                            {dashboardThemes[key].imageUrl ? (
                                                 <img
-                                                    src={themes[key].imageUrl}
+                                                    src={dashboardThemes[key].imageUrl}
                                                     alt={key}
                                                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                                 />
@@ -507,9 +646,76 @@ export default function AppearanceSettings() {
                             <p className="mt-1 text-sm text-white/80">
                                 Personalize your website look, or reset back to defaults.
                             </p>
-                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+                            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {Object.keys(websiteThemes).map((key) => (
+                                    <div
+                                        key={`website-theme-${key}`}
+                                        className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg"
+                                    >
+                                        <button
+                                            type="button"
+                                            className="w-full text-left p-4 hover:bg-slate-100/80 transition-colors"
+                                            onClick={() => setWebsiteTheme(key)}
+                                        >
+                                            <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                                Website Theme
+                                            </div>
+                                            <div className="mt-1 text-lg font-semibold capitalize text-slate-900">
+                                                {key}
+                                            </div>
+                                            <div className="mt-2 text-xs text-slate-600">
+                                                {currentWebsiteTheme === key
+                                                    ? "Currently active"
+                                                    : "Click to activate"}
+                                            </div>
+                                        </button>
+                                        <div className="px-4 pb-4 flex gap-2">
+                                            <button
+                                                type="button"
+                                                className="rounded-md bg-slate-800 px-2 py-1 text-xs text-white hover:bg-slate-700"
+                                                onClick={() => {
+                                                    const name = prompt(
+                                                        "Name for copied website theme:",
+                                                        `${key}-copy`,
+                                                    );
+                                                    if (!name) return;
+                                                    addWebsiteTheme(name, websiteThemes[key]);
+                                                }}
+                                            >
+                                                Duplicate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-500"
+                                                onClick={() => removeWebsiteTheme(key)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left p-4"
+                                    onClick={() => {
+                                        const name = prompt(
+                                            "New website theme name:",
+                                            "custom-website",
+                                        );
+                                        if (!name) return;
+                                        addWebsiteTheme(name, css);
+                                        setWebsiteTheme(name);
+                                    }}
+                                >
+                                    <div className="text-xs uppercase tracking-[0.3em] text-slate-600">
+                                        Create
+                                    </div>
+                                    <div className="mt-2 text-lg font-semibold text-slate-900">
+                                        New Website Theme
+                                    </div>
+                                </button>
                                 <Link
-                                    href="/themes?filter-type=website"
+                                    href="/themes?filter-type=tile"
                                     className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30"
                                 >
                                     <div className="relative h-full w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200">
@@ -561,7 +767,71 @@ export default function AppearanceSettings() {
                             <p className="mt-1 text-sm text-white/80">
                                 Personalize the look of your tiles.
                             </p>
-                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+                            <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {Object.keys(tileThemes).map((key) => (
+                                    <div
+                                        key={`tile-theme-${key}`}
+                                        className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg"
+                                    >
+                                        <button
+                                            type="button"
+                                            className="w-full text-left p-4 hover:bg-slate-100/80 transition-colors"
+                                            onClick={() => setTileTheme(key)}
+                                        >
+                                            <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                                                Tile Theme
+                                            </div>
+                                            <div className="mt-1 text-lg font-semibold capitalize text-slate-900">
+                                                {key}
+                                            </div>
+                                            <div className="mt-2 text-xs text-slate-600">
+                                                {currentTileTheme === key
+                                                    ? "Currently active"
+                                                    : "Click to activate"}
+                                            </div>
+                                        </button>
+                                        <div className="px-4 pb-4 flex gap-2">
+                                            <button
+                                                type="button"
+                                                className="rounded-md bg-slate-800 px-2 py-1 text-xs text-white hover:bg-slate-700"
+                                                onClick={() => {
+                                                    const name = prompt(
+                                                        "Name for copied tile theme:",
+                                                        `${key}-copy`,
+                                                    );
+                                                    if (!name) return;
+                                                    addTileTheme(name, tileThemes[key]);
+                                                }}
+                                            >
+                                                Duplicate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="rounded-md bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-500"
+                                                onClick={() => removeTileTheme(key)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left p-4"
+                                    onClick={() => {
+                                        const name = prompt("New tile theme name:", "custom-tiles");
+                                        if (!name) return;
+                                        addTileTheme(name, css.components.tiles);
+                                        setTileTheme(name);
+                                    }}
+                                >
+                                    <div className="text-xs uppercase tracking-[0.3em] text-slate-600">
+                                        Create
+                                    </div>
+                                    <div className="mt-2 text-lg font-semibold text-slate-900">
+                                        New Tile Theme
+                                    </div>
+                                </button>
                                 <Link
                                     href="/themes?filter-type=website"
                                     className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30"
@@ -622,9 +892,9 @@ export default function AppearanceSettings() {
                             >
                                 Save
                             </button>
-                            {editorMode === "themes" && (
+                            {editorMode === "dashboard" && (
                                 <div>
-                                    {currentTheme == "custom" ? (
+                                    {currentDashboardTheme == "custom" ? (
                                         <div>
                                             <JSONNavigator
                                                 nodes={formatNodesTheme()}
@@ -638,11 +908,13 @@ export default function AppearanceSettings() {
                                             <button
                                                 className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition"
                                                 onClick={() => {
-                                                    setThemes({
-                                                        ...themes,
-                                                        custom: themes[currentTheme],
+                                                    setDashboardThemes({
+                                                        ...dashboardThemes,
+                                                        custom: dashboardThemes[
+                                                            currentDashboardTheme
+                                                        ],
                                                     });
-                                                    setTheme("custom");
+                                                    setDashboardTheme("custom");
                                                 }}
                                             >
                                                 Fork current theme and switch
@@ -650,7 +922,7 @@ export default function AppearanceSettings() {
                                             <button
                                                 className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition"
                                                 onClick={() => {
-                                                    setTheme("custom");
+                                                    setDashboardTheme("custom");
                                                 }}
                                             >
                                                 Switch to custom
@@ -666,6 +938,15 @@ export default function AppearanceSettings() {
                                         nodes={formatNodes()}
                                         title="Website Editor"
                                         DataComponent={DataPanel}
+                                    ></JSONNavigator>
+                                </div>
+                            )}
+                            {editorMode === "tiles" && (
+                                <div>
+                                    <JSONNavigator
+                                        nodes={formatNodesTile()}
+                                        title="Tile Editor"
+                                        DataComponent={TileDataPanel}
                                     ></JSONNavigator>
                                 </div>
                             )}

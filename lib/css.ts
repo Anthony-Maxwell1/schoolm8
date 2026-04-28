@@ -1311,13 +1311,33 @@ const defaultCss: any = {
     },
 };
 
-const themes: any = {
-    // Themes go here. Themes are NOT tile packs!
+const DEFAULT_THEME_NAME = "default";
+const DEFAULT_TILE_THEME_NAME = "default";
+
+type CssType = typeof defaultCss;
+type ThemeMap = Record<string, any>;
+
+type CssThemeStore = {
+    themes: ThemeMap;
+    tileThemes: ThemeMap;
+    currentTheme: string;
+    currentTileTheme: string;
 };
 
-const tileThemes: any = {
-    // Tile themes go here.
-};
+function createDefaultStore(): CssThemeStore {
+    return {
+        themes: {
+            [DEFAULT_THEME_NAME]: defaultCss,
+        },
+        tileThemes: {
+            [DEFAULT_TILE_THEME_NAME]: defaultCss.components.tiles,
+        },
+        currentTheme: DEFAULT_THEME_NAME,
+        currentTileTheme: DEFAULT_TILE_THEME_NAME,
+    };
+}
+
+let themeStoreCache: CssThemeStore = createDefaultStore();
 
 // 🔹 in-memory fallback (for non-hook usage)
 let cssCache: any = defaultCss;
@@ -1355,54 +1375,338 @@ function mergeCss(defaultObj: any, userObj: any): any {
     return result;
 }
 
+function getFirstKey(obj: Record<string, any>, fallback: string) {
+    const keys = Object.keys(obj || {});
+    return keys.length > 0 ? keys[0] : fallback;
+}
+
+function normaliseStore(input: any): CssThemeStore {
+    // backward compatibility: old format stored raw css object directly
+    if (
+        !input ||
+        typeof input !== "object" ||
+        !input.themes ||
+        !input.tileThemes ||
+        typeof input.themes !== "object" ||
+        typeof input.tileThemes !== "object"
+    ) {
+        const legacyCss = mergeCss(defaultCss, input ?? {});
+        return {
+            themes: {
+                [DEFAULT_THEME_NAME]: legacyCss,
+            },
+            tileThemes: {
+                [DEFAULT_TILE_THEME_NAME]: mergeCss(
+                    defaultCss.components.tiles,
+                    legacyCss?.components?.tiles ?? {},
+                ),
+            },
+            currentTheme: DEFAULT_THEME_NAME,
+            currentTileTheme: DEFAULT_TILE_THEME_NAME,
+        };
+    }
+
+    const themes: ThemeMap = {
+        [DEFAULT_THEME_NAME]: defaultCss,
+        ...input.themes,
+    };
+
+    const tileThemes: ThemeMap = {
+        [DEFAULT_TILE_THEME_NAME]: defaultCss.components.tiles,
+        ...input.tileThemes,
+    };
+
+    const currentTheme =
+        typeof input.currentTheme === "string" && input.currentTheme in themes
+            ? input.currentTheme
+            : getFirstKey(themes, DEFAULT_THEME_NAME);
+
+    const currentTileTheme =
+        typeof input.currentTileTheme === "string" && input.currentTileTheme in tileThemes
+            ? input.currentTileTheme
+            : getFirstKey(tileThemes, DEFAULT_TILE_THEME_NAME);
+
+    return {
+        themes,
+        tileThemes,
+        currentTheme,
+        currentTileTheme,
+    };
+}
+
+function buildVisibleCss(store: CssThemeStore): CssType {
+    const selectedTheme = store.themes[store.currentTheme] ?? defaultCss;
+    const selectedTileTheme =
+        store.tileThemes[store.currentTileTheme] ?? defaultCss.components.tiles;
+
+    const mergedTheme = mergeCss(defaultCss, selectedTheme);
+    const mergedTileTheme = mergeCss(defaultCss.components.tiles, selectedTileTheme);
+
+    return {
+        ...mergedTheme,
+        components: {
+            ...mergedTheme.components,
+            tiles: mergedTileTheme,
+        },
+    };
+}
+
+function syncCachesFromStore(store: CssThemeStore) {
+    themeStoreCache = store;
+    cssCache = buildVisibleCss(store);
+}
+
 // 🔹 load once
 function loadCss() {
-    if (typeof window === "undefined") return defaultCss;
+    if (typeof window === "undefined") {
+        const fallback = createDefaultStore();
+        syncCachesFromStore(fallback);
+        return fallback;
+    }
 
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         const parsed = stored ? JSON.parse(stored) : {};
 
-        cssCache = mergeCss(defaultCss, parsed);
+        const store = normaliseStore(parsed);
+        syncCachesFromStore(store);
     } catch {
-        cssCache = defaultCss;
+        syncCachesFromStore(createDefaultStore());
     }
 
-    return cssCache;
+    return themeStoreCache;
 }
 
 // 🔹 save
-function saveCss(newCss: typeof defaultCss) {
-    const merged = mergeCss(defaultCss, newCss);
-
-    cssCache = merged;
+function saveStore(store: CssThemeStore) {
+    const normalised = normaliseStore(store);
+    syncCachesFromStore(normalised);
 
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newCss));
-        // store RAW user overrides, not merged version
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalised));
     } catch {}
 }
+
 // ✅ MAIN HOOK (reactive)
 export function useCss() {
-    const [css, setCssState] = useState<any>(loadCss);
+    const [store, setStore] = useState<CssThemeStore>(loadCss);
+
+    const css = buildVisibleCss(store);
 
     const setCss = (
         value: typeof defaultCss | ((prev: typeof defaultCss) => typeof defaultCss),
     ) => {
-        setCssState((prev: any) => {
-            const newValue = typeof value === "function" ? value(prev) : value;
+        setStore((prevStore) => {
+            const prevCss = buildVisibleCss(prevStore);
+            const newCss = typeof value === "function" ? value(prevCss) : value;
 
-            saveCss(newValue);
-            return newValue;
+            const nextStore: CssThemeStore = {
+                ...prevStore,
+                themes: {
+                    ...prevStore.themes,
+                    [prevStore.currentTheme]: newCss,
+                },
+                tileThemes: {
+                    ...prevStore.tileThemes,
+                    [prevStore.currentTileTheme]:
+                        newCss?.components?.tiles ??
+                        prevStore.tileThemes[prevStore.currentTileTheme] ??
+                        defaultCss.components.tiles,
+                },
+            };
+
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const selectTheme = (name: string) => {
+        setStore((prevStore) => {
+            if (!(name in prevStore.themes)) return prevStore;
+            const nextStore = {
+                ...prevStore,
+                currentTheme: name,
+            };
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const selectTileTheme = (name: string) => {
+        setStore((prevStore) => {
+            if (!(name in prevStore.tileThemes)) return prevStore;
+            const nextStore = {
+                ...prevStore,
+                currentTileTheme: name,
+            };
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const addTheme = (name: string, theme: CssType = defaultCss) => {
+        if (!name) return;
+        setStore((prevStore) => {
+            const nextStore = {
+                ...prevStore,
+                themes: {
+                    ...prevStore.themes,
+                    [name]: theme,
+                },
+            };
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const addTileTheme = (name: string, tileTheme: any = defaultCss.components.tiles) => {
+        if (!name) return;
+        setStore((prevStore) => {
+            const nextStore = {
+                ...prevStore,
+                tileThemes: {
+                    ...prevStore.tileThemes,
+                    [name]: tileTheme,
+                },
+            };
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const editTheme = (name: string, value: any | ((prev: any) => any)) => {
+        setStore((prevStore) => {
+            if (!(name in prevStore.themes)) return prevStore;
+
+            const current = prevStore.themes[name];
+            const updated = typeof value === "function" ? value(current) : value;
+
+            const nextStore = {
+                ...prevStore,
+                themes: {
+                    ...prevStore.themes,
+                    [name]: updated,
+                },
+            };
+
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const editTileTheme = (name: string, value: any | ((prev: any) => any)) => {
+        setStore((prevStore) => {
+            if (!(name in prevStore.tileThemes)) return prevStore;
+
+            const current = prevStore.tileThemes[name];
+            const updated = typeof value === "function" ? value(current) : value;
+
+            const nextStore = {
+                ...prevStore,
+                tileThemes: {
+                    ...prevStore.tileThemes,
+                    [name]: updated,
+                },
+            };
+
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const removeTheme = (name: string) => {
+        setStore((prevStore) => {
+            if (!(name in prevStore.themes)) return prevStore;
+
+            const nextThemes = { ...prevStore.themes };
+            delete nextThemes[name];
+
+            if (Object.keys(nextThemes).length === 0) {
+                nextThemes[DEFAULT_THEME_NAME] = defaultCss;
+            }
+
+            const nextCurrentTheme =
+                prevStore.currentTheme === name
+                    ? getFirstKey(nextThemes, DEFAULT_THEME_NAME)
+                    : prevStore.currentTheme;
+
+            const nextStore = {
+                ...prevStore,
+                themes: nextThemes,
+                currentTheme: nextCurrentTheme,
+            };
+
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
+    const removeTileTheme = (name: string) => {
+        setStore((prevStore) => {
+            if (!(name in prevStore.tileThemes)) return prevStore;
+
+            const nextTileThemes = { ...prevStore.tileThemes };
+            delete nextTileThemes[name];
+
+            if (Object.keys(nextTileThemes).length === 0) {
+                nextTileThemes[DEFAULT_TILE_THEME_NAME] = defaultCss.components.tiles;
+            }
+
+            const nextCurrentTileTheme =
+                prevStore.currentTileTheme === name
+                    ? getFirstKey(nextTileThemes, DEFAULT_TILE_THEME_NAME)
+                    : prevStore.currentTileTheme;
+
+            const nextStore = {
+                ...prevStore,
+                tileThemes: nextTileThemes,
+                currentTileTheme: nextCurrentTileTheme,
+            };
+
+            saveStore(nextStore);
+            return nextStore;
         });
     };
 
     const resetCss = () => {
-        saveCss(defaultCss);
-        setCssState(defaultCss);
+        setStore((prevStore) => {
+            const nextStore: CssThemeStore = {
+                ...prevStore,
+                themes: {
+                    ...prevStore.themes,
+                    [prevStore.currentTheme]: defaultCss,
+                },
+                tileThemes: {
+                    ...prevStore.tileThemes,
+                    [prevStore.currentTileTheme]: defaultCss.components.tiles,
+                },
+            };
+            saveStore(nextStore);
+            return nextStore;
+        });
     };
 
-    return { css, setCss, resetCss };
+    return {
+        css,
+        setCss,
+        resetCss,
+        themes: store.themes,
+        tileThemes: store.tileThemes,
+        currentTheme: store.currentTheme,
+        currentTileTheme: store.currentTileTheme,
+        selectTheme,
+        selectTileTheme,
+        setTheme: selectTheme,
+        setTileTheme: selectTileTheme,
+        addTheme,
+        addTileTheme,
+        editTheme,
+        editTileTheme,
+        updateTheme: editTheme,
+        updateTileTheme: editTileTheme,
+        removeTheme,
+        removeTileTheme,
+    };
 }
 
 // ✅ OPTIONAL: non-react getter (read-only-ish)
@@ -1412,5 +1716,24 @@ export function getCss() {
 
 // ✅ OPTIONAL: global setter (non-react, rare use)
 export function setCssGlobal(newCss: typeof defaultCss) {
-    saveCss(newCss);
+    const store = themeStoreCache;
+    const nextStore: CssThemeStore = {
+        ...store,
+        themes: {
+            ...store.themes,
+            [store.currentTheme]: newCss,
+        },
+        tileThemes: {
+            ...store.tileThemes,
+            [store.currentTileTheme]:
+                newCss?.components?.tiles ??
+                store.tileThemes[store.currentTileTheme] ??
+                defaultCss.components.tiles,
+        },
+    };
+    saveStore(nextStore);
+}
+
+export function getThemeStore() {
+    return themeStoreCache;
 }
