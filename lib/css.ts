@@ -1311,6 +1311,14 @@ const defaultCss: any = {
     },
 };
 
+const themes: any = {
+    // Themes go here. Themes are NOT tile packs!
+};
+
+const tileThemes: any = {
+    // Tile themes go here.
+};
+
 // 🔹 in-memory fallback (for non-hook usage)
 let cssCache: any = defaultCss;
 
