@@ -10,6 +10,7 @@
  * timetable/{userId}/days/{date}
  */
 
+import { DocumentData } from "firebase/firestore";
 import { db } from "./firebaseAdmin";
 
 const isPlainObject = (value: unknown): value is Record<string, any> => {
@@ -323,6 +324,36 @@ export const getTopThemes = async (key: string, count: number, order: "asc" | "d
 export const filterThemes = async (key: string, value: string, count: number) => {
     const snapshot = await db.collection("themes").where(key, "==", value).limit(count).get();
     return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    }));
+};
+
+export const searchThemes = async (
+    query?: string,
+    count: number = 10,
+    order?: "asc" | "desc",
+    filterKey?: string,
+    filterValue?: string,
+) => {
+    let queryRef: any = db.collection("themes");
+    if (query) {
+        queryRef = queryRef
+            .where("name", ">=", query)
+            .where("name", "<=", query + "\uf8ff")
+            .limit(count);
+    }
+
+    if (filterKey && filterValue) {
+        queryRef = queryRef.where(filterKey, "==", filterValue);
+    }
+
+    if (order) {
+        queryRef = queryRef.orderBy("name", order);
+    }
+
+    const snapshot = await queryRef.get();
+    return snapshot.docs.map((doc: DocumentData) => ({
         id: doc.id,
         ...doc.data(),
     }));
