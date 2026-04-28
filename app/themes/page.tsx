@@ -1,5 +1,8 @@
 "use client";
 
+import { useAuth } from "@/context/authContext";
+import { useTheme } from "@/context/themeContext";
+import { useCss } from "@/lib/css";
 import { useEffect, useState } from "react";
 
 export default function CommunityThemesPage() {
@@ -9,14 +12,20 @@ export default function CommunityThemesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [createType, setCreateType] = useState<"Dashboard Theme" | "Website Theme" | "Tilepack" | null>(null);
+    const [createType, setCreateType] = useState<
+        "Dashboard Theme" | "Website Theme" | "Tilepack" | null
+    >(null);
     const [themeName, setThemeName] = useState("");
     const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+    const [searchResults, setSearchResults] = useState([]);
     const [sanitizationPopup, setSanitizationPopup] = useState<{
         nameSanitized: boolean;
         dataSanitized: boolean;
         newName?: string;
     } | null>(null);
+    const { themes, tileThemes } = useCss();
+    const { themes: themes_ } = useTheme();
+    const { loading, token } = useAuth();
     // Helper to build the search URL according to the rules:
     // - count: number to fetch
     // - filter: one of popular | new | recentUpdated | type
@@ -65,9 +74,12 @@ export default function CommunityThemesPage() {
     // query with filters if needed by passing a filter in opts.
     async function search() {
         try {
-            if (!searchQuery) return;
+            if (!searchQuery) {
+                setSearchResults([]);
+                return;
+            }
             const results = await fetchThemesWithOptions({ count: 50, query: searchQuery });
-            setPopularThemes(results);
+            setSearchResults(results);
         } catch (err) {
             console.error(err);
             alert("Error fetching search results.");
@@ -75,32 +87,71 @@ export default function CommunityThemesPage() {
     }
 
     async function handleCreateTheme() {
+        console.log("b");
+        if (loading) return;
+        console.log("a");
         try {
             if (!createType) return;
-
+            console.log("c");
+            if (!themeName.trim() || themeName.length > 20) {
+                alert("Please enter a theme name (max 20 characters)");
+                return;
+            }
             if (createType === "Dashboard Theme") {
-                if (!themeName.trim()) {
-                    alert("Please enter a theme name");
-                    return;
-                }
-                // Stub: pretend we created it with sanitization
-                const newName = themeName.replace(/[^a-zA-Z0-9 ]/g, "");
-                setSanitizationPopup({
-                    nameSanitized: newName !== themeName,
-                    dataSanitized: true,
-                    newName: newName || themeName,
+                const res = await fetch("/api/themes/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        type: "dashboard",
+                        name: themeName,
+                        data: themes_[selectedTheme!] || {},
+                    }),
                 });
+                if (!res.ok) throw new Error(`Failed to create theme: ${res.status}`);
+                const result = await res.json();
+                if (result.nameGotSanitized || result.dataGotSanitized) {
+                    setSanitizationPopup({
+                        nameSanitized: result.nameGotSanitized,
+                        dataSanitized: result.dataGotSanitized,
+                        newName: result.name || themeName,
+                    });
+                } else {
+                    alert("Theme created successfully!");
+                }
             } else {
                 if (!selectedTheme) {
                     alert("Please select a theme");
                     return;
                 }
-                // Stub: pretend we created it with sanitization
-                setSanitizationPopup({
-                    nameSanitized: true,
-                    dataSanitized: true,
-                    newName: selectedTheme,
+                const res = await fetch("/api/themes/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        type: createType === "Website Theme" ? "website" : "tilepack",
+                        name: themeName,
+                        data:
+                            createType === "Website Theme"
+                                ? themes[selectedTheme!] || {}
+                                : tileThemes[selectedTheme!] || {},
+                    }),
                 });
+                if (!res.ok) throw new Error(`Failed to create theme: ${res.status}`);
+                const result = await res.json();
+                if (result.nameGotSanitized || result.dataGotSanitized) {
+                    setSanitizationPopup({
+                        nameSanitized: result.nameGotSanitized,
+                        dataSanitized: result.dataGotSanitized,
+                        newName: result.name || themeName || "Untitled Theme",
+                    });
+                } else {
+                    alert("Theme created successfully!");
+                }
             }
 
             // Reset form after a short delay
@@ -144,10 +195,10 @@ export default function CommunityThemesPage() {
         };
     }, []);
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8">
+        <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8">
             {/* Header */}
             <div className="max-w-7xl mx-auto mb-12">
-                <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 className="text-5xl font-bold mb-4 bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                     Community Themes
                 </h1>
                 <p className="text-slate-300 text-lg">
@@ -168,13 +219,13 @@ export default function CommunityThemesPage() {
                     </div>
                     <button
                         onClick={search}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg font-semibold transition transform hover:scale-105"
+                        className="px-6 py-3 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg font-semibold transition transform hover:scale-105"
                     >
                         Search
                     </button>
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-lg font-semibold transition transform hover:scale-105"
+                        className="px-6 py-3 bg-linear-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-lg font-semibold transition transform hover:scale-105"
                     >
                         Create Theme
                     </button>
@@ -186,9 +237,7 @@ export default function CommunityThemesPage() {
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() =>
-                                setSelectedTypeFilter(
-                                    selectedTypeFilter === null ? null : null
-                                )
+                                setSelectedTypeFilter(selectedTypeFilter === null ? null : null)
                             }
                             className={`px-4 py-2 rounded-lg font-medium transition ${
                                 selectedTypeFilter === null
@@ -202,9 +251,7 @@ export default function CommunityThemesPage() {
                             <button
                                 key={type}
                                 onClick={() =>
-                                    setSelectedTypeFilter(
-                                        selectedTypeFilter === type ? null : type
-                                    )
+                                    setSelectedTypeFilter(selectedTypeFilter === type ? null : type)
                                 }
                                 className={`px-4 py-2 rounded-lg font-medium transition ${
                                     selectedTypeFilter === type
@@ -219,110 +266,152 @@ export default function CommunityThemesPage() {
                 </div>
             </div>
 
-            {/* Theme Sections */}
-            <div className="max-w-7xl mx-auto space-y-12">
-                {/* Popular Section */}
-                <section>
+            {searchResults.length > 0 ? (
+                <div className="max-w-7xl mx-auto mb-12">
                     <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-                        <span className="w-1 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full"></span>
-                        Popular Themes
+                        <span className="w-1 h-8 bg-linear-to-b from-purple-400 to-purple-600 rounded-full"></span>
+                        Search Results
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {popularThemes.length > 0 ? (
-                            popularThemes.map((theme: any) => (
-                                <button
-                                    key={theme.id}
-                                    className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition group"
-                                >
-                                    <h3 className="font-bold text-lg group-hover:text-blue-400 transition">
-                                        {theme.name}
-                                    </h3>
-                                    <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                        {theme.description}
-                                    </p>
-                                    {theme.install && (
-                                        <p className="text-xs text-slate-500 mt-3">
-                                            📥 {theme.install} installs
-                                        </p>
+                        {searchResults.map((theme: any) => (
+                            <button
+                                key={theme.id}
+                                className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20 transition group"
+                            >
+                                <h3 className="font-bold text-lg group-hover:text-purple-400 transition">
+                                    {theme.name}
+                                </h3>
+                                <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+                                    {theme.ownerName && (
+                                        <span className="text-xs text-slate-500">
+                                            by {theme.ownerName}
+                                        </span>
                                     )}
-                                </button>
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12">
-                                <p className="text-slate-400">No popular themes yet</p>
-                            </div>
-                        )}
+                                    {theme.description}
+                                </p>
+                            </button>
+                        ))}
                     </div>
-                </section>
+                </div>
+            ) : (
+                <div>
+                    <section>
+                        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
+                            <span className="w-1 h-8 bg-linear-to-b from-blue-400 to-blue-600 rounded-full"></span>
+                            Popular Themes
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {popularThemes.length > 0 ? (
+                                popularThemes.map((theme: any) => (
+                                    <button
+                                        key={theme.id}
+                                        className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition group"
+                                    >
+                                        <h3 className="font-bold text-lg group-hover:text-blue-400 transition">
+                                            {theme.name}
+                                        </h3>
+                                        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+                                            {theme.ownerName && (
+                                                <span className="text-xs text-slate-500">
+                                                    by {theme.ownerName}
+                                                </span>
+                                            )}
+                                            {theme.description}
+                                        </p>
+                                        {theme.install && (
+                                            <p className="text-xs text-slate-500 mt-3">
+                                                📥 {theme.install} installs
+                                            </p>
+                                        )}
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-slate-400">No popular themes yet</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
 
-                {/* New Section */}
-                <section>
-                    <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-                        <span className="w-1 h-8 bg-gradient-to-b from-green-400 to-green-600 rounded-full"></span>
-                        New Themes
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {newThemes.length > 0 ? (
-                            newThemes.map((theme: any) => (
-                                <button
-                                    key={theme.id}
-                                    className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20 transition group"
-                                >
-                                    <h3 className="font-bold text-lg group-hover:text-green-400 transition">
-                                        {theme.name}
-                                    </h3>
-                                    <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                        {theme.description}
-                                    </p>
-                                    {theme.created && (
-                                        <p className="text-xs text-slate-500 mt-3">
-                                            ✨ Recently added
+                    {/* New Section */}
+                    <section>
+                        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
+                            <span className="w-1 h-8 bg-linear-to-b from-green-400 to-green-600 rounded-full"></span>
+                            New Themes
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {newThemes.length > 0 ? (
+                                newThemes.map((theme: any) => (
+                                    <button
+                                        key={theme.id}
+                                        className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20 transition group"
+                                    >
+                                        <h3 className="font-bold text-lg group-hover:text-green-400 transition">
+                                            {theme.name}
+                                        </h3>
+                                        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+                                            {theme.ownerName && (
+                                                <span className="text-xs text-slate-500">
+                                                    by {theme.ownerName}
+                                                </span>
+                                            )}
+                                            {theme.description}
                                         </p>
-                                    )}
-                                </button>
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12">
-                                <p className="text-slate-400">No new themes yet</p>
-                            </div>
-                        )}
-                    </div>
-                </section>
+                                        {theme.created && (
+                                            <p className="text-xs text-slate-500 mt-3">
+                                                ✨ Recently added
+                                            </p>
+                                        )}
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-slate-400">No new themes yet</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
 
-                {/* Recently Updated Section */}
-                <section>
-                    <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-                        <span className="w-1 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full"></span>
-                        Recently Updated
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {recentUpdated.length > 0 ? (
-                            recentUpdated.map((theme: any) => (
-                                <button
-                                    key={theme.id}
-                                    className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition group"
-                                >
-                                    <h3 className="font-bold text-lg group-hover:text-orange-400 transition">
-                                        {theme.name}
-                                    </h3>
-                                    <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-                                        {theme.description}
-                                    </p>
-                                    {theme.updated && (
-                                        <p className="text-xs text-slate-500 mt-3">
-                                            🔄 Updated recently
+                    {/* Recently Updated Section */}
+                    <section>
+                        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
+                            <span className="w-1 h-8 bg-linear-to-b from-orange-400 to-orange-600 rounded-full"></span>
+                            Recently Updated
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {recentUpdated.length > 0 ? (
+                                recentUpdated.map((theme: any) => (
+                                    <button
+                                        key={theme.id}
+                                        className="bg-slate-800 border border-slate-700 rounded-lg p-5 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition group"
+                                    >
+                                        <h3 className="font-bold text-lg group-hover:text-orange-400 transition">
+                                            {theme.name}
+                                        </h3>
+                                        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+                                            {theme.ownerName && (
+                                                <span className="text-xs text-slate-500">
+                                                    by {theme.ownerName}
+                                                </span>
+                                            )}
+                                            {theme.description}
                                         </p>
-                                    )}
-                                </button>
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-12">
-                                <p className="text-slate-400">No recently updated themes</p>
-                            </div>
-                        )}
-                    </div>
-                </section>
-            </div>
+                                        {theme.updated && (
+                                            <p className="text-xs text-slate-500 mt-3">
+                                                🔄 Updated recently
+                                            </p>
+                                        )}
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-slate-400">No recently updated themes</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                </div>
+            )}
 
             {/* Create Theme Modal */}
             {isCreateModalOpen && (
@@ -353,7 +442,7 @@ export default function CommunityThemesPage() {
                                         >
                                             {type}
                                         </button>
-                                    )
+                                    ),
                                 )}
                             </div>
                         </div>
@@ -373,7 +462,13 @@ export default function CommunityThemesPage() {
                                     className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                 />
                                 <p className="text-xs text-slate-400 mt-2">
-                                    Your custom theme will be used for your personal dashboard.
+                                    The "custom" theme will be used for this. Edit it{" "}
+                                    <a
+                                        href="/settings/appearance"
+                                        className="text-blue-400 hover:underline"
+                                    >
+                                        here
+                                    </a>
                                 </p>
                             </div>
                         )}
@@ -383,6 +478,7 @@ export default function CommunityThemesPage() {
                                 <label className="block text-sm font-semibold mb-2 text-slate-300">
                                     Select Theme
                                 </label>
+
                                 <select
                                     value={selectedTheme || ""}
                                     onChange={(e) => setSelectedTheme(e.target.value)}
@@ -390,14 +486,22 @@ export default function CommunityThemesPage() {
                                 >
                                     <option value="">Choose a theme...</option>
                                     {(createType === "Website Theme"
-                                        ? newThemes
-                                        : recentUpdated
-                                    ).map((theme: any) => (
-                                        <option key={theme.id} value={theme.id}>
-                                            {theme.name}
+                                        ? Object.keys(themes_)
+                                        : Object.keys(tileThemes)
+                                    ).map((themeKey) => (
+                                        <option key={themeKey} value={themeKey}>
+                                            {themeKey}
                                         </option>
                                     ))}
                                 </select>
+                                <input
+                                    type="text"
+                                    maxLength={20}
+                                    value={themeName}
+                                    onChange={(e) => setThemeName(e.target.value)}
+                                    placeholder="My Custom Theme"
+                                    className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                                />
                             </div>
                         )}
 
