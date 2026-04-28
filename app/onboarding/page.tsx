@@ -7,12 +7,15 @@ import image0002 from "@/public/images/onboarding/0002.png";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { useAccessControl } from "@/lib/access/useAccessControl";
+import { useCss } from "@/lib/css";
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function Onboarding() {
     const { allowed, loading: accessLoading } = useAccessControl("onboarding");
     const { user, token, loading } = useAuth();
     const router = useRouter();
+    const { css } = useCss();
+    const style = css.app.onboarding.page;
 
     const [step, setStep] = useState(0);
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -292,26 +295,25 @@ export default function Onboarding() {
             <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
 
             {loadingState && (
-                <div
-                    className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 pointer-events-auto"
-                    style={{ overflow: "hidden" }}
-                >
+                <div className={style.loading["ROOT-STYLE"]} style={{ overflow: "hidden" }}>
                     <div className="flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-4 border-white border-t-green-600 rounded-full animate-spin" />
-                        <div className="text-white text-lg font-medium">Loading...</div>
+                        <div className={style.loadingText["ROOT-STYLE"]}>
+                            {style.loadingText.CONTENT}
+                        </div>
                     </div>
                 </div>
             )}
 
-            <div className="absolute bottom-0 p-3 left-0 w-full rounded-2xl gap-1 flex flex-row z-20">
+            <div className={style.switchLinks["ROOT-STYLE"]}>
                 <a
-                    className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
+                    className={style.switchLink["ROOT-STYLE"]}
                     href={`/onboarding/light?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
                 >
                     Switch to Light
                 </a>
                 <a
-                    className="p-1 pl-1.5 pr-1.5 text-center rounded-full bg-white/90 text-xs cursor-pointer"
+                    className={style.switchLink["ROOT-STYLE"]}
                     href={`/onboarding/dark?oauthReturn&carousel=${carouselIndex}&step=${step}&lms=${lms}&timetable=${timetable}&timetableMethod=${timetableMethod}&canvas=${canvasConnected}&classroom=true&genericTimetable=${genericConnected}&edumate=${edumateConnected}`}
                 >
                     Switch to Dark
@@ -322,17 +324,15 @@ export default function Onboarding() {
             </div>
 
             {/* Main container */}
-            <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
+            <div className={style.shell["ROOT-STYLE"]}>
                 {/* LEFT PANEL: step list */}
-                <div className="w-full max-w-70 rounded-2xl ring-1 ring-white/50 bg-white/30 backdrop-blur-lg overflow-hidden flex flex-col shadow-xl">
+                <div className={style.stepList["ROOT-STYLE"]}>
                     {steps.map((s, i) => (
                         <button
                             key={i}
                             onClick={() => setStep(i)}
-                            className={`text-left w-full p-3 transition text-white ${
-                                i === step
-                                    ? "border-l-4 border-l-green-600 font-semibold"
-                                    : "hover:bg-black/5"
+                            className={`${style.stepButton["ROOT-STYLE"]} ${
+                                i === step ? style.stepButton.active : style.stepButton.inactive
                             }`}
                         >
                             Step {i + 1}: {s.title}
@@ -341,11 +341,11 @@ export default function Onboarding() {
                 </div>
 
                 {/* RIGHT PANEL: step content */}
-                <div className="w-full max-w-2xl rounded-3xl p-8 shadow-xl ring-1 ring-white/50 bg-white/30  backdrop-blur-lg">
+                <div className={style.stepContent["ROOT-STYLE"]}>
                     {/* Step 1: Carousel */}
                     {step === 0 && (
                         <div>
-                            <div className="relative w-full h-75 rounded-2xl overflow-hidden mb-6">
+                            <div className={style.preview["ROOT-STYLE"]}>
                                 <Image
                                     src={carouselItems[carouselIndex].image}
                                     alt={carouselItems[carouselIndex].title}
@@ -364,30 +364,30 @@ export default function Onboarding() {
                             </div>
 
                             {/* Carousel controls */}
-                            <div className="flex justify-between mt-4">
+                            <div className={style.carouselControls["ROOT-STYLE"]}>
                                 <button
                                     onClick={prevCarousel}
-                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20 text-white"
+                                    className={style.carouselButton["ROOT-STYLE"]}
                                 >
                                     Prev
                                 </button>
                                 <button
                                     onClick={nextCarousel}
-                                    className="px-4 py-2 bg-black/10 rounded-lg hover:bg-black/20 text-white"
+                                    className={style.carouselButton["ROOT-STYLE"]}
                                 >
                                     Next
                                 </button>
                             </div>
 
                             {/* Dots */}
-                            <div className="flex justify-center gap-2 mt-4">
+                            <div className={style.dots["ROOT-STYLE"]}>
                                 {carouselItems.map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`h-2 w-2 rounded-full transition ${
+                                        className={`${style.dots.dot["ROOT-STYLE"]} ${
                                             i === carouselIndex
-                                                ? "bg-green-600 w-5"
-                                                : "bg-slate-300"
+                                                ? style.dots.dot.active
+                                                : style.dots.dot.inactive
                                         }`}
                                     />
                                 ))}

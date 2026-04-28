@@ -1,56 +1,60 @@
+"use client";
+
 import Link from "next/link";
+import { useCss } from "@/lib/css";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function Auth() {
+    const { css } = useCss();
+    const style = css.app.auth.page;
+
     return (
         <div
-            className="relative min-h-screen bg-cover bg-center"
+            className={style.main["ROOT-STYLE"]}
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
+            <div className={style.main.overlay["ROOT-STYLE"]} />
 
-            <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
-                <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-2xl ring-1 ring-black/10 dark:bg-slate-900/80 dark:ring-white/5">
-                    <div className="mb-6 text-center">
-                        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                            👋 Welcome to Schoolm8
+            <div className={style.main.shell["ROOT-STYLE"]}>
+                <div className={style.main.card["ROOT-STYLE"]}>
+                    <div className={style.main.intro["ROOT-STYLE"]}>
+                        <h1 className={style.main.title["ROOT-STYLE"]}>
+                            {style.main.title.CONTENT}
                         </h1>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                            The only portal you'll ever need.
+                        <p className={style.main.subtitle["ROOT-STYLE"]}>
+                            {style.main.subtitle.CONTENT}
                         </p>
                     </div>
 
-                    <div className="space-y-3">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Been here before?
-                        </p>
+                    <div className={style.main.body["ROOT-STYLE"]}>
+                        <p className={style.main.prompt["ROOT-STYLE"]}>Been here before?</p>
                         <Link
                             href="/auth/signin"
-                            className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={style.main.primaryLink["ROOT-STYLE"]}
                             aria-label="Sign in"
                         >
-                            Sign In
+                            {style.main.primaryLink.CONTENT}
                         </Link>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className={style.main.prompt["ROOT-STYLE"]}>
                             New around here? Don't worry, we'll show you around.
                         </p>
                         <Link
                             href="/auth/signup"
-                            className="flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-transparent dark:text-slate-200"
+                            className={style.main.secondaryLink["ROOT-STYLE"]}
                             aria-label="Sign up"
                         >
-                            Create Account
+                            {style.main.secondaryLink.CONTENT}
                         </Link>
                     </div>
 
-                    <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+                    <div className={style.main.footer["ROOT-STYLE"]}>
                         By continuing you agree to our{" "}
-                        <a className="underline" href="/terms">
+                        <a className={style.main.link["ROOT-STYLE"]} href="/terms">
                             Terms
                         </a>{" "}
                         and{" "}
-                        <a className="underline" href="/privacy">
+                        <a className={style.main.link["ROOT-STYLE"]} href="/privacy">
                             Privacy Policy
                         </a>
                         .

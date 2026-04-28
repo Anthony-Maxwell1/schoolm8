@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { CircleX, Ellipsis } from "lucide-react";
 import { useTheme } from "@/context/themeContext";
 import { useAuth } from "@/context/authContext";
+import { useCss } from "@/lib/css";
 
 const findRegistry = (id: string, nodes: RegistryNode[]): RegistryNode | null => {
     for (const n of nodes) {
@@ -25,6 +26,8 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const { currentPage, gridSize, removeTile, updateTile, saveState, removePanel } = useLayout();
 
     const { classes, topBar, extraHtml } = useTheme();
+    const { css } = useCss();
+    const style = css.components.Dashboard.main;
 
     const containerRef = useRef<HTMLDivElement>(null);
     const [resizingTile, setResizingTile] = useState<string | null>(null);
@@ -135,13 +138,10 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     if (loading) return;
 
     return (
-        <div
-            ref={containerRef}
-            className="relative w-full h-full overflow-hidden bg-[url('/images/backgrounds/builtin/0001.png')] bg-cover"
-        >
+        <div ref={containerRef} className={style["ROOT-STYLE"]}>
             {editable && editorOpen && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-4 rounded shadow">
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="rounded bg-white p-4 shadow">
                         <h2 className="text-xl font-semibold mb-4">Edit Tile {editorTile}</h2>
                         <h3 className="font-semibold text-lg mb-1">Special Effects</h3>
                         <input type="checkbox" id="movable" className="mr-3" />
@@ -156,7 +156,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         <br></br>
                         {/* Tile editing form goes here */}
                         <button
-                            className="mt-4 px-3 py-1 bg-blue-500 text-white rounded"
+                            className="mt-4 rounded bg-blue-500 px-3 py-1 text-white"
                             onClick={() => {
                                 const movable = (
                                     document.getElementById("movable") as HTMLInputElement
@@ -194,7 +194,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
             {/* GRID */}
             {editable && (
                 <div
-                    className="absolute inset-0 pointer-events-none"
+                    className="pointer-events-none absolute inset-0"
                     style={{
                         display: "grid",
                         gridTemplateColumns: `repeat(${gridSize.cols}, 1fr)`,
@@ -230,7 +230,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         {/* delete */}
                         {editable && (
                             <button
-                                className="absolute top-0 right-0 text-3xl z-10"
+                                className="absolute right-0 top-0 z-10 text-3xl"
                                 onClick={() => {
                                     removePanel(panel.id);
                                 }}
@@ -275,7 +275,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         {/* delete */}
                         {editable && (
                             <button
-                                className="absolute top-0 right-0 z-30 cursor-grab"
+                                className="absolute right-0 top-0 z-30 cursor-grab"
                                 onClick={() => {
                                     removeTile(tile.id);
                                 }}
@@ -305,7 +305,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         {/* resize handle */}
                         {editable && (
                             <div
-                                className="absolute bottom-0 right-0 w-8 h-8 cursor-se-resize opacity-0 z-30"
+                                className="absolute bottom-0 right-0 z-30 h-8 w-8 cursor-se-resize opacity-0"
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
@@ -315,7 +315,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         )}
                         {(editable || tile.specialEffects?.includes("movable")) && (
                             <div
-                                className={`absolute top-0 left-0 w-7 h-7 cursor-move opacity-0 z-30`}
+                                className="absolute left-0 top-0 z-30 h-7 w-7 cursor-move opacity-0"
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();

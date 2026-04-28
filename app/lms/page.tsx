@@ -19,6 +19,7 @@ import {
 import { CanvasCourse, LMSAnnouncement, LMSAssignment } from "../api/canvas/sync/route";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
+import { cn } from "@/lib/utils";
 
 export default function LMS() {
     const { allowed, loading: accessLoading } = useAccessControl("lms");
@@ -71,9 +72,9 @@ export default function LMS() {
 
     if (loading || accessLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+            <div className={style.loading["ROOT-STYLE"]}>
+                <div className={style.loadingInner["ROOT-STYLE"]}>
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-600 border-t-emerald-500" />
                     <p className="text-slate-400">Loading...</p>
                 </div>
             </div>
@@ -103,46 +104,39 @@ export default function LMS() {
         redirectTemplate: string;
         refProp: any;
     }) => (
-        <div className="space-y-4">
+        <div className={style.section["ROOT-STYLE"]}>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-white">{title}</h2>
-                <button className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-                    See all
-                </button>
+            <div className={style.sectionHeader["ROOT-STYLE"]}>
+                <h2 className={style.sectionTitle["ROOT-STYLE"]}>{title}</h2>
+                <button className={style.seeAll["ROOT-STYLE"]}>{style.seeAll.CONTENT}</button>
             </div>
 
             {/* Carousel */}
-            <div className="relative group">
+            <div className={style.carousel["ROOT-STYLE"]}>
                 {/* Left Button */}
                 <button
                     onClick={() => scroll(refProp, "left")}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 backdrop-blur p-2 rounded-lg text-white hover:bg-slate-800"
+                    className={cn(style.navButton["ROOT-STYLE"], style.navButton.left)}
                 >
                     <ChevronLeft className="w-5 h-5" />
                 </button>
 
                 {/* Scroll Area */}
-                <div ref={refProp} className="flex gap-4 overflow-x-auto scroll-smooth pb-2 px-8">
+                <div ref={refProp} className={style.scrollArea["ROOT-STYLE"]}>
                     {data.map((item, i) => (
                         <div
                             key={i}
-                            className="shrink-0 w-80 h-48 rounded-lg bg-linear-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-4 cursor-pointer overflow-hidden group"
+                            className={style.card["ROOT-STYLE"]}
                             onClick={function () {
                                 redirect(redirectTemplate.replace("{id}", item.id));
                             }}
                         >
                             {item.image && (
-                                <img
-                                    src={item.image}
-                                    className="w-full h-32 object-cover rounded-lg mb-2 group-hover:scale-105 transition-transform"
-                                />
+                                <img src={item.image} className={style.image["ROOT-STYLE"]} />
                             )}
                             <div>
-                                <h4 className="font-semibold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors">
-                                    {item.title}
-                                </h4>
-                                <p className="text-sm text-slate-400 line-clamp-1">
+                                <h4 className={style.title["ROOT-STYLE"]}>{item.title}</h4>
+                                <p className={style.desc["ROOT-STYLE"]}>
                                     {item.description &&
                                         item.description.slice(0, 50) +
                                             (item.description.length > 50 ? "..." : "")}
@@ -151,12 +145,12 @@ export default function LMS() {
                                             (item.text.length > 50 ? "..." : "")}
                                 </p>
                                 {item.due && (
-                                    <p className="text-xs text-slate-500 mt-1">
+                                    <p className={style.meta["ROOT-STYLE"]}>
                                         Due: {new Date(item.due).toLocaleDateString()}
                                     </p>
                                 )}
                                 {item.created && (
-                                    <p className="text-xs text-slate-500">
+                                    <p className={style.meta["ROOT-STYLE"]}>
                                         Posted: {new Date(item.created).toLocaleDateString()}
                                     </p>
                                 )}
@@ -168,7 +162,7 @@ export default function LMS() {
                 {/* Right Button */}
                 <button
                     onClick={() => scroll(refProp, "right")}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900/80 backdrop-blur p-2 rounded-lg text-white hover:bg-slate-800"
+                    className={cn(style.navButton["ROOT-STYLE"], style.navButton.right)}
                 >
                     <ChevronRight className="w-5 h-5" />
                 </button>
@@ -177,7 +171,7 @@ export default function LMS() {
     );
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-12 space-y-12">
+        <div className={style.main["ROOT-STYLE"]}>
             {/* Announcements */}
             {announcements.length > 0 && (
                 <Section
@@ -200,14 +194,14 @@ export default function LMS() {
 
             {/* Courses */}
             {courses.length > 0 && (
-                <div className="space-y-4">
-                    <h2 className="text-2xl font-bold text-white">Your Courses</h2>
+                <div className={style.section["ROOT-STYLE"]}>
+                    <h2 className={style.sectionTitle["ROOT-STYLE"]}>Your Courses</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className={style.courseGrid["ROOT-STYLE"]}>
                         {courses.map((course, i) => (
                             <div
                                 key={i}
-                                className="relative overflow-hidden rounded-2xl h-48 cursor-pointer group"
+                                className={style.courseCard["ROOT-STYLE"]}
                                 onClick={function () {
                                     redirect(`/lms/course/${course.id}?cameFrom=/lms`);
                                 }}
@@ -215,17 +209,15 @@ export default function LMS() {
                                 {/* Image */}
                                 <img
                                     src={course.image}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    className={style.courseImage["ROOT-STYLE"]}
                                 />
 
                                 {/* Overlay */}
-                                <div className="absolute inset-0 bg-linear-to-b from-transparent to-slate-900/80" />
+                                <div className={style.courseOverlay["ROOT-STYLE"]} />
 
                                 {/* Text */}
-                                <div className="absolute bottom-0 left-0 right-0 p-4">
-                                    <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
-                                        {course.name}
-                                    </h3>
+                                <div className={style.courseContent["ROOT-STYLE"]}>
+                                    <h3 className={style.title["ROOT-STYLE"]}>{course.name}</h3>
                                 </div>
                             </div>
                         ))}
@@ -234,12 +226,12 @@ export default function LMS() {
             )}
 
             {announcements.length === 0 && assignments.length === 0 && courses.length === 0 && (
-                <div className="flex items-center justify-center py-20">
+                <div className={style.empty["ROOT-STYLE"]}>
                     <div className="text-center">
-                        <h2 className="text-2xl font-semibold text-slate-300 mb-2">
-                            No LMS data yet
+                        <h2 className={style.emptyTitle["ROOT-STYLE"]}>
+                            {style.emptyTitle.CONTENT}
                         </h2>
-                        <p className="text-slate-400">
+                        <p className={style.emptyText["ROOT-STYLE"]}>
                             Set up your LMS integration in settings to see your courses,
                             assignments, and announcements.
                         </p>

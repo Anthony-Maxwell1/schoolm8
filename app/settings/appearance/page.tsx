@@ -271,7 +271,7 @@ export default function AppearanceSettings() {
                 name: key,
                 id: key,
                 hasData: hasNonObjectValue,
-                children: formatNodesRecursive(value),
+                children: formatNodesRecursive(value as Record<string, any>),
             };
             nodes.push(node);
         }
@@ -437,6 +437,10 @@ export default function AppearanceSettings() {
                     {mode === "themes" && (
                         <div className="p-4 text-white">
                             <h3 className="text-white text-xl font-bold">Dashboard Themes</h3>
+                            <p className="text-white/70">
+                                Customize the look of the borders and decorations of your tiles. Can
+                                also be functional.
+                            </p>
                             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 mt-3">
                                 {Object.keys(themes).map((key) => (
                                     <button
@@ -520,6 +524,60 @@ export default function AppearanceSettings() {
                                         <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 text-left text-white">
                                             <div className="text-xs uppercase tracking-[0.3em] text-white/70">
                                                 Website Themes
+                                            </div>
+                                            <div className="text-lg font-semibold capitalize">
+                                                Browse Community Themes
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+
+                                <button
+                                    key="reset-theme"
+                                    type="button"
+                                    className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
+                                    onClick={resetCss}
+                                >
+                                    <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
+
+                                    <div className="relative flex h-full w-full items-end p-4">
+                                        <div>
+                                            <div className="text-xs uppercase tracking-[0.3em] text-red-700/80">
+                                                Reset
+                                            </div>
+                                            <div className="mt-1 text-lg font-semibold text-red-900">
+                                                Reset Website Theme
+                                            </div>
+                                            <div className="mt-1 text-xs text-red-900/70">
+                                                Revert style changes and return to default
+                                                appearance.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            <h3 className="text-white text-xl font-bold mt-6">Tile Themes</h3>
+                            <p className="mt-1 text-sm text-white/80">
+                                Personalize the look of your tiles.
+                            </p>
+                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+                                <Link
+                                    href="/themes?filter-type=website"
+                                    className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30"
+                                >
+                                    <div className="relative h-full w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200">
+                                        <Image
+                                            src={"https://picsum.photos/600/400"}
+                                            alt="Tile Community Themes"
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+
+                                        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
+                                        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 text-left text-white">
+                                            <div className="text-xs uppercase tracking-[0.3em] text-white/70">
+                                                Tile Themes
                                             </div>
                                             <div className="text-lg font-semibold capitalize">
                                                 Browse Community Themes

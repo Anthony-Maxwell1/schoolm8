@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useCss } from "@/lib/css";
 
 export type Node = {
     name: string;
@@ -18,8 +19,11 @@ function Panel({
     selectedId?: string;
     onSelect: (node: Node, layer: number) => void;
 }) {
+    const { css } = useCss();
+    const style = css.components.JSONNavigation.main;
+
     return (
-        <div className="min-w-65 border-r border-zinc-200 bg-white p-1.5">
+        <div className={style.panel["ROOT-STYLE"]}>
             {nodes.map((node) => {
                 const isSelected = selectedId === node.id;
                 return (
@@ -27,15 +31,15 @@ function Panel({
                         key={node.id}
                         onClick={() => onSelect(node, layer)}
                         className={[
-                            "flex h-7.5 cursor-default select-none items-center justify-between rounded-md px-2.5 text-[13px]",
-                            isSelected ? "bg-blue-500 text-white" : "text-zinc-900",
+                            style.item["ROOT-STYLE"],
+                            isSelected ? style.item["selected-style"] : "",
                         ].join(" ")}
                     >
-                        <span className="mr-2 overflow-hidden text-ellipsis whitespace-nowrap">
-                            {node.name}
-                        </span>
+                        <span className={style.item.text["ROOT-STYLE"]}>{node.name}</span>
                         {node.children?.length ? (
-                            <span className="text-base leading-none opacity-70">›</span>
+                            <span className={style.item.arrow["ROOT-STYLE"]}>
+                                {style.item.arrow.CONTENT}
+                            </span>
                         ) : null}
                     </div>
                 );
@@ -53,6 +57,8 @@ export default function JSONNavigator({
     title?: string;
     DataComponent?: React.ComponentType<{ path: string[] }>;
 }) {
+    const { css } = useCss();
+    const style = css.components.JSONNavigation;
     const [panels, setPanels] = useState<string[]>([]);
     const [selectedPath, setSelectedPath] = useState<string[]>([]);
     const columnsRef = useRef<HTMLDivElement>(null);
@@ -83,12 +89,12 @@ export default function JSONNavigator({
     };
 
     return (
-        <div className="overflow-hidden rounded-[10px] border border-zinc-300 bg-zinc-100 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-            <div className="flex h-10 items-center border-b border-zinc-300 bg-linear-to-b from-zinc-50 to-zinc-200 px-3.5 text-[13px] font-semibold text-zinc-700">
-                {title || "JSON Navigator"}
+        <div className={style.main["ROOT-STYLE"]}>
+            <div className={style.main.header["ROOT-STYLE"]}>
+                {title || style.main.header.CONTENT}
             </div>
 
-            <div ref={columnsRef} className="flex min-h-105 overflow-x-auto bg-white">
+            <div ref={columnsRef} className={style.main.columns["ROOT-STYLE"]}>
                 <Panel
                     nodes={nodes}
                     layer={0}

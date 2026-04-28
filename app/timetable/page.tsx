@@ -16,6 +16,7 @@ import {
     Users,
 } from "lucide-react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
+import { useCss } from "@/lib/css";
 
 export default function TimetablePage() {
     const { allowed, loading: accessLoading } = useAccessControl("timetable");
@@ -29,6 +30,8 @@ export default function TimetablePage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { css } = useCss();
+    const style = css.app.timetable.page;
 
     useEffect(() => {
         if (loading || accessLoading || !allowed || !user || !token) return;
@@ -65,10 +68,10 @@ export default function TimetablePage() {
 
     if (loading || accessLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-slate-700 border-t-emerald-400 rounded-full animate-spin" />
-                    <p className="text-slate-300">Loading...</p>
+            <div className={style.loading["ROOT-STYLE"]}>
+                <div className={style.loading.inner["ROOT-STYLE"]}>
+                    <div className={style.loading.spinner["ROOT-STYLE"]} />
+                    <p className={style.loading.text["ROOT-STYLE"]}>Loading...</p>
                 </div>
             </div>
         );
@@ -116,44 +119,46 @@ export default function TimetablePage() {
     return (
         <div>
             {/* Toolbar */}
-            <div className="sticky top-14 md:top-0 z-20 bg-slate-950/95 backdrop-blur-md border-b border-slate-700/70 px-6 py-4 space-y-4">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex gap-2">
+            <div className={style.toolbar["ROOT-STYLE"]}>
+                <div className={style.toolbarInner["ROOT-STYLE"]}>
+                    <div className={style.toolbarRow["ROOT-STYLE"]}>
+                        <div className={style.viewToggleGroup["ROOT-STYLE"]}>
                             <button
                                 onClick={() => setViewMode("grid")}
-                                className={`p-2 rounded-lg border transition-all ${
+                                className={`${style.viewButton["ROOT-STYLE"]} ${
                                     viewMode === "grid"
-                                        ? "bg-emerald-500 text-slate-950 border-emerald-400"
-                                        : "bg-slate-900 text-slate-100 border-slate-700 hover:bg-slate-800"
+                                        ? style.viewButton.active
+                                        : style.viewButton.inactive
                                 }`}
                                 title="Grid view"
                             >
-                                <Grid3x3 className="w-5 h-5" />
+                                <Grid3x3 className="h-5 w-5" />
                             </button>
                             <button
                                 onClick={() => setViewMode("list")}
-                                className={`p-2 rounded-lg border transition-all ${
+                                className={`${style.viewButton["ROOT-STYLE"]} ${
                                     viewMode === "list"
-                                        ? "bg-emerald-500 text-slate-950 border-emerald-400"
-                                        : "bg-slate-900 text-slate-100 border-slate-700 hover:bg-slate-800"
+                                        ? style.viewButton.active
+                                        : style.viewButton.inactive
                                 }`}
                                 title="List view"
                             >
-                                <List className="w-5 h-5" />
+                                <List className="h-5 w-5" />
                             </button>
                         </div>
 
-                        <div className="flex items-center justify-center gap-4">
+                        <div className={style.weekNav["ROOT-STYLE"]}>
                             <button
                                 onClick={() => changeWeek("prev")}
-                                className="p-2 rounded-lg bg-slate-900 text-slate-100 border border-slate-700 hover:bg-slate-800 transition-colors"
+                                className={style.weekButton["ROOT-STYLE"]}
                             >
-                                <ChevronLeft className="w-5 h-5" />
+                                <ChevronLeft className="h-5 w-5" />
                             </button>
-                            <div className="text-center min-w-50">
-                                <p className="text-slate-300 text-sm">Week of</p>
-                                <p className="text-white font-semibold">
+                            <div className={style.weekInfo["ROOT-STYLE"]}>
+                                <p className={style.weekLabel["ROOT-STYLE"]}>
+                                    {style.weekLabel.CONTENT}
+                                </p>
+                                <p className={style.weekDate["ROOT-STYLE"]}>
                                     {selectedDate.toLocaleDateString("en-US", {
                                         month: "short",
                                         day: "numeric",
@@ -162,30 +167,30 @@ export default function TimetablePage() {
                             </div>
                             <button
                                 onClick={() => changeWeek("next")}
-                                className="p-2 rounded-lg bg-slate-900 text-slate-100 border border-slate-700 hover:bg-slate-800 transition-colors"
+                                className={style.weekButton["ROOT-STYLE"]}
                             >
-                                <ChevronRight className="w-5 h-5" />
+                                <ChevronRight className="h-5 w-5" />
                             </button>
                         </div>
                     </div>
 
                     {/* Search & Filter */}
-                    <div className="flex gap-3">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <div className={style.searchRow["ROOT-STYLE"]}>
+                        <div className={style.searchWrap["ROOT-STYLE"]}>
+                            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                             <input
                                 type="text"
                                 placeholder="Search by class, room, or teacher..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all"
+                                className={style.searchInput["ROOT-STYLE"]}
                             />
                         </div>
 
                         <select
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value as any)}
-                            className="px-4 py-2 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all"
+                            className={style.filterSelect["ROOT-STYLE"]}
                         >
                             <option value="all">All Events</option>
                             <option value="class">Classes</option>
@@ -198,30 +203,32 @@ export default function TimetablePage() {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className={style.content["ROOT-STYLE"]}>
                 {isLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-12 h-12 border-4 border-slate-700 border-t-emerald-400 rounded-full animate-spin" />
-                            <p className="text-slate-300">Loading timetable...</p>
+                    <div className={style.loading["ROOT-STYLE"]}>
+                        <div className={style.loading.inner["ROOT-STYLE"]}>
+                            <div className={style.loading.spinner["ROOT-STYLE"]} />
+                            <p className={style.loading.text["ROOT-STYLE"]}>Loading timetable...</p>
                         </div>
                     </div>
                 ) : error ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
-                            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                            <h2 className="text-2xl font-semibold text-white mb-2">Error</h2>
-                            <p className="text-slate-300">{error}</p>
+                    <div className={style.loading["ROOT-STYLE"]}>
+                        <div className={style.errorCard["ROOT-STYLE"]}>
+                            <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-400" />
+                            <h2 className={style.errorCard.title["ROOT-STYLE"]}>
+                                {style.errorCard.title.CONTENT}
+                            </h2>
+                            <p className={style.errorCard.text["ROOT-STYLE"]}>{error}</p>
                         </div>
                     </div>
                 ) : timetableData.length === 0 ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="text-center">
-                            <Calendar className="w-16 h-16 text-slate-500 mx-auto mb-4 opacity-60" />
-                            <h2 className="text-2xl font-semibold text-slate-100 mb-2">
+                    <div className={style.loading["ROOT-STYLE"]}>
+                        <div className={style.errorCard["ROOT-STYLE"]}>
+                            <Calendar className={style.emptyCard.icon["ROOT-STYLE"]} />
+                            <h2 className="mb-2 text-2xl font-semibold text-slate-100">
                                 No timetable data
                             </h2>
-                            <p className="text-slate-300">
+                            <p className={style.emptyCard.text["ROOT-STYLE"]}>
                                 Your timetable hasn&apos;t been set up yet. Go to settings to
                                 configure it.
                             </p>
@@ -249,16 +256,20 @@ export default function TimetablePage() {
                                 );
 
                             return (
-                                <div key={day.date} className="space-y-4">
-                                    <h2 className="text-2xl font-bold text-white">{dayName}</h2>
+                                <div key={day.date} className={style.daySection["ROOT-STYLE"]}>
+                                    <h2 className={style.dayTitle["ROOT-STYLE"]}>{dayName}</h2>
 
                                     {dayEvents.length === 0 ? (
-                                        <div className="bg-slate-950/70 border border-slate-700 rounded-lg p-8 text-center">
-                                            <Calendar className="w-12 h-12 text-slate-500 mx-auto mb-3 opacity-60" />
-                                            <p className="text-slate-300">No events scheduled</p>
+                                        <div className={style.emptyCard["ROOT-STYLE"]}>
+                                            <Calendar
+                                                className={style.emptyCard.icon["ROOT-STYLE"]}
+                                            />
+                                            <p className={style.emptyCard.text["ROOT-STYLE"]}>
+                                                No events scheduled
+                                            </p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className={style.grid["ROOT-STYLE"]}>
                                             {dayEvents.map((event, idx) => (
                                                 <div
                                                     key={idx}
@@ -267,16 +278,16 @@ export default function TimetablePage() {
                                                     )}`}
                                                 >
                                                     <div className="flex items-start justify-between mb-2">
-                                                        <h3 className="font-semibold text-lg text-white">
+                                                        <h3 className="text-lg font-semibold text-white">
                                                             {event.title}
                                                         </h3>
-                                                        <span className="text-xs uppercase tracking-wide font-bold opacity-90">
+                                                        <span className="text-xs font-bold uppercase tracking-wide opacity-90">
                                                             {event.type}
                                                         </span>
                                                     </div>
 
-                                                    <div className="flex items-center gap-2 mb-2 text-sm opacity-95">
-                                                        <Clock className="w-4 h-4" />
+                                                    <div className={style.cardMeta["ROOT-STYLE"]}>
+                                                        <Clock className="h-4 w-4" />
                                                         <span>
                                                             {new Date(
                                                                 event.start,
@@ -296,21 +307,25 @@ export default function TimetablePage() {
                                                     </div>
 
                                                     {event.room && (
-                                                        <div className="flex items-center gap-2 mb-2 text-sm opacity-95">
-                                                            <MapPin className="w-4 h-4" />
+                                                        <div
+                                                            className={style.cardMeta["ROOT-STYLE"]}
+                                                        >
+                                                            <MapPin className="h-4 w-4" />
                                                             <span>{event.room}</span>
                                                         </div>
                                                     )}
 
                                                     {event.teacher && (
-                                                        <div className="flex items-center gap-2 text-sm opacity-95">
-                                                            <Users className="w-4 h-4" />
+                                                        <div
+                                                            className={style.cardMeta["ROOT-STYLE"]}
+                                                        >
+                                                            <Users className="h-4 w-4" />
                                                             <span>{event.teacher}</span>
                                                         </div>
                                                     )}
 
                                                     {event.description && (
-                                                        <p className="text-sm opacity-85 mt-3 line-clamp-2">
+                                                        <p className={style.cardDesc["ROOT-STYLE"]}>
                                                             {event.description}
                                                         </p>
                                                     )}
@@ -325,9 +340,11 @@ export default function TimetablePage() {
                 ) : (
                     <div className="space-y-3">
                         {filteredEvents.length === 0 ? (
-                            <div className="bg-slate-950/70 border border-slate-700 rounded-lg p-8 text-center">
-                                <Calendar className="w-12 h-12 text-slate-500 mx-auto mb-3 opacity-60" />
-                                <p className="text-slate-300">No events found</p>
+                            <div className={style.emptyCard["ROOT-STYLE"]}>
+                                <Calendar className={style.emptyCard.icon["ROOT-STYLE"]} />
+                                <p className={style.emptyCard.text["ROOT-STYLE"]}>
+                                    No events found
+                                </p>
                             </div>
                         ) : (
                             filteredEvents
@@ -345,17 +362,17 @@ export default function TimetablePage() {
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <h3 className="font-semibold text-lg text-white">
+                                                    <h3 className="text-lg font-semibold text-white">
                                                         {event.title}
                                                     </h3>
-                                                    <span className="text-xs uppercase tracking-wide font-bold opacity-90">
+                                                    <span className="text-xs font-bold uppercase tracking-wide opacity-90">
                                                         {event.type}
                                                     </span>
                                                 </div>
 
                                                 <div className="text-sm opacity-95 space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <Calendar className="w-4 h-4" />
+                                                        <Calendar className="h-4 w-4" />
                                                         <span>
                                                             {new Date(
                                                                 event.date,
@@ -368,7 +385,7 @@ export default function TimetablePage() {
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
-                                                        <Clock className="w-4 h-4" />
+                                                        <Clock className="h-4 w-4" />
                                                         <span>
                                                             {new Date(
                                                                 event.start,
@@ -389,14 +406,14 @@ export default function TimetablePage() {
 
                                                     {event.room && (
                                                         <div className="flex items-center gap-2">
-                                                            <MapPin className="w-4 h-4" />
+                                                            <MapPin className="h-4 w-4" />
                                                             <span>{event.room}</span>
                                                         </div>
                                                     )}
 
                                                     {event.teacher && (
                                                         <div className="flex items-center gap-2">
-                                                            <Users className="w-4 h-4" />
+                                                            <Users className="h-4 w-4" />
                                                             <span>{event.teacher}</span>
                                                         </div>
                                                     )}

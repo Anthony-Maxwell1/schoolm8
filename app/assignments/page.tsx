@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Calendar, CheckCircle, Circle } from "lucide-react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
+import { useCss } from "@/lib/css";
 
 export default function Assignments() {
     const { loading: accessLoading, allowed } = useAccessControl("assignments");
@@ -18,6 +19,8 @@ export default function Assignments() {
     const [subjectFilter, setSubjectFilter] = useState<string>("all");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const { css } = useCss();
+    const style = css.app.assignments.page;
 
     useEffect(() => {
         if (authLoading || accessLoading) return;
@@ -57,9 +60,9 @@ export default function Assignments() {
 
     if (authLoading || accessLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className={style.loading["ROOT-STYLE"]}>
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-600 border-t-emerald-500" />
                     <p className="text-slate-400">Loading...</p>
                 </div>
             </div>
@@ -72,14 +75,14 @@ export default function Assignments() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-900">
+        <div className={style.main["ROOT-STYLE"]}>
             {/* Filters */}
-            <div className="sticky top-14 md:top-0 z-20 bg-slate-800/40 backdrop-blur-md border-b border-slate-700/50 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex flex-wrap gap-3">
+            <div className={style.toolbar["ROOT-STYLE"]}>
+                <div className={style.toolbarInner["ROOT-STYLE"]}>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as any)}
-                        className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white text-sm focus:outline-none focus:border-emerald-500 transition-all"
+                        className={style.select["ROOT-STYLE"]}
                     >
                         <option value="all">All Status</option>
                         <option value="completed">Completed</option>
@@ -89,7 +92,7 @@ export default function Assignments() {
                     <select
                         value={subjectFilter}
                         onChange={(e) => setSubjectFilter(e.target.value)}
-                        className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white text-sm focus:outline-none focus:border-emerald-500 transition-all"
+                        className={style.select["ROOT-STYLE"]}
                     >
                         <option value="all">All Subjects</option>
                         {subjects.map((s) => (
@@ -103,83 +106,86 @@ export default function Assignments() {
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white text-sm focus:outline-none focus:border-emerald-500 transition-all"
+                        className={style.dateInput["ROOT-STYLE"]}
                     />
                     <input
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-white text-sm focus:outline-none focus:border-emerald-500 transition-all"
+                        className={style.dateInput["ROOT-STYLE"]}
                     />
                 </div>
             </div>
 
             {/* Content */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className={style.content["ROOT-STYLE"]}>
                 {fetching ? (
-                    <div className="flex items-center justify-center py-20">
+                    <div className={style.loading["ROOT-STYLE"]}>
                         <div className="flex flex-col items-center gap-4">
-                            <div className="w-12 h-12 border-4 border-slate-600 border-t-emerald-500 rounded-full animate-spin" />
+                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-600 border-t-emerald-500" />
                             <p className="text-slate-400">Loading assignments...</p>
                         </div>
                     </div>
                 ) : assignments.length === 0 ? (
-                    <div className="flex items-center justify-center py-20">
+                    <div className={style.loading["ROOT-STYLE"]}>
                         <div className="text-center">
-                            <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4 opacity-50" />
-                            <h2 className="text-2xl font-semibold text-slate-300 mb-2">
+                            <FileText className="mx-auto mb-4 h-16 w-16 text-slate-600 opacity-50" />
+                            <h2
+                                className={
+                                    style.emptyCard["ROOT-STYLE"] +
+                                    " mb-2 text-2xl font-semibold text-slate-300"
+                                }
+                            >
                                 No assignments yet
                             </h2>
                             <p className="text-slate-400">Check back later for new assignments</p>
                         </div>
                     </div>
                 ) : filteredAssignments.length === 0 ? (
-                    <div className="flex items-center justify-center py-20">
+                    <div className={style.loading["ROOT-STYLE"]}>
                         <div className="text-center">
-                            <FileText className="w-16 h-16 text-slate-600 mx-auto mb-4 opacity-50" />
-                            <h2 className="text-2xl font-semibold text-slate-300 mb-2">
+                            <FileText className="mx-auto mb-4 h-16 w-16 text-slate-600 opacity-50" />
+                            <h2
+                                className={
+                                    style.emptyCard["ROOT-STYLE"] +
+                                    " mb-2 text-2xl font-semibold text-slate-300"
+                                }
+                            >
                                 No matching assignments
                             </h2>
                             <p className="text-slate-400">Try adjusting your filters</p>
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className={style.grid["ROOT-STYLE"]}>
                         {filteredAssignments.map((a) => (
-                            <div
-                                key={a.id}
-                                className="group relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-700/40 to-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 backdrop-blur transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 ring-1 ring-white/10 p-6"
-                            >
+                            <div key={a.id} className={style.card["ROOT-STYLE"]}>
                                 {/* Status indicator */}
-                                <div className="absolute top-4 right-4">
+                                <div className={style.statusIcon["ROOT-STYLE"]}>
                                     {a.submissionState === "submitted" ? (
-                                        <CheckCircle className="w-6 h-6 text-emerald-500" />
+                                        <CheckCircle className="h-6 w-6 text-emerald-500" />
                                     ) : (
-                                        <Circle className="w-6 h-6 text-slate-500" />
+                                        <Circle className="h-6 w-6 text-slate-500" />
                                     )}
                                 </div>
 
                                 {/* Title */}
-                                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-emerald-400 transition-colors pr-8 line-clamp-2">
-                                    {a.title}
-                                </h3>
+                                <h3 className={style.title["ROOT-STYLE"]}>{a.title}</h3>
 
                                 {/* Course */}
-                                <p className="text-sm text-slate-400 mb-4">{a.courseName}</p>
+                                <p className={style.course["ROOT-STYLE"]}>{a.courseName}</p>
 
                                 {/* Due date */}
                                 {a.dueAt && (
-                                    <div className="flex items-center gap-2 text-sm text-slate-400 mb-4">
-                                        <Calendar className="w-4 h-4" />
+                                    <div className={style.dueRow["ROOT-STYLE"]}>
+                                        <Calendar className="h-4 w-4" />
                                         <span>{new Date(a.dueAt).toLocaleDateString()}</span>
                                     </div>
                                 )}
 
                                 {/* Description */}
                                 {a.description && (
-                                    <p className="text-sm text-slate-400 mb-4 line-clamp-2">
-                                        {a.description}
-                                    </p>
+                                    <p className={style.desc["ROOT-STYLE"]}>{a.description}</p>
                                 )}
 
                                 {/* Link */}
@@ -188,9 +194,9 @@ export default function Assignments() {
                                         href={a.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-block mt-4 px-4 py-2 bg-emerald-600/20 text-emerald-300 rounded-lg hover:bg-emerald-600/40 transition-colors text-sm font-medium border border-emerald-600/30"
+                                        className={style.link["ROOT-STYLE"]}
                                     >
-                                        Open Assignment
+                                        {style.link.CONTENT}
                                     </a>
                                 )}
                             </div>

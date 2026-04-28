@@ -5,7 +5,7 @@ import { useState } from "react";
 const STORAGE_KEY = "app-css";
 
 // your original object
-const defaultCss = {
+const defaultCss: any = {
     components: {
         tiles: {
             Timetable: {
@@ -291,15 +291,815 @@ const defaultCss = {
                     },
                 },
             },
+
             contents: {
                 "ROOT-STYLE": "transition-all duration-300",
                 "sidebarCollapsed-style": "ml-18",
                 "sidebarExpanded-style": "ml-64",
             },
         },
+        Dashboard: {
+            main: {
+                "ROOT-STYLE":
+                    "relative w-full h-full overflow-hidden bg-[url('/images/backgrounds/builtin/0001.png')] bg-cover",
+                empty: {
+                    "ROOT-STYLE":
+                        "h-screen flex items-center justify-center bg-linear-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900",
+                },
+                emptyCard: {
+                    "ROOT-STYLE": "text-center max-w-md px-6",
+                },
+                emptyIcon: {
+                    "ROOT-STYLE":
+                        "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 dark:bg-neutral-800",
+                },
+                emptyTitle: {
+                    "ROOT-STYLE": "text-xl font-semibold text-neutral-900 dark:text-neutral-100",
+                    CONTENT: "No pages available",
+                },
+                emptySubtitle: {
+                    "ROOT-STYLE": "mt-2 text-sm text-neutral-600 dark:text-neutral-400",
+                    CONTENT: "You don’t have any pages yet. Create your first one to get started.",
+                },
+                emptyLink: {
+                    "ROOT-STYLE":
+                        "mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700",
+                    CONTENT: "Editor",
+                },
+                editorTab: {
+                    "ROOT-STYLE":
+                        "fixed bottom-20 left-0 flex h-10 items-center rounded-r-full bg-blue-500 shadow-lg transition-all duration-300",
+                    expanded: "w-25 px-3",
+                    collapsed: "w-10 px-0",
+                    toggle: {
+                        "ROOT-STYLE": "flex h-10 w-10 cursor-pointer items-center justify-center",
+                    },
+                    buttons: {
+                        "ROOT-STYLE": "ml-2 flex flex-row items-center gap-2",
+                    },
+                    icon: {
+                        "ROOT-STYLE": "w-5 h-5 text-white",
+                    },
+                },
+            },
+        },
+        JSONNavigation: {
+            main: {
+                "ROOT-STYLE":
+                    "overflow-hidden rounded-[10px] border border-zinc-300 bg-zinc-100 shadow-[0_8px_24px_rgba(0,0,0,0.08)]",
+                header: {
+                    "ROOT-STYLE":
+                        "flex h-10 items-center border-b border-zinc-300 bg-linear-to-b from-zinc-50 to-zinc-200 px-3.5 text-[13px] font-semibold text-zinc-700",
+                    CONTENT: "JSON Navigator",
+                },
+                columns: {
+                    "ROOT-STYLE": "flex min-h-105 overflow-x-auto bg-white",
+                },
+                panel: {
+                    "ROOT-STYLE": "min-w-65 border-r border-zinc-200 bg-white p-1.5",
+                },
+                item: {
+                    "ROOT-STYLE":
+                        "flex h-7.5 cursor-default select-none items-center justify-between rounded-md px-2.5 text-[13px] text-zinc-900",
+                    "selected-style": "bg-blue-500 text-white",
+                    text: {
+                        "ROOT-STYLE": "mr-2 overflow-hidden text-ellipsis whitespace-nowrap",
+                    },
+                    arrow: {
+                        "ROOT-STYLE": "text-base leading-none opacity-70",
+                        CONTENT: "›",
+                    },
+                },
+            },
+        },
+        TailwindEditor: {
+            main: {
+                "ROOT-STYLE": "flex flex-col gap-3",
+                row: {
+                    "ROOT-STYLE":
+                        "group flex items-center justify-between rounded-xl border border-gray-200 bg-white/70 px-4 py-3 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-gray-300 hover:shadow-md",
+                },
+                left: {
+                    "ROOT-STYLE": "flex flex-col gap-1",
+                },
+                labelRow: {
+                    "ROOT-STYLE": "flex items-center gap-2",
+                },
+                label: {
+                    "ROOT-STYLE": "text-sm font-semibold text-gray-800",
+                },
+                hintButton: {
+                    "ROOT-STYLE":
+                        "flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600 cursor-pointer hover:bg-green-200",
+                },
+                className: {
+                    "ROOT-STYLE": "text-xs font-mono text-gray-500",
+                },
+                control: {
+                    "ROOT-STYLE": "flex items-center",
+                },
+                selectShell: {
+                    "ROOT-STYLE":
+                        "rounded-md border border-gray-300 bg-white px-2 py-1 shadow-inner",
+                },
+                inputShell: {
+                    "ROOT-STYLE":
+                        "rounded-md border border-gray-300 bg-white px-2 py-1 shadow-inner text-black",
+                },
+            },
+        },
     },
     app: {
+        auth: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "relative min-h-screen bg-cover bg-center",
+                    overlay: {
+                        "ROOT-STYLE":
+                            "absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm",
+                    },
+                    shell: {
+                        "ROOT-STYLE":
+                            "relative z-10 flex min-h-screen items-center justify-center px-4",
+                    },
+                    card: {
+                        "ROOT-STYLE":
+                            "w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-2xl ring-1 ring-black/10 dark:bg-slate-900/80 dark:ring-white/5",
+                    },
+                    intro: {
+                        "ROOT-STYLE": "mb-6 text-center",
+                    },
+                    title: {
+                        "ROOT-STYLE": "text-2xl font-semibold text-slate-900 dark:text-slate-100",
+                        CONTENT: "👋 Welcome to Schoolm8",
+                    },
+                    subtitle: {
+                        "ROOT-STYLE": "mt-2 text-sm text-slate-600 dark:text-slate-300",
+                        CONTENT: "The only portal you'll ever need.",
+                    },
+                    body: {
+                        "ROOT-STYLE": "space-y-3",
+                    },
+                    prompt: {
+                        "ROOT-STYLE": "text-sm text-slate-500 dark:text-slate-400",
+                    },
+                    primaryLink: {
+                        "ROOT-STYLE":
+                            "flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500",
+                        CONTENT: "Sign In",
+                    },
+                    secondaryLink: {
+                        "ROOT-STYLE":
+                            "flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-transparent dark:text-slate-200",
+                        CONTENT: "Create Account",
+                    },
+                    footer: {
+                        "ROOT-STYLE": "mt-6 text-center text-xs text-slate-500 dark:text-slate-400",
+                    },
+                    link: {
+                        "ROOT-STYLE": "underline",
+                    },
+                },
+            },
+        },
+        dashboard: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "h-screen flex",
+                },
+                empty: {
+                    "ROOT-STYLE":
+                        "h-screen flex items-center justify-center bg-linear-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900",
+                },
+                emptyCard: {
+                    "ROOT-STYLE": "text-center max-w-md px-6",
+                },
+                emptyIcon: {
+                    "ROOT-STYLE":
+                        "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200 dark:bg-neutral-800",
+                },
+                emptyTitle: {
+                    "ROOT-STYLE": "text-xl font-semibold text-neutral-900 dark:text-neutral-100",
+                    CONTENT: "No pages available",
+                },
+                emptySubtitle: {
+                    "ROOT-STYLE": "mt-2 text-sm text-neutral-600 dark:text-neutral-400",
+                    CONTENT: "You don’t have any pages yet. Create your first one to get started.",
+                },
+                emptyLink: {
+                    "ROOT-STYLE":
+                        "mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700",
+                    CONTENT: "Editor",
+                },
+                editorTab: {
+                    "ROOT-STYLE":
+                        "fixed bottom-20 left-0 flex h-10 items-center rounded-r-full bg-blue-500 shadow-lg transition-all duration-300",
+                    expanded: "w-25 px-3",
+                    collapsed: "w-10 px-0",
+                    toggle: {
+                        "ROOT-STYLE": "flex h-10 w-10 cursor-pointer items-center justify-center",
+                    },
+                    buttons: {
+                        "ROOT-STYLE": "ml-2 flex flex-row items-center gap-2",
+                    },
+                    icon: {
+                        "ROOT-STYLE": "w-5 h-5 text-white",
+                    },
+                },
+            },
+        },
+        onboarding: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "relative h-screen bg-cover bg-center",
+                    overlay: {
+                        "ROOT-STYLE":
+                            "absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm",
+                    },
+                    loading: {
+                        "ROOT-STYLE":
+                            "fixed inset-0 z-20 flex items-center justify-center bg-black/50 pointer-events-auto",
+                    },
+                    loadingText: {
+                        "ROOT-STYLE": "text-lg font-medium text-white",
+                        CONTENT: "Loading...",
+                    },
+                    shell: {
+                        "ROOT-STYLE":
+                            "relative z-10 flex min-h-screen items-center justify-center gap-8 px-6",
+                    },
+                    stepList: {
+                        "ROOT-STYLE":
+                            "flex w-full max-w-70 flex-col overflow-hidden rounded-2xl bg-white/30 shadow-xl ring-1 ring-white/50 backdrop-blur-lg",
+                    },
+                    stepButton: {
+                        "ROOT-STYLE": "w-full p-3 text-left text-white transition",
+                        active: "border-l-4 border-l-green-600 font-semibold",
+                        inactive: "hover:bg-black/5",
+                    },
+                    stepContent: {
+                        "ROOT-STYLE":
+                            "w-full max-w-2xl rounded-3xl bg-white/30 p-8 shadow-xl ring-1 ring-white/50 backdrop-blur-lg",
+                    },
+                    switchLinks: {
+                        "ROOT-STYLE":
+                            "absolute bottom-0 left-0 z-20 flex w-full flex-row gap-1 rounded-2xl p-3",
+                    },
+                    switchLink: {
+                        "ROOT-STYLE":
+                            "cursor-pointer rounded-full bg-white/90 p-1 pl-1.5 pr-1.5 text-center text-xs",
+                    },
+                    preview: {
+                        "ROOT-STYLE": "relative mb-6 h-75 w-full overflow-hidden rounded-2xl",
+                    },
+                    carouselControls: {
+                        "ROOT-STYLE": "mt-4 flex justify-between",
+                    },
+                    carouselButton: {
+                        "ROOT-STYLE":
+                            "rounded-lg bg-black/10 px-4 py-2 text-white hover:bg-black/20",
+                    },
+                    dots: {
+                        "ROOT-STYLE": "mt-4 flex justify-center gap-2",
+                        dot: {
+                            "ROOT-STYLE": "h-2 w-2 rounded-full transition",
+                            active: "bg-green-600 w-5",
+                            inactive: "bg-slate-300",
+                        },
+                    },
+                },
+            },
+        },
+        settings: {
+            appearance: {
+                page: {
+                    main: {
+                        "ROOT-STYLE": "relative min-h-screen bg-cover bg-center",
+                    },
+                    overlay: {
+                        "ROOT-STYLE":
+                            "absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm",
+                    },
+                    shell: {
+                        "ROOT-STYLE":
+                            "relative z-10 flex min-h-screen items-center justify-center gap-8 px-6",
+                    },
+                    panel: {
+                        "ROOT-STYLE":
+                            "w-full min-w-70 overflow-hidden rounded-2xl bg-white/30 shadow-xl ring-1 ring-white/50 backdrop-blur-lg",
+                    },
+                    header: {
+                        "ROOT-STYLE": "flex flex-row gap-6 p-4 content-center",
+                    },
+                    docsLink: {
+                        "ROOT-STYLE":
+                            "flex items-center gap-2 rounded-md bg-blue-400 px-2 text-white transition-all hover:scale-110 hover:bg-blue-800",
+                    },
+                    sectionTitle: {
+                        "ROOT-STYLE": "text-xl font-bold text-white",
+                        CONTENT: "Dashboard Themes",
+                    },
+                    themeGrid: {
+                        "ROOT-STYLE": "mt-3 grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5",
+                    },
+                    themeCard: {
+                        "ROOT-STYLE":
+                            "group relative cursor-pointer overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl",
+                    },
+                    themePreview: {
+                        "ROOT-STYLE":
+                            "relative aspect-4/3 w-full overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-200",
+                    },
+                    themeCaption: {
+                        "ROOT-STYLE":
+                            "absolute inset-x-0 bottom-0 bg-black/70 p-2 text-sm text-white",
+                    },
+                    editorPane: {
+                        "ROOT-STYLE": "flex-none overflow-scroll p-5 h-105 w-96",
+                    },
+                    openCodeButton: {
+                        "ROOT-STYLE":
+                            "mt-2 cursor-pointer rounded-full bg-blue-600 px-2 py-0.5 text-white transition-all hover:bg-blue-400",
+                        CONTENT: "Open in code editor",
+                    },
+                    cardShell: {
+                        "ROOT-STYLE":
+                            "group mb-2 w-full overflow-hidden rounded-xl border border-slate-200/80 bg-white/90 text-slate-800 shadow-sm transition-all duration-200 hover:border-slate-300 open:shadow-md",
+                    },
+                    cardSummary: {
+                        "ROOT-STYLE":
+                            "flex list-none cursor-pointer items-center justify-between gap-3 bg-linear-to-r from-slate-50 via-white to-slate-100 px-3 py-2.5 font-medium marker:hidden",
+                    },
+                    cardBody: {
+                        "ROOT-STYLE": "border-t border-slate-200/80 bg-white p-2.5",
+                    },
+                },
+            },
+        },
+        timetable: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "min-h-screen bg-slate-950",
+                },
+                toolbarRow: {
+                    "ROOT-STYLE": "mb-4 flex items-center justify-between",
+                },
+                viewToggleGroup: {
+                    "ROOT-STYLE": "flex gap-2",
+                },
+                weekNav: {
+                    "ROOT-STYLE": "flex items-center justify-center gap-4",
+                },
+                weekButton: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-700 bg-slate-900 p-2 text-slate-100 transition-colors hover:bg-slate-800",
+                },
+                weekInfo: {
+                    "ROOT-STYLE": "min-w-50 text-center",
+                },
+                weekLabel: {
+                    "ROOT-STYLE": "text-sm text-slate-300",
+                    CONTENT: "Week of",
+                },
+                weekDate: {
+                    "ROOT-STYLE": "font-semibold text-white",
+                },
+                toolbar: {
+                    "ROOT-STYLE":
+                        "sticky top-14 z-20 space-y-4 border-b border-slate-700/70 bg-slate-950/95 px-6 py-4 backdrop-blur-md md:top-0",
+                },
+                toolbarInner: {
+                    "ROOT-STYLE": "mx-auto mb-4 flex max-w-7xl items-center justify-between",
+                },
+                viewButton: {
+                    "ROOT-STYLE": "rounded-lg border p-2 transition-all",
+                    active: "border-emerald-400 bg-emerald-500 text-slate-950",
+                    inactive: "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800",
+                },
+                navButton: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-700 bg-slate-900 p-2 text-slate-100 transition-colors hover:bg-slate-800",
+                },
+                searchRow: {
+                    "ROOT-STYLE": "mx-auto flex max-w-7xl gap-3",
+                },
+                searchWrap: {
+                    "ROOT-STYLE": "relative flex-1",
+                },
+                searchInput: {
+                    "ROOT-STYLE":
+                        "w-full rounded-lg border border-slate-700 bg-slate-900/90 py-2 pl-10 pr-4 text-slate-100 placeholder-slate-400 transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30",
+                },
+                filterSelect: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-700 bg-slate-900/90 px-4 py-2 text-sm text-slate-100 transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30",
+                },
+                content: {
+                    "ROOT-STYLE": "mx-auto max-w-7xl px-6 py-12",
+                },
+                loading: {
+                    "ROOT-STYLE": "flex items-center justify-center py-20",
+                    inner: {
+                        "ROOT-STYLE": "flex flex-col items-center gap-4",
+                    },
+                    spinner: {
+                        "ROOT-STYLE":
+                            "h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-400",
+                    },
+                    text: {
+                        "ROOT-STYLE": "text-slate-300",
+                    },
+                },
+                loadingText: {
+                    "ROOT-STYLE": "text-slate-300",
+                    CONTENT: "Loading timetable...",
+                },
+                emptyCard: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-700 bg-slate-950/70 p-8 text-center",
+                    icon: {
+                        "ROOT-STYLE": "mx-auto mb-3 h-12 w-12 text-slate-500 opacity-60",
+                    },
+                    text: {
+                        "ROOT-STYLE": "text-slate-300",
+                    },
+                },
+                errorCard: {
+                    "ROOT-STYLE": "text-center",
+                    title: {
+                        "ROOT-STYLE": "mb-2 text-2xl font-semibold text-white",
+                        CONTENT: "Error",
+                    },
+                    text: {
+                        "ROOT-STYLE": "text-slate-300",
+                    },
+                },
+                daySection: {
+                    "ROOT-STYLE": "space-y-4",
+                },
+                dayTitle: {
+                    "ROOT-STYLE": "text-2xl font-bold text-white",
+                },
+                grid: {
+                    "ROOT-STYLE": "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3",
+                },
+                card: {
+                    "ROOT-STYLE":
+                        "rounded-lg border p-4 backdrop-blur transition-all hover:shadow-lg hover:shadow-black/20",
+                },
+                cardHeader: {
+                    "ROOT-STYLE": "mb-2 flex items-start justify-between",
+                },
+                cardTitle: {
+                    "ROOT-STYLE": "text-lg font-semibold text-white",
+                },
+                cardType: {
+                    "ROOT-STYLE": "text-xs font-bold uppercase tracking-wide opacity-90",
+                },
+                cardMeta: {
+                    "ROOT-STYLE": "mb-2 flex items-center gap-2 text-sm opacity-95",
+                },
+                cardMetaGroup: {
+                    "ROOT-STYLE": "flex items-center gap-2",
+                },
+                cardDesc: {
+                    "ROOT-STYLE": "mt-3 line-clamp-2 text-sm opacity-85",
+                },
+            },
+        },
+        assignments: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "min-h-screen bg-slate-900",
+                },
+                toolbar: {
+                    "ROOT-STYLE":
+                        "sticky top-14 z-20 border-b border-slate-700/50 bg-slate-800/40 px-6 py-4 backdrop-blur-md md:top-0",
+                },
+                toolbarInner: {
+                    "ROOT-STYLE": "mx-auto flex max-w-7xl flex-wrap gap-3",
+                },
+                select: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-600/50 bg-slate-700/50 px-4 py-2 text-sm text-white transition-all focus:border-emerald-500 focus:outline-none",
+                },
+                dateInput: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-600/50 bg-slate-700/50 px-4 py-2 text-sm text-white transition-all focus:border-emerald-500 focus:outline-none",
+                },
+                content: {
+                    "ROOT-STYLE": "mx-auto max-w-7xl px-6 py-12",
+                },
+                loading: {
+                    "ROOT-STYLE": "flex items-center justify-center py-20",
+                },
+                emptyCard: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-700 bg-slate-950/70 p-8 text-center",
+                },
+                grid: {
+                    "ROOT-STYLE": "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
+                },
+                card: {
+                    "ROOT-STYLE":
+                        "group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-linear-to-br from-slate-700/40 to-slate-800/40 p-6 ring-1 ring-white/10 backdrop-blur transition-all duration-300 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10",
+                },
+                statusIcon: {
+                    "ROOT-STYLE": "absolute right-4 top-4",
+                },
+                title: {
+                    "ROOT-STYLE":
+                        "mb-2 pr-8 text-lg font-semibold text-white transition-colors group-hover:text-emerald-400 line-clamp-2",
+                },
+                course: {
+                    "ROOT-STYLE": "mb-4 text-sm text-slate-400",
+                },
+                dueRow: {
+                    "ROOT-STYLE": "mb-4 flex items-center gap-2 text-sm text-slate-400",
+                },
+                desc: {
+                    "ROOT-STYLE": "mb-4 line-clamp-2 text-sm text-slate-400",
+                },
+                link: {
+                    "ROOT-STYLE":
+                        "mt-4 inline-block rounded-lg border border-emerald-600/30 bg-emerald-600/20 px-4 py-2 text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-600/40",
+                    CONTENT: "Open Assignment",
+                },
+            },
+        },
+        courses: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "min-h-screen",
+                },
+                toolbar: {
+                    "ROOT-STYLE":
+                        "sticky top-14 z-20 border-b border-slate-700/50 bg-slate-800/40 px-6 py-4 backdrop-blur-md md:top-0",
+                },
+                toolbarInner: {
+                    "ROOT-STYLE": "mx-auto max-w-7xl",
+                },
+                searchWrap: {
+                    "ROOT-STYLE": "relative",
+                },
+                searchInput: {
+                    "ROOT-STYLE":
+                        "w-full rounded-lg border border-slate-600/50 bg-slate-700/50 py-2 pl-10 pr-4 text-white placeholder-slate-400 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
+                },
+                content: {
+                    "ROOT-STYLE": "mx-auto max-w-7xl px-6 py-12",
+                },
+                loading: {
+                    "ROOT-STYLE": "flex items-center justify-center py-20",
+                },
+                emptyCard: {
+                    "ROOT-STYLE":
+                        "rounded-lg border border-slate-700 bg-slate-950/70 p-8 text-center",
+                },
+                grid: {
+                    "ROOT-STYLE": "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
+                },
+                card: {
+                    "ROOT-STYLE":
+                        "group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-linear-to-br from-slate-700/40 to-slate-800/40 ring-1 ring-white/10 backdrop-blur transition-all duration-300 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10",
+                },
+                imageWrap: {
+                    "ROOT-STYLE": "relative h-40 overflow-hidden",
+                },
+                image: {
+                    "ROOT-STYLE":
+                        "h-full w-full object-cover transition-transform duration-300 group-hover:scale-110",
+                },
+                overlay: {
+                    "ROOT-STYLE":
+                        "absolute inset-0 bg-linear-to-b from-transparent to-slate-900/80",
+                },
+                inner: {
+                    "ROOT-STYLE": "p-6",
+                },
+                title: {
+                    "ROOT-STYLE":
+                        "mb-2 line-clamp-2 text-lg font-semibold text-white transition-colors group-hover:text-emerald-400",
+                },
+                desc: {
+                    "ROOT-STYLE": "mb-4 line-clamp-2 text-sm text-slate-400",
+                },
+                footer: {
+                    "ROOT-STYLE":
+                        "flex items-center justify-between border-t border-slate-600/30 pt-4",
+                },
+                footerText: {
+                    "ROOT-STYLE": "text-xs text-slate-500",
+                },
+                arrow: {
+                    "ROOT-STYLE":
+                        "h-4 w-4 text-slate-400 transition-all group-hover:translate-x-1 group-hover:text-emerald-500",
+                },
+            },
+        },
         lms: {
+            page: {
+                main: {
+                    "ROOT-STYLE": "mx-auto max-w-7xl space-y-12 px-6 py-12",
+                },
+                loading: {
+                    "ROOT-STYLE": "flex min-h-screen items-center justify-center",
+                },
+                loadingInner: {
+                    "ROOT-STYLE": "flex flex-col items-center gap-4",
+                },
+                section: {
+                    "ROOT-STYLE": "space-y-4",
+                },
+                sectionHeader: {
+                    "ROOT-STYLE": "flex items-center justify-between",
+                },
+                sectionTitle: {
+                    "ROOT-STYLE": "text-2xl font-bold text-white",
+                },
+                seeAll: {
+                    "ROOT-STYLE":
+                        "text-sm text-emerald-400 transition-colors hover:text-emerald-300",
+                    CONTENT: "See all",
+                },
+                carousel: {
+                    "ROOT-STYLE": "group relative",
+                },
+                navButton: {
+                    "ROOT-STYLE":
+                        "absolute top-1/2 z-10 -translate-y-1/2 rounded-lg bg-slate-900/80 p-2 text-white opacity-0 backdrop-blur transition-opacity hover:bg-slate-800 group-hover:opacity-100",
+                    left: "left-0",
+                    right: "right-0",
+                },
+                scrollArea: {
+                    "ROOT-STYLE": "flex gap-4 overflow-x-auto px-8 pb-2 scroll-smooth",
+                },
+                card: {
+                    "ROOT-STYLE":
+                        "group relative h-48 w-80 shrink-0 overflow-hidden rounded-lg border border-slate-700/50 bg-linear-to-br from-slate-700/40 to-slate-800/40 p-4 ring-1 ring-white/10 backdrop-blur transition-all duration-300 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10",
+                },
+                image: {
+                    "ROOT-STYLE":
+                        "mb-2 h-32 w-full rounded-lg object-cover transition-transform group-hover:scale-105",
+                },
+                title: {
+                    "ROOT-STYLE":
+                        "line-clamp-1 font-semibold text-white transition-colors group-hover:text-emerald-400",
+                },
+                desc: {
+                    "ROOT-STYLE": "line-clamp-1 text-sm text-slate-400",
+                },
+                meta: {
+                    "ROOT-STYLE": "mt-1 text-xs text-slate-500",
+                },
+                courseGrid: {
+                    "ROOT-STYLE": "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
+                },
+                courseCard: {
+                    "ROOT-STYLE": "group relative h-48 cursor-pointer overflow-hidden rounded-2xl",
+                },
+                courseImage: {
+                    "ROOT-STYLE":
+                        "h-full w-full object-cover transition-transform duration-300 group-hover:scale-110",
+                },
+                courseOverlay: {
+                    "ROOT-STYLE":
+                        "absolute inset-0 bg-linear-to-b from-transparent to-slate-900/80",
+                },
+                courseContent: {
+                    "ROOT-STYLE": "absolute bottom-0 left-0 right-0 p-4",
+                },
+                empty: {
+                    "ROOT-STYLE": "flex items-center justify-center py-20",
+                },
+                emptyTitle: {
+                    "ROOT-STYLE": "mb-2 text-2xl font-semibold text-slate-300",
+                    CONTENT: "No LMS data yet",
+                },
+                emptyText: {
+                    "ROOT-STYLE": "text-slate-400",
+                },
+                assignment: {
+                    main: {
+                        "ROOT-STYLE":
+                            "min-h-screen bg-gray-100 p-6 flex flex-col items-center gap-6",
+                    },
+                    header: {
+                        card: {
+                            "ROOT-STYLE":
+                                "w-full max-w-4xl rounded-xl bg-white p-6 shadow-md flex flex-col gap-3",
+                        },
+                        meta: {
+                            "ROOT-STYLE": "text-sm text-gray-400",
+                        },
+                        title: {
+                            "ROOT-STYLE": "text-3xl font-bold",
+                        },
+                        course: {
+                            "ROOT-STYLE": "text-lg text-gray-600",
+                        },
+                        dates: {
+                            "ROOT-STYLE": "flex gap-4 text-sm text-gray-500",
+                        },
+                        due: {
+                            "ROOT-STYLE": "font-medium text-red-500",
+                        },
+                        desc: {
+                            "ROOT-STYLE": "mt-2 text-gray-700",
+                        },
+                        links: {
+                            "ROOT-STYLE": "mt-4 flex flex-row gap-4",
+                            link: {
+                                "ROOT-STYLE":
+                                    "mt-2 w-fit font-medium text-blue-500 hover:underline",
+                            },
+                        },
+                    },
+                    rubric: {
+                        card: {
+                            "ROOT-STYLE": "w-full max-w-4xl rounded-xl bg-white p-6 shadow-md",
+                        },
+                        title: {
+                            "ROOT-STYLE": "mb-4 text-2xl font-semibold",
+                            CONTENT: "Rubric",
+                        },
+                        tableWrapper: {
+                            "ROOT-STYLE": "overflow-x-auto",
+                        },
+                        table: {
+                            "ROOT-STYLE": "w-full border-collapse",
+                            header: {
+                                "ROOT-STYLE":
+                                    "border-b border-gray-200 pb-2 text-left text-gray-600",
+                            },
+                            cell: {
+                                "ROOT-STYLE": "border-b border-gray-100 py-2 text-sm text-gray-700",
+                            },
+                        },
+                    },
+                },
+                announcement: {
+                    main: {
+                        "ROOT-STYLE":
+                            "min-h-screen bg-gray-100 p-6 flex flex-col items-center gap-6",
+                    },
+                    header: {
+                        card: {
+                            "ROOT-STYLE":
+                                "w-full max-w-4xl rounded-xl bg-white p-6 shadow-md flex flex-col gap-3",
+                        },
+                        meta: {
+                            "ROOT-STYLE": "text-sm text-gray-400",
+                        },
+                        title: {
+                            "ROOT-STYLE": "text-3xl font-bold",
+                        },
+                        course: {
+                            "ROOT-STYLE": "text-lg text-gray-600",
+                        },
+                        dates: {
+                            "ROOT-STYLE": "flex gap-4 text-sm text-gray-500",
+                        },
+                        due: {
+                            "ROOT-STYLE": "font-medium text-red-500",
+                        },
+                        desc: {
+                            "ROOT-STYLE": "mt-2 text-gray-700",
+                        },
+                        links: {
+                            "ROOT-STYLE": "mt-4 flex flex-row gap-4",
+                            link: {
+                                "ROOT-STYLE":
+                                    "mt-2 w-fit font-medium text-blue-500 hover:underline",
+                            },
+                        },
+                    },
+                    rubric: {
+                        card: {
+                            "ROOT-STYLE": "w-full max-w-4xl rounded-xl bg-white p-6 shadow-md",
+                        },
+                        title: {
+                            "ROOT-STYLE": "mb-4 text-2xl font-semibold",
+                            CONTENT: "Rubric",
+                        },
+                        tableWrapper: {
+                            "ROOT-STYLE": "overflow-x-auto",
+                        },
+                        table: {
+                            "ROOT-STYLE": "w-full border-collapse",
+                            header: {
+                                "ROOT-STYLE":
+                                    "border-b border-gray-200 pb-2 text-left text-gray-600",
+                            },
+                            cell: {
+                                "ROOT-STYLE": "border-b border-gray-100 py-2 text-sm text-gray-700",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        lmsLegacy: {
             page: {
                 main: {
                     "ROOT-STYLE": "min-h-screen bg-gray-100 p-6 flex flex-col items-center gap-10",
@@ -512,7 +1312,7 @@ const defaultCss = {
 };
 
 // 🔹 in-memory fallback (for non-hook usage)
-let cssCache = defaultCss;
+let cssCache: any = defaultCss;
 
 function mergeCss(defaultObj: any, userObj: any): any {
     // if user didn't provide anything, use default
@@ -576,12 +1376,12 @@ function saveCss(newCss: typeof defaultCss) {
 }
 // ✅ MAIN HOOK (reactive)
 export function useCss() {
-    const [css, setCssState] = useState(loadCss);
+    const [css, setCssState] = useState<any>(loadCss);
 
     const setCss = (
         value: typeof defaultCss | ((prev: typeof defaultCss) => typeof defaultCss),
     ) => {
-        setCssState((prev) => {
+        setCssState((prev: any) => {
             const newValue = typeof value === "function" ? value(prev) : value;
 
             saveCss(newValue);
