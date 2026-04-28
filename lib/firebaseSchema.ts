@@ -301,3 +301,34 @@ export const cleanupOldTimetableCache = async (userId: string, daysToKeep: numbe
 
     return batch.commit();
 };
+
+/**
+ * UGC Themes
+ */
+
+export const GetTheme = async (themeId: string) => {
+    const doc = await db.collection("themes").doc(themeId).get();
+    return doc.exists ? doc.data() : null;
+};
+
+export const getTopThemes = async (key: string, count: number, order: "asc" | "desc" = "asc") => {
+    const snapshot = await db.collection("themes").orderBy(key, order).limit(count).get();
+
+    return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    }));
+};
+
+export const filterThemes = async (key: string, value: string, count: number) => {
+    const snapshot = await db.collection("themes").where(key, "==", value).limit(count).get();
+    return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+    }));
+};
+
+export const postTheme = async (themeData: Record<string, any>) => {
+    const docRef = await db.collection("themes").add(themeData);
+    return { id: docRef.id, ...themeData };
+};

@@ -374,6 +374,7 @@ export default function AppearanceSettings() {
     const formatNodes = () => {
         const nodes: any[] = [];
         for (const [key, value] of Object.entries(css)) {
+            if (key === "components") continue;
             if (typeof value !== "object") continue;
             const hasNonObjectValue = Object.values(value as Record<string, any>).some(
                 (child) => child === null || typeof child !== "object",
