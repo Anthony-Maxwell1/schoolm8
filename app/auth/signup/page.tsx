@@ -36,7 +36,7 @@ export default function SignUpPage() {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCredential.user, { displayName: name });
             await createFirestoreDoc(userCredential.user.uid, name, email);
-            router.push("/dashboard");
+            router.push("/auth/signin");
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -52,7 +52,7 @@ export default function SignUpPage() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             await createFirestoreDoc(user.uid, user.displayName || "", user.email || "");
-            router.push("/dashboard");
+            router.push("/auth/signin");
         } catch (err: any) {
             setError(err.message);
         } finally {

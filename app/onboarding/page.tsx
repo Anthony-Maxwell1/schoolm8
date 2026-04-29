@@ -15,7 +15,7 @@ export default function Onboarding() {
     const { user, token, loading } = useAuth();
     const router = useRouter();
     const { css } = useCss();
-    const style = css.app.onboarding.page;
+    const style = css.app.onboarding.page.main;
 
     const [step, setStep] = useState(0);
     const [carouselIndex, setCarouselIndex] = useState(0);

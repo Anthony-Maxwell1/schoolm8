@@ -3,9 +3,9 @@ import { getFirestore } from "firebase-admin/firestore";
 export const serverAccessControl = async (uid: string, page: string) => {
     const db = getFirestore();
 
-    const bannedRef = db.doc(`UAC/${page}/banned/${uid}`);
-    const allowedRef = db.doc(`UAC/${page}/allowed/${uid}`);
-    const allowedCollectionRef = db.collection(`UAC/${page}/allowed`).limit(1);
+    const bannedRef = db.doc(`UAC/${page.replaceAll("/", ".")}/banned/${uid}`);
+    const allowedRef = db.doc(`UAC/${page.replaceAll("/", ".")}/allowed/${uid}`);
+    const allowedCollectionRef = db.collection(`UAC/${page.replaceAll("/", ".")}/allowed`).limit(1);
 
     const [bannedSnap, allowedSnap, allowedCollectionSnap] = await Promise.all([
         bannedRef.get(),

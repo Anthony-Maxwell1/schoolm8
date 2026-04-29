@@ -11,7 +11,9 @@ export const useAccessControl = (page: string) => {
     page = page.replaceAll("/", ".");
 
     useEffect(() => {
-        if (loading) return;
+        if (loading || !user) return;
+
+        console.log("Checking access for page:", page, "and user:", user?.uid);
 
         if (!user) {
             setAllowed(false);
@@ -35,6 +37,7 @@ export const useAccessControl = (page: string) => {
             // 🚨 Ban overrides everything
             if (bannedSnap.exists()) {
                 setAllowed(false);
+                console.log("Access denied: user is banned");
                 return;
             }
 
@@ -43,6 +46,7 @@ export const useAccessControl = (page: string) => {
             // ✅ If no allowlist exists → allow everyone
             if (!allowlistExists) {
                 setAllowed(true);
+                console.log("Access granted: no allowlist, open access");
                 return;
             }
 
@@ -51,6 +55,8 @@ export const useAccessControl = (page: string) => {
                 setAllowed(true);
                 return;
             }
+
+            console.log("Access denied: user is not on the allowlist");
 
             // ❌ default deny
             setAllowed(false);

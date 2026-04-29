@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { auth } from "@/lib/firebaseClient";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+    sendPasswordResetEmail,
+    getAuth,
+} from "firebase/auth";
 import { useRouter } from "next/navigation";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
@@ -13,6 +19,22 @@ export default function SignInPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    const resetPassword = () => {
+        if (!email) {
+            setError("Please enter your email to reset password.");
+            return;
+        }
+
+        const auth = getAuth();
+        sendPasswordResetEmail(auth, email)
+            .then(() => {
+                setError("Password reset email sent. Please check your inbox.");
+            })
+            .catch((err) => {
+                setError(err.message);
+            });
+    };
 
     const createFirestoreDoc = async (user: any) => {
         const token = await user.getIdToken();
@@ -120,6 +142,13 @@ export default function SignInPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="text-sm text-blue-600 hover:underline self-end"
+                                    onClick={resetPassword}
+                                >
+                                    Forgot password?
+                                </button>
                             </div>
                             <button
                                 type="submit"
