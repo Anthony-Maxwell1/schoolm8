@@ -325,7 +325,16 @@ export const defaultThemes: ThemeMap = {
       </div>
     `,
     },
+    custom: {
+        classes: {
+            TileOuter: "",
+            Tile: "",
+            TileOuterNoTopBar: "",
+        },
+    },
 };
+
+export const builtin = Object.keys(defaultThemes);
 
 /* ---------------- MERGE ---------------- */
 

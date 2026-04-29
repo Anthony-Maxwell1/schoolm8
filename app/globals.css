@@ -4,6 +4,7 @@
 @import "fumadocs-ui/css/preset.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant hover (&:hover);
 
 @layer base {
     /* Smooth rendering + better typography defaults */

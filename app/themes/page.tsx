@@ -61,6 +61,9 @@ export default function CommunityThemesPage() {
     const { themes, tileThemes, addTheme, addTileTheme } = useCss();
     const { themes: themes_, setThemes } = useTheme();
     const { loading, token } = useAuth();
+
+    const [myThemesOpen, setMyThemesOpen] = useState(false);
+
     // Helper to build the search URL according to the rules:
     // - count: number to fetch
     // - filter: one of popular | new | recentUpdated | type

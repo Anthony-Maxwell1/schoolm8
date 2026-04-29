@@ -19,6 +19,7 @@ import { html } from "@codemirror/lang-html";
 import Image from "next/image";
 import { Book } from "lucide-react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
+import { builtin } from "@/lib/themeClasses";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
@@ -53,6 +54,7 @@ export default function AppearanceSettings() {
         addTileTheme,
         removeTheme: removeWebsiteTheme,
         removeTileTheme,
+        resetCssDefaultThemes,
     } = useCss();
     const {
         themes: dashboardThemes,
@@ -583,8 +585,7 @@ export default function AppearanceSettings() {
                             </p>
                             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4 mt-3">
                                 {Object.keys(dashboardThemes).map((key) => (
-                                    <button
-                                        key={key}
+                                    <div
                                         className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer"
                                         onClick={() => {
                                             setDashboardTheme(key);
@@ -611,16 +612,29 @@ export default function AppearanceSettings() {
                                                 </div>
                                             )}
 
-                                            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 text-left text-white">
-                                                <div className="text-xs uppercase tracking-[0.3em] text-white/70">
+                                            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 via-black/20 to-transparent p-4 text-left text-white">
+                                                {builtin.includes(key) ? null : (
+                                                    <button
+                                                        className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium transition-colors mb-2"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const { [key]: _, ...rest } =
+                                                                dashboardThemes;
+                                                            setDashboardThemes(rest);
+                                                        }}
+                                                    >
+                                                        Uninstall
+                                                    </button>
+                                                )}
+                                                <div className="pointer-events-none text-xs uppercase tracking-[0.3em] text-white/70">
                                                     Theme
                                                 </div>
-                                                <div className="text-lg font-semibold capitalize">
+                                                <div className="pointer-events-none text-lg font-semibold capitalize">
                                                     {key}
                                                 </div>
                                             </div>
                                         </div>
-                                    </button>
+                                    </div>
                                 ))}
                                 <a
                                     key="view-community"
@@ -743,7 +757,7 @@ export default function AppearanceSettings() {
                                     key="reset-theme"
                                     type="button"
                                     className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
-                                    onClick={resetCss}
+                                    onClick={resetCssDefaultThemes}
                                 >
                                     <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
@@ -757,8 +771,10 @@ export default function AppearanceSettings() {
                                                 Reset Website Theme
                                             </div>
                                             <div className="mt-1 text-xs text-red-900/70">
-                                                Revert style changes and return to default
-                                                appearance.
+                                                Restore and switch to the default theme. Your
+                                                original themes (except for the default theme, if
+                                                modified) will be left as is. This affects BOTH your
+                                                website and tile themes.
                                             </div>
                                         </div>
                                     </div>
@@ -861,7 +877,7 @@ export default function AppearanceSettings() {
                                     key="reset-theme"
                                     type="button"
                                     className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
-                                    onClick={resetCss}
+                                    onClick={resetCssDefaultThemes}
                                 >
                                     <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
@@ -872,11 +888,13 @@ export default function AppearanceSettings() {
                                                 Reset
                                             </div>
                                             <div className="mt-1 text-lg font-semibold text-red-900">
-                                                Reset Website Theme
+                                                Reset Tilepack Theme
                                             </div>
                                             <div className="mt-1 text-xs text-red-900/70">
-                                                Revert style changes and return to default
-                                                appearance.
+                                                Restore and switch to the default theme. Your
+                                                original themes (except for the default theme, if
+                                                modified) will be left as is. This affects BOTH
+                                                website and tile themes.
                                             </div>
                                         </div>
                                     </div>
