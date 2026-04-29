@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc, getDocs, collection, query, limit, getFirestore } from "firebase/firestore";
 import { useAccessControlContext } from "@/context/AccessControlContext";
+import { useAuth } from "@/context/authContext";
 
 export const useAccessControl = (page: string) => {
     const { user, loading } = useAccessControlContext();
+    const { signOut } = useAuth();
     const [allowed, setAllowed] = useState<boolean | null>(null);
 
     page = page.replaceAll("/", ".");
@@ -18,6 +20,17 @@ export const useAccessControl = (page: string) => {
         if (!user) {
             setAllowed(false);
             return;
+        }
+
+        if (!user.emailVerified) {
+            console.error("Email not verified!");
+            signOut()
+                .then(() => {
+                    setAllowed(false);
+                })
+                .then(() => {
+                    window.location.pathname = "/auth/signin";
+                });
         }
 
         const checkAccess = async () => {

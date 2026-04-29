@@ -8,6 +8,7 @@ import {
     signInWithPopup,
     sendPasswordResetEmail,
     getAuth,
+    sendEmailVerification,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
@@ -19,6 +20,7 @@ export default function SignInPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [resendBtn, setResendBtn] = useState(false);
 
     const resetPassword = () => {
         if (!email) {
@@ -29,13 +31,14 @@ export default function SignInPage() {
         const auth = getAuth();
         sendPasswordResetEmail(auth, email)
             .then(() => {
-                setError("Password reset email sent. Please check your inbox.");
+                setError(
+                    "Password reset email sent. Please check your inbox. Check your spam folder if the email is not visible.",
+                );
             })
             .catch((err) => {
                 setError(err.message);
             });
     };
-
     const createFirestoreDoc = async (user: any) => {
         const token = await user.getIdToken();
 
@@ -72,11 +75,21 @@ export default function SignInPage() {
         e.preventDefault();
         setLoading(true);
         setError("");
+        setResendBtn(false);
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            await createFirestoreDoc(userCredential.user);
-            // router.push("/dashboard");
+            const user = userCredential.user;
+
+            if (!user.emailVerified) {
+                setError("Please verify your email before signing in.");
+                setResendBtn(true);
+
+                await auth.signOut(); // 🔑 CRITICAL: kill session
+                return;
+            }
+
+            await createFirestoreDoc(user);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -84,6 +97,17 @@ export default function SignInPage() {
         }
     };
 
+    const resendVerification = async () => {
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            await sendEmailVerification(userCredential.user);
+            await auth.signOut();
+
+            setError("Verification email resent. Check your inbox.");
+        } catch (err: any) {
+            setError(err.message);
+        }
+    };
     const handleGoogleSignIn = async () => {
         setLoading(true);
         setError("");
@@ -121,6 +145,15 @@ export default function SignInPage() {
                                 role="alert"
                             >
                                 <span className="block sm:inline">{error}</span>
+                                {resendBtn && (
+                                    <button
+                                        type="button"
+                                        className="text-sm text-blue-600 hover:underline"
+                                        onClick={resendVerification}
+                                    >
+                                        Resend Verification Email
+                                    </button>
+                                )}
                             </div>
                         )}
                         <form className="flex flex-col gap-4" onSubmit={handleSignIn}>

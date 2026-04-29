@@ -61,7 +61,6 @@
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4",
-        "@types/dompurify": "^3.2.0",
         "@types/html-to-text": "^9.0.4",
         "@types/node": "^20",
         "@types/node-fetch": "^2.6.13",

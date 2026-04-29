@@ -1,7 +1,19 @@
-import { getFirestore } from "firebase-admin/firestore";
+import { db, auth } from "@/lib/firebaseAdmin";
 
 export const serverAccessControl = async (uid: string, page: string) => {
-    const db = getFirestore();
+    if (!uid || !page) {
+        return {
+            status: 400,
+            body: { error: "Invalid request" },
+        };
+    }
+
+    if (!(await auth.getUser(uid)).emailVerified) {
+        return {
+            status: 403,
+            body: { error: "Please verify your email before accessing this page" },
+        };
+    }
 
     const bannedRef = db.doc(`UAC/${page.replaceAll("/", ".")}/banned/${uid}`);
     const allowedRef = db.doc(`UAC/${page.replaceAll("/", ".")}/allowed/${uid}`);

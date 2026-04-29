@@ -21,6 +21,9 @@ export default function Settings() {
                     >
                         Log Out
                     </button>
+                    <button className="text-left w-full p-3 transition text-blue-300 hover:bg-black/5 cursor-pointer">
+                        Change email
+                    </button>
                 </div>
             </div>
         </div>

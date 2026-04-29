@@ -7,6 +7,7 @@ import {
     updateProfile,
     GoogleAuthProvider,
     signInWithPopup,
+    sendEmailVerification,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
@@ -36,6 +37,11 @@ export default function SignUpPage() {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             await updateProfile(userCredential.user, { displayName: name });
             await createFirestoreDoc(userCredential.user.uid, name, email);
+            await sendEmailVerification(userCredential.user);
+            await alert(
+                "Email verification sent. Please check your inbox. Check your spam folder if the email is not visible. You will be redirected to the sign-in page upon closing this.",
+            );
+            router.push("/auth/signin");
             router.push("/auth/signin");
         } catch (err: any) {
             setError(err.message);
@@ -52,6 +58,10 @@ export default function SignUpPage() {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             await createFirestoreDoc(user.uid, user.displayName || "", user.email || "");
+            await sendEmailVerification(user);
+            await alert(
+                "Email verification sent. Please check your inbox. Check your spam folder if the email is not visible. You will be redirected to the sign-in page upon closing this.",
+            );
             router.push("/auth/signin");
         } catch (err: any) {
             setError(err.message);
