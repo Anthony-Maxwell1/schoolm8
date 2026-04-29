@@ -752,33 +752,7 @@ export default function AppearanceSettings() {
                                         </div>
                                     </div>
                                 </Link>
-
-                                <button
-                                    key="reset-theme"
-                                    type="button"
-                                    className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
-                                    onClick={resetCssDefaultThemes}
-                                >
-                                    <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
-
-                                    <div className="relative flex h-full w-full items-end p-4">
-                                        <div>
-                                            <div className="text-xs uppercase tracking-[0.3em] text-red-700/80">
-                                                Reset
-                                            </div>
-                                            <div className="mt-1 text-lg font-semibold text-red-900">
-                                                Reset Website Theme
-                                            </div>
-                                            <div className="mt-1 text-xs text-red-900/70">
-                                                Restore and switch to the default theme. Your
-                                                original themes (except for the default theme, if
-                                                modified) will be left as is. This affects BOTH your
-                                                website and tile themes.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </button>
+                                \{" "}
                             </div>
                             <h3 className="text-white text-xl font-bold mt-6">Tile Themes</h3>
                             <p className="mt-1 text-sm text-white/80">
@@ -872,33 +846,6 @@ export default function AppearanceSettings() {
                                         </div>
                                     </div>
                                 </Link>
-
-                                <button
-                                    key="reset-theme"
-                                    type="button"
-                                    className="group relative overflow-hidden rounded-2xl border border-red-200/70 bg-white/95 text-black shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:shadow-2xl cursor-pointer min-h-30 text-left"
-                                    onClick={resetCssDefaultThemes}
-                                >
-                                    <div className="absolute inset-0 bg-linear-to-br from-rose-50 via-white to-red-100 opacity-95" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.25),transparent_55%)]" />
-
-                                    <div className="relative flex h-full w-full items-end p-4">
-                                        <div>
-                                            <div className="text-xs uppercase tracking-[0.3em] text-red-700/80">
-                                                Reset
-                                            </div>
-                                            <div className="mt-1 text-lg font-semibold text-red-900">
-                                                Reset Tilepack Theme
-                                            </div>
-                                            <div className="mt-1 text-xs text-red-900/70">
-                                                Restore and switch to the default theme. Your
-                                                original themes (except for the default theme, if
-                                                modified) will be left as is. This affects BOTH
-                                                website and tile themes.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </button>
                             </div>
                         </div>
                     )}
