@@ -1594,6 +1594,24 @@ export function useCss() {
         });
     };
 
+    const resetCssDefaultThemes = () => {
+        setStore((prevStore) => {
+            const nextStore: CssThemeStore = {
+                ...prevStore,
+                themes: {
+                    ...prevStore.themes,
+                    [DEFAULT_THEME_NAME]: defaultCss,
+                },
+                tileThemes: {
+                    ...prevStore.tileThemes,
+                    [DEFAULT_TILE_THEME_NAME]: defaultCss.components.tiles,
+                },
+            };
+            saveStore(nextStore);
+            return nextStore;
+        });
+    };
+
     const editTileTheme = (name: string, value: any | ((prev: any) => any)) => {
         setStore((prevStore) => {
             if (!(name in prevStore.tileThemes)) return prevStore;
@@ -1706,6 +1724,7 @@ export function useCss() {
         updateTileTheme: editTileTheme,
         removeTheme,
         removeTileTheme,
+        resetCssDefaultThemes,
     };
 }
 
