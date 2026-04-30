@@ -196,7 +196,7 @@ export async function standardiseDay({
     provider: "edumate" | "ical";
     rawDay?: any;
     parsedICalEvents?: any[];
-    date: string;
+    date?: string;
 }): Promise<StandardTimetable> {
     if (provider === "edumate") {
         if (!rawDay) throw new Error("Missing Edumate data");
@@ -205,6 +205,7 @@ export async function standardiseDay({
 
     if (provider === "ical") {
         if (!parsedICalEvents) throw new Error("Missing iCal events");
+        if (!date) throw new Error("Missing date for iCal events");
         return normaliseICalDay(parsedICalEvents, date);
     }
 

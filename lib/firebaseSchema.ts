@@ -303,6 +303,15 @@ export const cleanupOldTimetableCache = async (userId: string, daysToKeep: numbe
     return batch.commit();
 };
 
+export const deleteTimetableCache = async (userId: string) => {
+    const snapshot = await getTimetableDaysRef(userId).get();
+    const batch = db.batch();
+    snapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+    return batch.commit();
+};
+
 /**
  * UGC Themes
  */

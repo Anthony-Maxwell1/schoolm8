@@ -29,9 +29,11 @@
 - Sentry & Feedback
 - Navigation
 - Google Classroom integration
+- GUI Style editor for users who don't want to enter raw tailwindcss data
 
 ### Almost finished/Testing
 
+- Community Themes
 
 ### 🚧 In Progress
 
@@ -40,8 +42,6 @@
 - Schedule system
 - Compass Education Integration, probably using [this library](https://github.com/heheleo/compass-education), but forked for additonal development to revive the project
 - Google Drive integration
-- Community Themes
-- GUI Style editor for users who don't want to enter raw tailwindcss data
 - Dashboard tiles
 
 ### 🔮 Planned

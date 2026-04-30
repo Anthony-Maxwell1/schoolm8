@@ -29,13 +29,12 @@ function setStoredTasks(tasks: StoredTask[]) {
 export const TaskManager: React.FC = () => {
     const { user, loading, token } = useAuth();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const todoIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const startPolling = (authToken: string) => {
+        // Fast: status polling
         intervalRef.current = setInterval(async () => {
-            stageTasks(authToken);
-
             const tasks = getStoredTasks();
-
             if (!tasks.length) return;
 
             try {
@@ -48,18 +47,16 @@ export const TaskManager: React.FC = () => {
                     body: JSON.stringify({ tasks }),
                 });
 
-                const statuses: { id: string; status: "pending" | "complete" | "failed" }[] =
-                    await res.json();
+                const statuses = await res.json();
 
                 let updatedTasks = [...tasks];
 
-                statuses.forEach((taskStatus) => {
+                statuses.forEach((taskStatus: any) => {
                     const task = tasks.find((t) => t.id === taskStatus.id);
                     if (!task) return;
 
                     if (taskStatus.status === "complete") {
                         if (toast.isActive(task.toastId)) {
-                            // Only update if it's still visible
                             toast.update(task.toastId, {
                                 render: task.successlabel,
                                 type: "success",
@@ -67,13 +64,11 @@ export const TaskManager: React.FC = () => {
                                 autoClose: 3000,
                             });
                         }
-
                         updatedTasks = updatedTasks.filter((t) => t.id !== task.id);
                     }
 
                     if (taskStatus.status === "failed") {
                         if (toast.isActive(task.toastId)) {
-                            // Update existing toast
                             toast.update(task.toastId, {
                                 render: task.faillabel,
                                 type: "error",
@@ -81,10 +76,8 @@ export const TaskManager: React.FC = () => {
                                 autoClose: 5000,
                             });
                         } else {
-                            // User dismissed it → show a NEW error toast
                             toast.error(task.faillabel);
                         }
-
                         updatedTasks = updatedTasks.filter((t) => t.id !== task.id);
                     }
                 });
@@ -99,6 +92,11 @@ export const TaskManager: React.FC = () => {
                 console.error("Polling error:", err);
             }
         }, 2000);
+
+        // Slow: todo polling (NEW)
+        todoIntervalRef.current = setInterval(() => {
+            stageTasks(authToken);
+        }, 15000); // every 15s (tune this)
     };
 
     const stageTasks = async (authToken: string) => {
@@ -193,6 +191,7 @@ export const TaskManager: React.FC = () => {
 
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
+            if (todoIntervalRef.current) clearInterval(todoIntervalRef.current);
         };
     }, [loading, user, token]);
 

@@ -159,8 +159,8 @@ export default function EditorPage() {
 
         previewStyle = {
             position: "absolute",
-            left: rect.left + col * cellWidth,
-            top: rect.top + row * cellHeight,
+            left: rect.left / 2 + col * cellWidth,
+            top: row * cellHeight,
             width: cellWidth * Math.max(1, Math.round(gridSize.cols / 4)),
             height: cellHeight * Math.max(1, Math.round(gridSize.rows / 4)),
         };
