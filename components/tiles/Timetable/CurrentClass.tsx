@@ -117,6 +117,27 @@ export function A() {
         </div>
     );
 }
+
 export function B() {
-    return <div>Current Class</div>;
+    return (
+        <div className="flex w-full h-full items-center justify-between gap-3 px-3">
+            {/* LEFT */}
+            <div className="flex min-w-0 items-baseline gap-2 flex-1">
+                <span className="truncate text-[11px] text-blue-500">Mr Smith</span>
+                <span className="truncate text-sm font-semibold text-blue-900">Maths</span>
+            </div>
+
+            {/* CENTER */}
+            <div className="flex justify-center ">
+                <span className="text-xl font-bold text-blue-900 tracking-tight">S134</span>
+            </div>
+
+            {/* RIGHT */}
+            <div className="flex justify-end items-baseline flex-1">
+                <span className="text-[11px] text-blue-600 whitespace-nowrap font-medium">
+                    12:00–13:00
+                </span>
+            </div>
+        </div>
+    );
 }
