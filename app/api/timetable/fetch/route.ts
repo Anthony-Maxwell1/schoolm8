@@ -87,6 +87,17 @@ export async function GET(req: NextRequest) {
         const result = await assertAccess(userId, ["api/timetable/*", "apiAccessLevel0"]);
 
         if (result.status !== 200) {
+            const executionId = req.nextUrl.searchParams.get("taskId");
+            if (executionId) {
+                try {
+                    const userRef = db.collection("users").doc(userId);
+                    await userRef.update({
+                        [`executions.${executionId}.status`]: "failed",
+                    });
+                } catch (updateErr) {
+                    console.error("Failed to update task status:", updateErr);
+                }
+            }
             return new Response(JSON.stringify({ error: result.body!.error }), {
                 status: result.status,
             });
@@ -99,7 +110,18 @@ export async function GET(req: NextRequest) {
         console.log("[GET] Got timetable config:", timetableFetchData);
         if (!timetableFetchData) {
             console.log("[GET] No timetable data found");
-            return NextResponse.json({ timetable: null });
+            const executionId = req.nextUrl.searchParams.get("taskId");
+            if (executionId) {
+                try {
+                    const userRef = db.collection("users").doc(userId);
+                    await userRef.update({
+                        [`executions.${executionId}.status`]: "failed",
+                    });
+                } catch (updateErr) {
+                    console.error("Failed to update task status:", updateErr);
+                }
+            }
+            return NextResponse.json({ timetable: null }, { status: 404 });
         }
 
         // ---------- MODE ----------
@@ -384,6 +406,17 @@ export async function GET(req: NextRequest) {
         }
 
         console.log("[GET] No timetable provider found");
+        const executionId = req.nextUrl.searchParams.get("taskId");
+        if (executionId) {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                await userRef.update({
+                    [`executions.${executionId}.status`]: "failed",
+                });
+            } catch (updateErr) {
+                console.error("Failed to update task status:", updateErr);
+            }
+        }
         return NextResponse.json({ timetable: null });
     } catch (err) {
         console.error("[GET] Error:", err);

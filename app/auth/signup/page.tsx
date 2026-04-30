@@ -79,10 +79,18 @@ export default function SignUpPage() {
 
             <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
                 <div className="w-full max-w-md rounded-2xl bg-white/90 p-8 shadow-2xl ring-1 ring-black/10 dark:bg-slate-900/80 dark:ring-white/5">
-                    <div className="mb-6 text-center">
-                        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                            Sign Up
-                        </h1>
+                    <div className="">
+                        <a
+                            href="/auth"
+                            className="bg-white text-blue-600 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 p-2 rounded-lg absolute"
+                        >
+                            ← Go back
+                        </a>
+                        <div className="mb-6 text-center w-full">
+                            <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                                Sign Up
+                            </h1>
+                        </div>
                     </div>
                     <div className="flex flex-col gap-4">
                         {error && (

@@ -31,10 +31,11 @@ export const TaskManager: React.FC = () => {
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const startPolling = (authToken: string) => {
-        if (intervalRef.current) return;
-
         intervalRef.current = setInterval(async () => {
+            stageTasks(authToken);
+
             const tasks = getStoredTasks();
+
             if (!tasks.length) return;
 
             try {
@@ -121,6 +122,9 @@ export const TaskManager: React.FC = () => {
 
             let updated = [...getStoredTasks()];
 
+            if (!tasks || !Array.isArray(tasks)) {
+                return;
+            }
             for (const task of tasks) {
                 try {
                     const stageRes = await fetch("/api/tasks/stage", {
@@ -172,14 +176,20 @@ export const TaskManager: React.FC = () => {
     useEffect(() => {
         if (loading || !user || !token) return;
 
-        const existing = getStoredTasks();
+        let existing = getStoredTasks();
 
         if (existing.length) {
-            existing.forEach((task) => toast.info(`${task.label}ing...`));
-            startPolling(token);
+            existing.forEach((v, i) => {
+                existing[i].toastId = toast.loading(v.workinglabel, {
+                    closeOnClick: true,
+                    closeButton: true,
+                    draggable: true,
+                });
+            });
+            setStoredTasks(existing);
         }
 
-        stageTasks(token);
+        startPolling(token);
 
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
