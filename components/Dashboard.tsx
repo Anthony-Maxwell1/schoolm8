@@ -137,6 +137,34 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     if (!currentPage) return <div className="p-4">No page selected</div>;
     if (loading) return;
 
+    const panelOffsets = {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+    };
+
+    currentPage.panels.forEach((panel) => {
+        const amount = panel.size * 100;
+
+        panelOffsets[panel.anchor] += amount;
+    });
+
+    const dashboardContentStyle: React.CSSProperties = {
+        position: "absolute",
+        left: `${panelOffsets.left}%`,
+        right: `${panelOffsets.right}%`,
+        top: `${panelOffsets.top}%`,
+        bottom: `${panelOffsets.bottom}%`,
+    };
+
+    const panelStacks = {
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+    };
+
     return (
         <div ref={containerRef} className={style["ROOT-STYLE"]}>
             {editable && editorOpen && (
@@ -208,26 +236,35 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
             )}
 
             {/* PANELS */}
+
             {currentPage.panels.map((panel) => {
                 const def = findRegistry(panel.registryId, PanelRegistry);
                 if (!def?.component) return null;
+
                 const PanelComponent = def.component;
 
-                const style: React.CSSProperties = { position: "absolute" };
+                const style: React.CSSProperties = {
+                    position: "absolute",
+                };
+
+                const offset = panelStacks[panel.anchor];
 
                 if (panel.anchor === "left" || panel.anchor === "right") {
                     style.width = `${panel.size * 100}%`;
                     style.height = "100%";
-                    style[panel.anchor] = 0;
+                    style[panel.anchor] = `${offset}%`;
+
+                    panelStacks[panel.anchor] += panel.size * 100;
                 } else {
                     style.height = `${panel.size * 100}%`;
                     style.width = "100%";
-                    style[panel.anchor] = 0;
+                    style[panel.anchor] = `${offset}%`;
+
+                    panelStacks[panel.anchor] += panel.size * 100;
                 }
 
                 return (
                     <div key={panel.id} style={style}>
-                        {/* delete */}
                         {editable && (
                             <button
                                 className="absolute right-0 top-0 z-10 text-3xl"
@@ -235,7 +272,8 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                     removePanel(panel.id);
                                 }}
                             >
-                                <CircleX className="cursor-pointer" />
+                                {" "}
+                                <CircleX className="cursor-pointer" />{" "}
                             </button>
                         )}
                         <PanelComponent {...panel.props} />
@@ -244,88 +282,90 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
             })}
 
             {/* TILES */}
-            {currentPage.tiles.map((tile) => {
-                const def = findRegistry(tile.registryId, TileRegistry);
-                if (!def?.component) return null;
-                const TileComponent = def.component;
+            <div style={dashboardContentStyle}>
+                {currentPage.tiles.map((tile) => {
+                    const def = findRegistry(tile.registryId, TileRegistry);
+                    if (!def?.component) return null;
+                    const TileComponent = def.component;
 
-                let TopBarReplaced = topBar;
-                if (topBar) {
-                    TopBarReplaced = topBar.replace("{__TILE_TITLE__}", def.label || "");
-                }
+                    let TopBarReplaced = topBar;
+                    if (topBar) {
+                        TopBarReplaced = topBar.replace("{__TILE_TITLE__}", def.label || "");
+                    }
 
-                const style: React.CSSProperties = {
-                    position: "absolute",
-                    left: `${(tile.x / gridSize.cols) * 100}%`,
-                    top: `${(tile.y / gridSize.rows) * 100}%`,
-                    width: `${(tile.w / gridSize.cols) * 100}%`,
-                    height: `${(tile.h / gridSize.rows) * 100}%`,
-                };
+                    const style: React.CSSProperties = {
+                        position: "absolute",
+                        left: `${(tile.x / gridSize.cols) * 100}%`,
+                        top: `${(tile.y / gridSize.rows) * 100}%`,
+                        width: `${(tile.w / gridSize.cols) * 100}%`,
+                        height: `${(tile.h / gridSize.rows) * 100}%`,
+                    };
 
-                return (
-                    <div
-                        key={tile.id}
-                        style={style}
-                        className={
-                            (tile.specialEffects?.includes("topBar")
-                                ? classes?.TileOuter
-                                : classes?.TileOuterNoTopBar) + " relative group"
-                        }
-                    >
-                        {/* delete */}
-                        {editable && (
-                            <button
-                                className="absolute right-0 top-0 z-30 cursor-grab"
-                                onClick={() => {
-                                    removeTile(tile.id);
-                                }}
-                            >
-                                <CircleX className="cursor-pointer" />
-                            </button>
-                        )}
-                        {TopBarReplaced && tile.specialEffects?.includes("topBar") && (
-                            <div dangerouslySetInnerHTML={{ __html: TopBarReplaced }} />
-                        )}
-                        {extraHtml && <div dangerouslySetInnerHTML={{ __html: extraHtml }} />}
-                        <div className={classes?.Tile || "border bg-white shadow"}>
-                            <TileComponent {...tile.props} />
+                    return (
+                        <div
+                            key={tile.id}
+                            style={style}
+                            className={
+                                (tile.specialEffects?.includes("topBar")
+                                    ? classes?.TileOuter
+                                    : classes?.TileOuterNoTopBar) + " relative group"
+                            }
+                        >
+                            {/* delete */}
+                            {editable && (
+                                <button
+                                    className="absolute right-0 top-0 z-30 cursor-grab"
+                                    onClick={() => {
+                                        removeTile(tile.id);
+                                    }}
+                                >
+                                    <CircleX className="cursor-pointer" />
+                                </button>
+                            )}
+                            {TopBarReplaced && tile.specialEffects?.includes("topBar") && (
+                                <div dangerouslySetInnerHTML={{ __html: TopBarReplaced }} />
+                            )}
+                            {extraHtml && <div dangerouslySetInnerHTML={{ __html: extraHtml }} />}
+                            <div className={classes?.Tile || "border bg-white shadow"}>
+                                <TileComponent {...tile.props} />
+                                {editable && (
+                                    <div
+                                        className="absolute bottom-2 left-2 z-30"
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            openTileMenu(tile.id);
+                                        }}
+                                    >
+                                        <Ellipsis className="cursor-pointer z-50" />
+                                    </div>
+                                )}
+                            </div>
+                            {/* resize handle */}
                             {editable && (
                                 <div
-                                    className="absolute bottom-2 left-2 z-30"
+                                    className="absolute bottom-0 right-0 z-30 h-8 w-8 cursor-se-resize opacity-0"
                                     onMouseDown={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        openTileMenu(tile.id);
+                                        setResizingTile(tile.id);
                                     }}
-                                >
-                                    <Ellipsis className="cursor-pointer z-50" />
-                                </div>
+                                />
+                            )}
+                            {(editable || tile.specialEffects?.includes("movable")) && (
+                                <div
+                                    className="absolute left-0 top-0 z-30 h-7 w-7 cursor-move opacity-0"
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setMovingTile(tile.id);
+                                    }}
+                                />
                             )}
                         </div>
-                        {/* resize handle */}
-                        {editable && (
-                            <div
-                                className="absolute bottom-0 right-0 z-30 h-8 w-8 cursor-se-resize opacity-0"
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setResizingTile(tile.id);
-                                }}
-                            />
-                        )}
-                        {(editable || tile.specialEffects?.includes("movable")) && (
-                            <div
-                                className="absolute left-0 top-0 z-30 h-7 w-7 cursor-move opacity-0"
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setMovingTile(tile.id);
-                                }}
-                            />
-                        )}
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
         </div>
     );
 };

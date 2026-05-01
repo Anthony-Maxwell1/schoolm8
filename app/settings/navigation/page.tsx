@@ -1,14 +1,14 @@
 "use client";
 
 import { useNavigation } from "@/context/navigationContext";
-import { Link as LucidLink } from "lucide-react";
+import { Link as LucidLink, Trash } from "lucide-react";
 import Link from "next/link";
 import { createElement, useState } from "react";
 
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function NavigationSettings() {
-    const { setItems, items, ICON_MAP } = useNavigation();
+    const { setItems, items, ICON_MAP, DEFAULT_ITEMS } = useNavigation();
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     const updateItem = (
@@ -19,6 +19,7 @@ export default function NavigationSettings() {
     };
 
     const removeItem = (index: number) => {
+        if (!confirm("Are you sure you want to delete this navigation item?")) return;
         setItems(items.filter((_, i) => i !== index));
         if (openIndex === index) setOpenIndex(null);
     };
@@ -187,6 +188,29 @@ export default function NavigationSettings() {
                                                                 key={childIndex}
                                                                 className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 transition"
                                                             >
+                                                                <button
+                                                                    className="flex items-center gap-2 bg-red-500/80 p-2 rounded-md"
+                                                                    onClick={() => {
+                                                                        if (
+                                                                            confirm(
+                                                                                "Are you sure you want to delete this sub-item?",
+                                                                            )
+                                                                        ) {
+                                                                            const newItems = [
+                                                                                ...items,
+                                                                            ];
+                                                                            newItems[
+                                                                                index
+                                                                            ].children!.splice(
+                                                                                childIndex,
+                                                                                1,
+                                                                            );
+                                                                            setItems(newItems);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <Trash className="w-3.5 h-3.5 text-white/80 cursor-pointer" />
+                                                                </button>
                                                                 {/* Icon */}
                                                                 <div className="flex items-center justify-center w-8 h-8 rounded-md bg-black/30">
                                                                     {child.icon &&
@@ -309,6 +333,20 @@ export default function NavigationSettings() {
                             Add Item
                         </button>
                     </details>
+                    <button
+                        className="w-full px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium transition"
+                        onClick={() => {
+                            if (
+                                confirm(
+                                    "Are you sure you want to reset the navigation to its default state?",
+                                )
+                            ) {
+                                setItems(DEFAULT_ITEMS);
+                            }
+                        }}
+                    >
+                        Reset to default
+                    </button>
                     <Link
                         href="/settings/appearance"
                         className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 text-white py-4 transition"

@@ -751,8 +751,7 @@ export default function AppearanceSettings() {
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
-                                \{" "}
+                                </Link>{" "}
                             </div>
                             <h3 className="text-white text-xl font-bold mt-6">Tile Themes</h3>
                             <p className="mt-1 text-sm text-white/80">

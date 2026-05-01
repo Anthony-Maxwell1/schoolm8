@@ -115,10 +115,23 @@ export default function EditorPage() {
                 }
 
                 if (dragType === "panel") {
+                    const isRight = e.clientX > rect.left + rect.width / 2;
+                    const isBottom = e.clientY > rect.top + rect.height / 2;
+
+                    let anchor: "left" | "right" | "top" | "bottom" = "left";
+
+                    if (
+                        Math.abs(e.clientX - rect.left - rect.width / 2) >
+                        Math.abs(e.clientY - rect.top - rect.height / 2)
+                    ) {
+                        anchor = isRight ? "right" : "left";
+                    } else {
+                        anchor = isBottom ? "bottom" : "top";
+                    }
                     addPanel({
                         id: crypto.randomUUID(),
                         registryId: draggingNode.id,
-                        anchor: "left",
+                        anchor,
                         size: 0.25,
                         props: draggingNode.defaultProps ?? {},
                     });

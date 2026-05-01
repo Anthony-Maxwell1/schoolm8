@@ -26,6 +26,7 @@ type NavigationContextValue = {
     sidebarCollapsed: boolean;
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
     ICON_MAP: Record<string, ComponentType<{ className?: string }>>;
+    DEFAULT_ITEMS: NavigationItem[];
 };
 
 const NavigationContext = createContext<NavigationContextValue | undefined>(undefined);
@@ -149,7 +150,7 @@ export function NavigationProvider({
     });
 
     const value = useMemo(
-        () => ({ items, setItems, sidebarCollapsed, setSidebarCollapsed, ICON_MAP }),
+        () => ({ items, setItems, sidebarCollapsed, setSidebarCollapsed, ICON_MAP, DEFAULT_ITEMS }),
         [items, sidebarCollapsed],
     );
 

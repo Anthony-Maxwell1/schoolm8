@@ -24,6 +24,12 @@ export default function Settings() {
                     <button className="text-left w-full p-3 transition text-blue-300 hover:bg-black/5 cursor-pointer">
                         Change email
                     </button>
+                    <a
+                        className="text-left w-full p-3 transition text-red-700 hover:bg-black/5 cursor-pointer"
+                        href="/settings/account/delete"
+                    >
+                        Delete account
+                    </a>
                 </div>
             </div>
         </div>

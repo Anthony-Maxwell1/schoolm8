@@ -274,6 +274,31 @@ export const saveTimetableDay = async (
         );
 };
 
+export const deleteThemesByUser = async (userId: string) => {
+    const snapshot = await db.collection("themes").where("owner", "==", userId).get();
+    const batch = db.batch();
+    snapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+    return batch.commit();
+};
+
+export const deleteData = async (userId: string) => {
+    try {
+        await db.collection("lms").doc(userId).delete();
+    } catch (error) {}
+    try {
+        await db.collection("timetable").doc(userId).delete();
+    } catch (error) {}
+    try {
+        await deleteThemesByUser(userId);
+    } catch (error) {}
+
+    try {
+        await db.collection("users").doc(userId).delete();
+    } catch (error) {}
+};
+
 /**
  * Get timetable configuration
  */

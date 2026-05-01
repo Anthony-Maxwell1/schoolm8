@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebaseClient";
 import {
     signInWithEmailAndPassword,
@@ -21,6 +21,15 @@ export default function SignInPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [resendBtn, setResendBtn] = useState(false);
+    const query = new URLSearchParams(window.location.search);
+    const message = query.get("message");
+    const redirectUrl = query.get("redirect") || "/dashboard";
+
+    useEffect(() => {
+        if (message) {
+            setError(message);
+        }
+    }, [message]);
 
     const resetPassword = () => {
         if (!email) {
@@ -62,7 +71,7 @@ export default function SignInPage() {
                 if (data.created) {
                     router.push("/onboarding");
                 } else {
-                    router.push("/dashboard");
+                    router.push(redirectUrl);
                 }
             })
             .catch((err: any) => {
