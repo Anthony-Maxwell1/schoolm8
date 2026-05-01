@@ -22,6 +22,9 @@ type LayoutContextType = {
 
     saveState(): void;
 
+    setPage(id: string, newData: Partial<Page>): void;
+    deletePage(id: string): void;
+
     gridSize: GridSize;
 };
 
@@ -53,6 +56,9 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
         window.addEventListener("resize", handler);
         return () => window.removeEventListener("resize", handler);
     }, []);
+    useEffect(() => {
+        localStorage.setItem("dashboard_pages", JSON.stringify(pages));
+    }, [pages]);
 
     const currentPage = useMemo(
         () => pages.find((p) => p.id === currentPageId) ?? null,
@@ -67,15 +73,17 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
     /* Pages */
     const addPage = () => {
         const id = crypto.randomUUID();
-        setPages((p) => [...p, { id, tiles: [], panels: [] }]);
+        setPages((p) => [...p, { id, tiles: [], panels: [], label: `Page ${p.length + 1}` }]);
         setCurrentPageId(id);
-        saveState();
     };
 
     const removePage = (id: string) => {
         setPages((p) => p.filter((pg) => pg.id !== id));
         if (currentPageId === id) setCurrentPageId(null);
-        saveState();
+    };
+
+    const setPage = (id: string, newData: Partial<Page>) => {
+        setPages((p) => p.map((pg) => (pg.id === id ? { ...pg, ...newData } : pg)));
     };
 
     /* Tiles */
@@ -85,7 +93,6 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
         setPages((p) =>
             p.map((pg) => (pg.id === currentPage.id ? { ...pg, tiles: [...pg.tiles, tile] } : pg)),
         );
-        saveState();
     };
 
     const updateTile = (tile: TileInstance) => {
@@ -100,7 +107,6 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
                     : pg,
             ),
         );
-        saveState();
     };
 
     const removeTile = (id: string) => {
@@ -127,7 +133,6 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
                 return { ...pg, panels: [...pg.panels, panel] };
             }),
         );
-        saveState();
     };
 
     const removePanel = (id: string) => {
@@ -142,12 +147,18 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
                     : pg,
             ),
         );
+    };
+
+    const deletePage = (id: string) => {
+        setPages((p) => p.filter((pg) => pg.id !== id));
+        if (currentPageId === id) setCurrentPageId(null);
         saveState();
     };
 
     return (
         <LayoutContext.Provider
             value={{
+                deletePage,
                 pages,
                 currentPageId,
                 currentPage,
@@ -161,6 +172,7 @@ export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
                 removePanel,
                 gridSize,
                 saveState,
+                setPage,
             }}
         >
             {children}

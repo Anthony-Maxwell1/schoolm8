@@ -23,6 +23,7 @@ export type Page = {
     id: string;
     tiles: TileInstance[];
     panels: PanelInstance[];
+    label: string;
 };
 
 export type GridSize = {

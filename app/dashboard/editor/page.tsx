@@ -54,7 +54,11 @@ export default function EditorPage() {
         addPage,
         pages,
         setCurrentPage,
+        setPage,
+        deletePage,
     } = useLayout();
+
+    const [pageEditorOpen, setPageEditorOpen] = useState(false);
 
     const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -168,6 +172,114 @@ export default function EditorPage() {
 
     return (
         <div className="h-screen flex relative">
+            {pageEditorOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden">
+                        {/* HEADER */}
+                        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">Page Editor</h2>
+
+                                <p className="text-sm text-gray-500">
+                                    Edit page details and settings
+                                </p>
+                            </div>
+
+                            <button
+                                className="
+                    rounded-md px-2 py-1 text-sm text-gray-500
+                    transition hover:bg-gray-100 hover:text-gray-700
+                "
+                                onClick={() => setPageEditorOpen(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* CONTENT */}
+                        <div className="flex flex-col gap-4 px-5 py-4">
+                            {/* Label */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Page Label
+                                </label>
+
+                                <input
+                                    type="text"
+                                    placeholder="Enter page label..."
+                                    value={currentPage?.label || ""}
+                                    onChange={(a) => {
+                                        setPage(currentPage?.id || "", {
+                                            label: a.target.value,
+                                        });
+                                    }}
+                                    className="
+                        rounded-lg border border-gray-200
+                        px-3 py-2 text-sm
+                        outline-none transition
+                        focus:border-blue-400 focus:ring-2 focus:ring-blue-100
+                    "
+                                />
+                            </div>
+
+                            {/* DANGER ZONE */}
+                            <div className="rounded-xl border border-red-100 bg-red-50 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-red-700">
+                                            Delete Page
+                                        </h3>
+
+                                        <p className="mt-1 text-xs text-red-600">
+                                            This action cannot be undone.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        className="
+                            rounded-lg bg-red-500 px-3 py-1.5
+                            text-sm font-medium text-white
+                            transition hover:bg-red-600
+                        "
+                                        onClick={() => {
+                                            if (confirm("Delete page?")) {
+                                                deletePage(currentPage?.id || "");
+                                                setPageEditorOpen(false);
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* FOOTER */}
+                        <div className="flex justify-end gap-2 border-t border-gray-100 px-5 py-4">
+                            <button
+                                className="
+                    rounded-lg px-4 py-2 text-sm font-medium
+                    text-gray-600 transition hover:bg-gray-100
+                "
+                                onClick={() => setPageEditorOpen(false)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                className="
+                    rounded-lg bg-blue-500 px-4 py-2
+                    text-sm font-medium text-white
+                    transition hover:bg-blue-600
+                "
+                                onClick={() => setPageEditorOpen(false)}
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {globalEditorOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white p-4 rounded shadow-lg w-96">
@@ -234,8 +346,13 @@ export default function EditorPage() {
                         key={p.id}
                         className="block w-full text-left p-1"
                         onClick={() => setCurrentPage(p.id)}
+                        onContextMenu={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(p.id);
+                            setPageEditorOpen(true);
+                        }}
                     >
-                        {p.id}
+                        {p.label}
                     </button>
                 ))}
             </aside>

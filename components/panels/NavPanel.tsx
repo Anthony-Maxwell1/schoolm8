@@ -13,7 +13,7 @@ export const NavPanel = () => {
                     }`}
                     onClick={() => setCurrentPage(p.id)}
                 >
-                    {p.id}
+                    {p.label}
                 </button>
             ))}
         </div>
