@@ -180,6 +180,42 @@ export const getLMSAssignments = async (userId: string) => {
     return assignments;
 };
 
+export const getDueLMSAssignments = async (userId: string) => {
+    const snapshot = await getLMSAssignmentsRef(userId).get();
+    const assignments: any[] = [];
+    const now = Date.now();
+
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+
+        if (data.dueAt && new Date(data.dueAt).getTime() > now) {
+            assignments.push({
+                id: doc.id,
+                ...data,
+            });
+        }
+    });
+
+    return assignments;
+};
+
+export const markCompletedOverride = async (
+    userId: string,
+    assignmentId: string,
+    completed: boolean,
+) => {
+    const assignmentRef = getLMSAssignmentsRef(userId).doc(assignmentId);
+    await assignmentRef.set(
+        {
+            finishedOverride: completed,
+            overriddenFields: ["finishedOverride"],
+        },
+        { merge: true },
+    );
+    const updatedDoc = await assignmentRef.get();
+    return updatedDoc.exists ? updatedDoc.data() : null;
+};
+
 /**
  * Get a user's LMS announcements
  */

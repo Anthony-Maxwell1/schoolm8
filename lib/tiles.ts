@@ -26,6 +26,7 @@ import {
     B as CurrClassStyleB,
 } from "@/components/tiles/Timetable/CurrentClass";
 import { NavPanel } from "@/components/panels/NavPanel";
+import { A as LMSTodoStyleA, B as LMSTodoStyleB } from "@/components/tiles/Lms/Todo";
 
 /* =======================
    Tile Registry
@@ -47,6 +48,24 @@ export const TileRegistry: RegistryRoot = [
                 label: "Weather",
                 component: WeatherTile,
                 defaultProps: { location: "Sydney" },
+            },
+        ],
+    },
+    {
+        id: "lms",
+        label: "LMS",
+        children: [
+            {
+                id: "todo-a",
+                label: "To-Do List (Style A)",
+                component: LMSTodoStyleA,
+                defaultProps: {},
+            },
+            {
+                id: "todo-b",
+                label: "To-Do List (Style B)",
+                component: LMSTodoStyleB,
+                defaultProps: {},
             },
         ],
     },

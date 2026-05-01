@@ -70,6 +70,8 @@ export type LMSAssignment = {
     updatedAt: string;
     createdAt: string;
 
+    finishedOverride?: boolean;
+
     overriddenFields: string[];
     type: "LMSAssignment";
 };
