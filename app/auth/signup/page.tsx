@@ -144,7 +144,7 @@ export default function SignUpPage() {
                             onClick={handleGoogleSignup}
                             disabled={loading}
                         >
-                            {loading ? "Signing in..." : "Sign Up with Google"}
+                            {loading ? "Signing Up..." : "Sign Up with Google"}
                         </button>
                     </div>
                 </div>
