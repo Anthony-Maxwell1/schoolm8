@@ -449,3 +449,29 @@ export const deleteThemeData = async (themeId: string) => {
     const docRef = db.collection("themes").doc(themeId);
     await docRef.delete();
 };
+
+/**
+ * Knowledge Base Schema
+ */
+
+export interface KnowledgeBasePage {
+    id: string;
+    title: string;
+    content: string;
+    children: KnowledgeBasePage[];
+}
+
+export interface KnowledgeBase {
+    pages: KnowledgeBasePage[];
+}
+
+export const getKnowledgeBaseRef = (userId: string) => db.collection("knowledgeBases").doc(userId);
+
+export const saveKnowledgeBase = async (userId: string, kbData: KnowledgeBase) => {
+    return getKnowledgeBaseRef(userId).set(removeUndefinedDeep(kbData), { merge: true });
+};
+
+export const getKnowledgeBase = async (userId: string) => {
+    const doc = await getKnowledgeBaseRef(userId).get();
+    return doc.exists ? doc.data() : null;
+};
