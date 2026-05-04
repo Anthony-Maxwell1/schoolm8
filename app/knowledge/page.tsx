@@ -26,7 +26,7 @@ const defaultKnowledgeBase: KnowledgeBase = {
 export default function KnowledgeBaseApp() {
     const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBase>(defaultKnowledgeBase);
 
-    const { token } = useAuth();
+    const { loading: loading_, user, token } = useAuth();
 
     const [loading, setLoading] = useState(true);
 
@@ -49,6 +49,7 @@ export default function KnowledgeBaseApp() {
      * 2. Fetch from server and override cache
      */
     useEffect(() => {
+        if (loading_ || !token) return;
         const loadFromServer = async () => {
             try {
                 const res = await fetch("/api/knowledge/get", {
@@ -72,7 +73,7 @@ export default function KnowledgeBaseApp() {
         };
 
         loadFromServer();
-    }, []);
+    }, [token, loading_]);
 
     /**
      * 3. Update both localStorage + server
