@@ -25,6 +25,8 @@ import {
     Link as LinkIcon,
     Code,
     FileText,
+    Minimize2,
+    Maximize2,
 } from "lucide-react";
 import { useAuth } from "@/context/authContext";
 import { useRef } from "react";
@@ -105,6 +107,16 @@ export const getTagIcon = (type: TagType): string => {
     return icons[type];
 };
 
+function sanitizeBlocks(blocks: PartialBlock[]): PartialBlock[] {
+    return blocks.map((block) => ({
+        ...block,
+        content: Array.isArray((block as any).content) ? (block as any).content : [],
+        children: Array.isArray((block as any).children)
+            ? sanitizeBlocks((block as any).children)
+            : [],
+    }));
+}
+
 // ─── Entry Page Editor ───────────────────────────────────────────────────────
 // A self-contained BlockNote editor for a database entry's page content.
 function EntryPageEditor({
@@ -119,14 +131,15 @@ function EntryPageEditor({
     allPages: KnowledgeBasePage[];
 }) {
     const schema = useMemo(() => createCustomSchema(allPages), [allPages]);
-    const initialContent = useMemo(
-        () =>
-            entry.pageContent && entry.pageContent.length > 0
-                ? entry.pageContent
-                : [{ type: "paragraph" as const, content: [] }],
+    const initialContent = useMemo((): PartialBlock[] => {
+        if (!entry.pageContent || entry.pageContent.length === 0) {
+            return [{ type: "paragraph", content: [] }];
+        }
+        const sanitized = sanitizeBlocks(entry.pageContent);
+        // BlockNote requires at least one block with defined content
+        return sanitized.length > 0 ? sanitized : [{ type: "paragraph", content: [] }];
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [entry.id],
-    );
+    }, [entry.id]);
 
     const editor = useCreateBlockNote({ initialContent, schema });
 
@@ -589,11 +602,14 @@ function DatabaseBlock({
                                                     className={`transition-colors ${openEntryId === entry.id ? "text-blue-500" : "text-zinc-500 group-hover/name:text-blue-500"}`}
                                                 />
                                             </div>
-                                            <span
-                                                className={`text-sm font-medium truncate max-w-32 transition-colors ${openEntryId === entry.id ? "text-blue-600" : "text-zinc-800 group-hover/name:text-blue-600"}`}
-                                            >
-                                                {entry.name || "Untitled"}
-                                            </span>
+                                            <input
+                                                className="text-sm font-medium text-zinc-800 bg-transparent outline-none border-b border-transparent hover:border-zinc-300 focus:border-blue-500 truncate max-w-32"
+                                                value={entry.name || "Untitled"}
+                                                onChange={(e) =>
+                                                    updateEntryName(entry.id, e.target.value)
+                                                }
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
                                         </button>
                                         <button
                                             onClick={(e) => {
@@ -903,6 +919,12 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
     const [rightPanel, setRightPanel] = useState<React.ReactNode | null>(null);
+    const [rightPanelExpanded, setRightPanelExpanded] = useState(false);
+
+    const handleSetRightPanel = (node: React.ReactNode | null) => {
+        if (!node) setRightPanelExpanded(false);
+        setRightPanel(node);
+    };
 
     useEffect(() => {
         if (!selectedPageId && knowledgeBase.pages.length > 0)
@@ -1001,13 +1023,13 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
             {/* Editor + Right Panel */}
             <div className="flex flex-1 overflow-hidden">
                 <div
-                    className={`${rightPanel ? "flex-1" : "w-full"} overflow-hidden transition-all duration-300`}
+                    className={`${rightPanel && !rightPanelExpanded ? "flex-1" : rightPanel && rightPanelExpanded ? "hidden" : "w-full"} overflow-hidden transition-all duration-300`}
                 >
                     <PageEditor
                         key={selectedPage.id}
                         page={selectedPage}
                         allPages={knowledgeBase.pages}
-                        setRightPanel={setRightPanel}
+                        setRightPanel={handleSetRightPanel}
                         onChange={(updatedPage) => {
                             setKnowledgeBase({
                                 ...knowledgeBase,
@@ -1021,9 +1043,23 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
                     />
                 </div>
 
-                {/* Right panel slot */}
                 {rightPanel && (
-                    <div className="w-[460px] shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col">
+                    <div
+                        className={`${rightPanelExpanded ? "flex-1" : "w-[460px]"} shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col transition-all duration-300`}
+                    >
+                        <div className="flex items-center justify-end px-2 py-1 border-b border-zinc-100 bg-zinc-50 shrink-0">
+                            <button
+                                onClick={() => setRightPanelExpanded((v) => !v)}
+                                className="p-1.5 rounded hover:bg-zinc-200 text-zinc-500 hover:text-zinc-700 transition-colors"
+                                title={rightPanelExpanded ? "Collapse panel" : "Expand panel"}
+                            >
+                                {rightPanelExpanded ? (
+                                    <Minimize2 size={14} />
+                                ) : (
+                                    <Maximize2 size={14} />
+                                )}
+                            </button>
+                        </div>
                         {rightPanel}
                     </div>
                 )}
@@ -1300,8 +1336,16 @@ function PageEditor({
         () => createCustomSchema(allPages, setRightPanel),
         [allPages, setRightPanel],
     );
-    const editor = useCreateBlockNote({ initialContent: page.blocks, schema });
-
+    const editor = useCreateBlockNote({
+        initialContent: (() => {
+            const blocks =
+                page.blocks && page.blocks.length > 0
+                    ? sanitizeBlocks(page.blocks as PartialBlock[])
+                    : [{ type: "paragraph" as const, content: [] }];
+            return blocks;
+        })(),
+        schema,
+    });
     useEffect(() => {
         let timeout: ReturnType<typeof setTimeout>;
 
