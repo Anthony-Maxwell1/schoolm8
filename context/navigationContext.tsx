@@ -48,7 +48,7 @@ const DEFAULT_ITEMS: NavigationItem[] = [
     },
     {
         id: "notes",
-        label: "Notes",
+        label: "Quick Notes",
         href: "/notes",
         icon: "StickyNote",
         visible: true,
@@ -62,6 +62,13 @@ const DEFAULT_ITEMS: NavigationItem[] = [
                 visible: true,
             },
         ],
+    },
+    {
+        id: "knowledge",
+        label: "Knowledge Base",
+        href: "/knowledge",
+        icon: "Book",
+        visible: true,
     },
     {
         id: "LMS",
