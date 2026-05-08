@@ -7,7 +7,7 @@ import "@blocknote/core/fonts/inter.css";
 // @ts-ignore
 import "@blocknote/mantine/style.css";
 
-import { BlockNoteEditor, PartialBlock, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
+import { PartialBlock, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 import {
     createReactBlockSpec,
     getDefaultReactSlashMenuItems,
@@ -69,28 +69,17 @@ export type ParsedTag = {
     display: string;
 };
 
-// Tag parsing and validation utilities
 export const parseTag = (tag: string): ParsedTag | null => {
     const match = tag.match(/^([^:]+):(.+)$/);
     if (!match) return null;
-
     const [, type, value] = match;
     const normalizedType = type.toLowerCase();
-
-    if (!["course", "assignment", "date", "class", "generic", "number"].includes(normalizedType)) {
+    if (!["course", "assignment", "date", "class", "generic", "number"].includes(normalizedType))
         return null;
-    }
-
-    return {
-        type: normalizedType as TagType,
-        value,
-        display: value,
-    };
+    return { type: normalizedType as TagType, value, display: value };
 };
 
-export const formatTag = (type: TagType, value: string): string => {
-    return `${type}:${value}`;
-};
+export const formatTag = (type: TagType, value: string): string => `${type}:${value}`;
 
 export const getTagColor = (type: TagType): string => {
     const colors: Record<TagType, string> = {
@@ -116,21 +105,92 @@ export const getTagIcon = (type: TagType): string => {
     return icons[type];
 };
 
-// Create BlockNote custom block specs
-const createDatabaseBlockSpec = (allPages: KnowledgeBasePage[]) =>
+// ─── Entry Page Editor ───────────────────────────────────────────────────────
+// A self-contained BlockNote editor for a database entry's page content.
+function EntryPageEditor({
+    entry,
+    onClose,
+    onSave,
+    allPages,
+}: {
+    entry: DatabaseEntry;
+    onClose: () => void;
+    onSave: (entryId: string, blocks: PartialBlock[]) => void;
+    allPages: KnowledgeBasePage[];
+}) {
+    const schema = useMemo(() => createCustomSchema(allPages), [allPages]);
+    const initialContent = useMemo(
+        () =>
+            entry.pageContent && entry.pageContent.length > 0
+                ? entry.pageContent
+                : [{ type: "paragraph" as const, content: [] }],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [entry.id],
+    );
+
+    const editor = useCreateBlockNote({ initialContent, schema });
+
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout>;
+
+        editor.onEditorContentChange(() => {
+            clearTimeout(timeout);
+
+            timeout = setTimeout(() => {
+                onSave(entry.id, editor.document as PartialBlock[]);
+            }, 500);
+        });
+
+        return () => {
+            clearTimeout(timeout);
+        };
+    }, [editor, entry.id, onSave]);
+
+    return (
+        <div className="flex flex-col h-full">
+            {/* Panel header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200 bg-zinc-50 shrink-0">
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded bg-zinc-200 flex items-center justify-center shrink-0">
+                        <FileText size={13} className="text-zinc-600" />
+                    </div>
+                    <span className="text-sm font-semibold text-zinc-900 truncate">
+                        {entry.name || "Untitled"}
+                    </span>
+                </div>
+                <button
+                    onClick={onClose}
+                    className="p-1.5 rounded hover:bg-zinc-200 text-zinc-500 hover:text-zinc-700 transition-colors shrink-0"
+                >
+                    <X size={15} />
+                </button>
+            </div>
+
+            {/* Editor */}
+            <div className="flex-1 overflow-y-auto">
+                <div className="px-5 py-5">
+                    <div className="entry-editor">
+                        <BlockNoteView editor={editor} theme="light" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Custom Block Specs ───────────────────────────────────────────────────────
+
+const createDatabaseBlockSpec = (
+    allPages: KnowledgeBasePage[],
+    setRightPanel: (node: React.ReactNode | null) => void,
+) =>
     createReactBlockSpec(
         {
             type: "database",
             propSchema: {
-                title: {
-                    default: "New Database",
-                },
-                columnsJson: {
-                    default: "[]",
-                },
-                entriesJson: {
-                    default: "[]",
-                },
+                title: { default: "New Database" },
+                columnsJson: { default: "[]" },
+                entriesJson: { default: "[]" },
             },
             content: "none",
         },
@@ -138,7 +198,6 @@ const createDatabaseBlockSpec = (allPages: KnowledgeBasePage[]) =>
             render: (props) => {
                 const columns = JSON.parse(props.block.props.columnsJson || "[]");
                 const entries = JSON.parse(props.block.props.entriesJson || "[]");
-
                 return (
                     <DatabaseBlock
                         data={{ title: props.block.props.title, columns, entries }}
@@ -155,6 +214,7 @@ const createDatabaseBlockSpec = (allPages: KnowledgeBasePage[]) =>
                             });
                         }}
                         allPages={allPages}
+                        setRightPanel={setRightPanel}
                     />
                 );
             },
@@ -165,14 +225,7 @@ const createPageLinkBlockSpec = (allPages: KnowledgeBasePage[]) =>
     createReactBlockSpec(
         {
             type: "pageLink",
-            propSchema: {
-                pageId: {
-                    default: "",
-                },
-                pageTitle: {
-                    default: "",
-                },
-            },
+            propSchema: { pageId: { default: "" }, pageTitle: { default: "" } },
             content: "none",
         },
         {
@@ -185,10 +238,7 @@ const createPageLinkBlockSpec = (allPages: KnowledgeBasePage[]) =>
                     onChange={(data) => {
                         props.editor.updateBlock(props.block, {
                             type: "pageLink",
-                            props: {
-                                pageId: data.pageId,
-                                pageTitle: data.pageTitle,
-                            },
+                            props: { pageId: data.pageId, pageTitle: data.pageTitle },
                         });
                     }}
                     allPages={allPages}
@@ -201,30 +251,17 @@ const createEmbedBlockSpec = () =>
     createReactBlockSpec(
         {
             type: "embed",
-            propSchema: {
-                url: {
-                    default: "",
-                },
-                title: {
-                    default: "",
-                },
-            },
+            propSchema: { url: { default: "" }, title: { default: "" } },
             content: "none",
         },
         {
             render: (props) => (
                 <EmbedBlock
-                    data={{
-                        url: props.block.props.url,
-                        title: props.block.props.title,
-                    }}
+                    data={{ url: props.block.props.url, title: props.block.props.title }}
                     onChange={(data) => {
                         props.editor.updateBlock(props.block, {
                             type: "embed",
-                            props: {
-                                url: data.url,
-                                title: data.title,
-                            },
+                            props: { url: data.url, title: data.title },
                         });
                     }}
                 />
@@ -232,19 +269,23 @@ const createEmbedBlockSpec = () =>
         },
     );
 
-// Create the custom schema with our blocks
-const createCustomSchema = (allPages: KnowledgeBasePage[]) => {
+const createCustomSchema = (
+    allPages: KnowledgeBasePage[],
+    setRightPanel?: (node: React.ReactNode | null) => void,
+) => {
+    const noop = () => {};
     return BlockNoteSchema.create({
         blockSpecs: {
             ...defaultBlockSpecs,
-            database: createDatabaseBlockSpec(allPages)(), // call () to get BlockSpec
+            database: createDatabaseBlockSpec(allPages, setRightPanel ?? noop)(),
             pageLink: createPageLinkBlockSpec(allPages)(),
             embed: createEmbedBlockSpec()(),
         },
     });
 };
 
-// Database Block Component
+// ─── Database Block ───────────────────────────────────────────────────────────
+
 type SortConfig = { key: string; direction: "asc" | "desc" } | null;
 
 function DatabaseBlock({
@@ -253,6 +294,7 @@ function DatabaseBlock({
     columns,
     onChange,
     allPages,
+    setRightPanel,
 }: {
     data?: DatabaseBlockData;
     title?: string;
@@ -263,6 +305,7 @@ function DatabaseBlock({
         entries: DatabaseEntry[],
     ) => void;
     allPages: KnowledgeBasePage[];
+    setRightPanel: (node: React.ReactNode | null) => void;
 }) {
     const [dbTitle, setDbTitle] = useState(title || "New Database");
     const [dbColumns, setDbColumns] = useState<{ key: string; type: TagType }[]>(columns || []);
@@ -275,10 +318,14 @@ function DatabaseBlock({
     const [newColType, setNewColType] = useState<TagType>("generic");
     const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
     const [showFilters, setShowFilters] = useState(false);
-    const [openPageEntryId, setOpenPageEntryId] = useState<string | null>(null);
-    const openPageEntry = openPageEntryId ? dbEntries.find((e) => e.id === openPageEntryId) : null;
+    const [openEntryId, setOpenEntryId] = useState<string | null>(null);
 
-    // Debounced save to avoid thrashing
+    // Keep a ref to latest entries so the panel's onSave closure is always fresh
+    const dbEntriesRef = useRef(dbEntries);
+    useEffect(() => {
+        dbEntriesRef.current = dbEntries;
+    }, [dbEntries]);
+
     const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => {
         if (saveRef.current) clearTimeout(saveRef.current);
@@ -288,27 +335,50 @@ function DatabaseBlock({
         return () => {
             if (saveRef.current) clearTimeout(saveRef.current);
         };
-    }, [dbTitle, dbColumns, dbEntries]); // intentionally omit onChange
+    }, [dbTitle, dbColumns, dbEntries]);
+
+    // Stable callback for the entry editor to save blocks back
+    const handleEntrySave = useRef((entryId: string, blocks: PartialBlock[]) => {
+        setDbEntries((prev) =>
+            prev.map((e) => (e.id === entryId ? { ...e, pageContent: blocks } : e)),
+        );
+    }).current;
+
+    const openEntryPanel = (entry: DatabaseEntry) => {
+        setOpenEntryId(entry.id);
+        setRightPanel(
+            <EntryPageEditor
+                key={entry.id}
+                entry={entry}
+                onClose={() => {
+                    setOpenEntryId(null);
+                    setRightPanel(null);
+                }}
+                onSave={handleEntrySave}
+                allPages={allPages}
+            />,
+        );
+    };
 
     const addColumn = () => {
         if (!newColName.trim()) return;
         const col = { key: newColName.trim(), type: newColType };
-        const updatedCols = [...dbColumns, col];
-        const updatedEntries = dbEntries.map((entry) => ({
-            ...entry,
-            values: { ...entry.values, [col.key]: { type: col.type, value: "" } },
-        }));
-        setDbColumns(updatedCols);
-        setDbEntries(updatedEntries);
+        setDbColumns((prev) => [...prev, col]);
+        setDbEntries((prev) =>
+            prev.map((entry) => ({
+                ...entry,
+                values: { ...entry.values, [col.key]: { type: col.type, value: "" } },
+            })),
+        );
         setNewColName("");
         setNewColType("generic");
         setShowAddColumn(false);
     };
 
     const deleteColumn = (key: string) => {
-        setDbColumns(dbColumns.filter((c) => c.key !== key));
-        setDbEntries(
-            dbEntries.map((entry) => {
+        setDbColumns((prev) => prev.filter((c) => c.key !== key));
+        setDbEntries((prev) =>
+            prev.map((entry) => {
                 const values = { ...entry.values };
                 delete values[key];
                 return { ...entry, values };
@@ -320,17 +390,17 @@ function DatabaseBlock({
         const newEntry: DatabaseEntry = {
             id: crypto.randomUUID(),
             name: "Untitled",
-            pageContent: [{ type: "paragraph", content: [] }],
+            pageContent: [{ type: "paragraph", content: [] }] as PartialBlock[],
             values: Object.fromEntries(
                 dbColumns.map((col) => [col.key, { type: col.type, value: "" }]),
             ),
         };
-        setDbEntries([...dbEntries, newEntry]);
+        setDbEntries((prev) => [...prev, newEntry]);
     };
 
     const updateEntry = (entryId: string, key: string, value: string) => {
-        setDbEntries(
-            dbEntries.map((entry) =>
+        setDbEntries((prev) =>
+            prev.map((entry) =>
                 entry.id === entryId
                     ? {
                           ...entry,
@@ -341,57 +411,54 @@ function DatabaseBlock({
         );
     };
 
+    const updateEntryName = (entryId: string, name: string) => {
+        setDbEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, name } : e)));
+    };
+
     const deleteEntry = (entryId: string) => {
-        setDbEntries(dbEntries.filter((entry) => entry.id !== entryId));
+        setDbEntries((prev) => prev.filter((entry) => entry.id !== entryId));
         if (selectedEntryId === entryId) setSelectedEntryId(null);
+        if (openEntryId === entryId) {
+            setOpenEntryId(null);
+            setRightPanel(null);
+        }
     };
 
     const toggleSort = (key: string) => {
         setSort((prev) => {
-            if (prev?.key === key) {
+            if (prev?.key === key)
                 return prev.direction === "asc" ? { key, direction: "desc" } : null;
-            }
             return { key, direction: "asc" };
         });
     };
 
     const processedEntries = useMemo(() => {
         let result = [...dbEntries];
-
-        // Apply filters
         Object.entries(filters).forEach(([key, filterVal]) => {
             if (!filterVal) return;
             result = result.filter((entry) =>
                 (entry.values[key]?.value || "").toLowerCase().includes(filterVal.toLowerCase()),
             );
         });
-
-        // Apply sort
         if (sort) {
             result.sort((a, b) => {
                 const aVal = a.values[sort.key]?.value || "";
                 const bVal = b.values[sort.key]?.value || "";
                 const col = dbColumns.find((c) => c.key === sort.key);
                 let cmp = 0;
-                if (col?.type === "number") {
-                    cmp = (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0);
-                } else if (col?.type === "date") {
+                if (col?.type === "number") cmp = (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0);
+                else if (col?.type === "date")
                     cmp = new Date(aVal).getTime() - new Date(bVal).getTime();
-                } else {
-                    cmp = aVal.localeCompare(bVal);
-                }
+                else cmp = aVal.localeCompare(bVal);
                 return sort.direction === "asc" ? cmp : -cmp;
             });
         }
-
         return result;
     }, [dbEntries, filters, sort, dbColumns]);
 
-    const selectedEntry = selectedEntryId ? dbEntries.find((e) => e.id === selectedEntryId) : null;
-
     return (
         <div
-            className="my-4 rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden"
+            className="my-4 rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden text-zinc-900 selection:text-inherit"
             contentEditable={false}
         >
             {/* Header */}
@@ -450,228 +517,170 @@ function DatabaseBlock({
                 </div>
             )}
 
-            <div className="flex">
-                {/* Table */}
-                <div className="flex-1 overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                        <thead>
-                            <tr className="border-b border-zinc-200 bg-zinc-50">
-                                <th className="px-3 py-2 text-left font-medium text-zinc-600 border-r border-zinc-100 whitespace-nowrap w-48">
-                                    <div className="flex items-center gap-1 text-xs">
-                                        <FileText size={12} />
-                                        Name
+            {/* Table */}
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                    <thead>
+                        <tr className="border-b border-zinc-200 bg-zinc-50">
+                            <th className="px-3 py-2 text-left font-medium text-zinc-600 border-r border-zinc-100 whitespace-nowrap w-48">
+                                <div className="flex items-center gap-1 text-xs">
+                                    <FileText size={12} /> Name
+                                </div>
+                            </th>
+                            {dbColumns.map((col) => (
+                                <th
+                                    key={col.key}
+                                    className="px-3 py-2 text-left font-medium text-zinc-600 border-r border-zinc-100 last:border-r-0 whitespace-nowrap"
+                                >
+                                    <div className="flex items-center gap-1 group">
+                                        <span className="text-xs">
+                                            {getTagIcon(col.type as TagType)}
+                                        </span>
+                                        <button
+                                            onClick={() => toggleSort(col.key)}
+                                            className="flex items-center gap-1 hover:text-zinc-900 transition-colors"
+                                        >
+                                            {col.key}
+                                            {sort?.key === col.key ? (
+                                                sort.direction === "asc" ? (
+                                                    <ChevronUp size={12} />
+                                                ) : (
+                                                    <ChevronDown size={12} />
+                                                )
+                                            ) : (
+                                                <ChevronsUpDown
+                                                    size={12}
+                                                    className="opacity-0 group-hover:opacity-50"
+                                                />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => deleteColumn(col.key)}
+                                            className="opacity-0 group-hover:opacity-100 ml-1 text-red-400 hover:text-red-600 transition-all"
+                                        >
+                                            <X size={11} />
+                                        </button>
                                     </div>
                                 </th>
-                                {dbColumns.map((col) => (
-                                    <th
-                                        key={col.key}
-                                        className="px-3 py-2 text-left font-medium text-zinc-600 border-r border-zinc-100 last:border-r-0 whitespace-nowrap"
-                                    >
-                                        <div className="flex items-center gap-1 group">
-                                            <span className="text-xs">
-                                                {getTagIcon(col.type as TagType)}
-                                            </span>
-                                            <button
-                                                onClick={() => toggleSort(col.key)}
-                                                className="flex items-center gap-1 hover:text-zinc-900 transition-colors"
-                                            >
-                                                {col.key}
-                                                {sort?.key === col.key ? (
-                                                    sort.direction === "asc" ? (
-                                                        <ChevronUp size={12} />
-                                                    ) : (
-                                                        <ChevronDown size={12} />
-                                                    )
-                                                ) : (
-                                                    <ChevronsUpDown
-                                                        size={12}
-                                                        className="opacity-0 group-hover:opacity-50"
-                                                    />
-                                                )}
-                                            </button>
-                                            <button
-                                                onClick={() => deleteColumn(col.key)}
-                                                className="opacity-0 group-hover:opacity-100 ml-1 text-red-400 hover:text-red-600 transition-all"
-                                            >
-                                                <X size={11} />
-                                            </button>
-                                        </div>
-                                    </th>
-                                ))}
-                                <th className="px-3 py-2 w-8" />
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {processedEntries.map((entry) => (
-                                <tr
-                                    key={entry.id}
-                                    className={`border-b border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors ${selectedEntryId === entry.id ? "bg-blue-50" : ""}`}
-                                    onClick={() =>
-                                        setSelectedEntryId(
-                                            selectedEntryId === entry.id ? null : entry.id,
-                                        )
-                                    }
+                            ))}
+                            <th className="px-3 py-2 w-8" />
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {processedEntries.map((entry) => (
+                            <tr
+                                key={entry.id}
+                                className={`border-b border-zinc-100 hover:bg-zinc-50 transition-colors ${openEntryId === entry.id ? "bg-blue-50" : ""}`}
+                            >
+                                <td
+                                    className="px-3 py-2 border-r border-zinc-100 w-48"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    <td
-                                        className="px-3 py-2 border-r border-zinc-100 w-48"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <div className="flex items-center gap-1.5 group/name">
-                                            <button
-                                                onClick={() => setOpenPageEntryId(entry.id)}
-                                                className="flex items-center gap-1.5 min-w-0 hover:text-blue-600 transition-colors"
+                                    <div className="flex items-center gap-1.5 group/name">
+                                        <button
+                                            onClick={() => openEntryPanel(entry)}
+                                            className="flex items-center gap-1.5 min-w-0 hover:text-blue-600 transition-colors"
+                                        >
+                                            <div
+                                                className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-colors ${openEntryId === entry.id ? "bg-blue-100" : "bg-zinc-100 group-hover/name:bg-blue-100"}`}
                                             >
-                                                <div className="w-5 h-5 rounded bg-zinc-100 flex items-center justify-center flex-shrink-0 group-hover/name:bg-blue-100 transition-colors">
-                                                    <FileText
-                                                        size={11}
-                                                        className="text-zinc-500 group-hover/name:text-blue-500"
-                                                    />
-                                                </div>
-                                                <span className="text-sm font-medium text-zinc-800 truncate max-w-32 group-hover/name:text-blue-600">
-                                                    {entry.name || "Untitled"}
-                                                </span>
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setOpenPageEntryId(entry.id);
-                                                }}
-                                                className="opacity-0 group-hover:opacity-100 ml-auto text-zinc-400 hover:text-blue-500 transition-all"
-                                                title="Open page"
+                                                <FileText
+                                                    size={11}
+                                                    className={`transition-colors ${openEntryId === entry.id ? "text-blue-500" : "text-zinc-500 group-hover/name:text-blue-500"}`}
+                                                />
+                                            </div>
+                                            <span
+                                                className={`text-sm font-medium truncate max-w-32 transition-colors ${openEntryId === entry.id ? "text-blue-600" : "text-zinc-800 group-hover/name:text-blue-600"}`}
                                             >
-                                                <ExternalLink size={11} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                    {dbColumns.map((col) => {
-                                        const cell = entry.values[col.key];
-                                        const isEditing =
-                                            editingCell?.entryId === entry.id &&
-                                            editingCell?.key === col.key;
-
-                                        return (
-                                            <td
-                                                key={col.key}
-                                                className="px-3 py-2 border-r border-zinc-100 last:border-r-0 max-w-xs"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingCell({
-                                                        entryId: entry.id,
-                                                        key: col.key,
-                                                    });
-                                                }}
-                                            >
-                                                {isEditing ? (
-                                                    <input
-                                                        type={
-                                                            col.type === "number"
-                                                                ? "number"
-                                                                : col.type === "date"
-                                                                  ? "date"
-                                                                  : "text"
-                                                        }
-                                                        value={cell?.value || ""}
-                                                        onChange={(e) =>
-                                                            updateEntry(
-                                                                entry.id,
-                                                                col.key,
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        autoFocus
-                                                        className="w-full rounded border border-blue-400 px-2 py-0.5 text-sm outline-none focus:ring-1 focus:ring-blue-500"
-                                                        onBlur={() => setEditingCell(null)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        className={`text-sm ${cell?.value ? "text-zinc-800" : "text-zinc-300"}`}
-                                                    >
-                                                        {cell?.value || "Empty"}
-                                                    </span>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
-                                    <td className="px-2 py-2">
+                                                {entry.name || "Untitled"}
+                                            </span>
+                                        </button>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                deleteEntry(entry.id);
+                                                openEntryPanel(entry);
                                             }}
-                                            className="text-zinc-300 hover:text-red-500 transition-colors"
+                                            className="opacity-0 group-hover/name:opacity-100 ml-auto text-zinc-400 hover:text-blue-500 transition-all"
+                                            title="Open page"
                                         >
-                                            <X size={14} />
+                                            <ExternalLink size={11} />
                                         </button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {processedEntries.length === 0 && (
-                                <tr>
-                                    <td
-                                        colSpan={dbColumns.length + 1}
-                                        className="px-4 py-8 text-center text-sm text-zinc-400"
+                                    </div>
+                                </td>
+                                {dbColumns.map((col) => {
+                                    const cell = entry.values[col.key];
+                                    const isEditing =
+                                        editingCell?.entryId === entry.id &&
+                                        editingCell?.key === col.key;
+                                    return (
+                                        <td
+                                            key={col.key}
+                                            className="px-3 py-2 border-r border-zinc-100 last:border-r-0 max-w-xs"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingCell({ entryId: entry.id, key: col.key });
+                                            }}
+                                        >
+                                            {isEditing ? (
+                                                <input
+                                                    type={
+                                                        col.type === "number"
+                                                            ? "number"
+                                                            : col.type === "date"
+                                                              ? "date"
+                                                              : "text"
+                                                    }
+                                                    value={cell?.value || ""}
+                                                    onChange={(e) =>
+                                                        updateEntry(
+                                                            entry.id,
+                                                            col.key,
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                    autoFocus
+                                                    className="w-full rounded border border-blue-400 px-2 py-0.5 text-sm outline-none focus:ring-1 focus:ring-blue-500 text-zinc-900"
+                                                    onBlur={() => setEditingCell(null)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                            ) : (
+                                                <span
+                                                    className={`text-sm font-medium ${cell?.value ? "text-zinc-800" : "text-zinc-400 italic"}`}
+                                                >
+                                                    {cell?.value || "Empty"}
+                                                </span>
+                                            )}
+                                        </td>
+                                    );
+                                })}
+                                <td className="px-2 py-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteEntry(entry.id);
+                                        }}
+                                        className="text-zinc-300 hover:text-red-500 transition-colors"
                                     >
-                                        No entries
-                                        {Object.values(filters).some(Boolean)
-                                            ? " match your filters"
-                                            : " yet"}
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Entry detail panel */}
-                {selectedEntry && (
-                    <div className="w-72 border-l border-zinc-200 bg-white flex flex-col">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
-                            <span className="text-sm font-semibold text-zinc-900">
-                                Entry Details
-                            </span>
-                            <button
-                                onClick={() => setSelectedEntryId(null)}
-                                className="text-zinc-400 hover:text-zinc-600"
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {dbColumns.map((col) => (
-                                <div key={col.key}>
-                                    <label className="flex items-center gap-1 text-xs font-medium text-zinc-500 mb-1">
-                                        <span>{getTagIcon(col.type as TagType)}</span>
-                                        {col.key}
-                                    </label>
-                                    <input
-                                        type={
-                                            col.type === "number"
-                                                ? "number"
-                                                : col.type === "date"
-                                                  ? "date"
-                                                  : "text"
-                                        }
-                                        value={selectedEntry.values[col.key]?.value || ""}
-                                        onChange={(e) =>
-                                            updateEntry(selectedEntry.id, col.key, e.target.value)
-                                        }
-                                        className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-4 border-t border-zinc-200">
-                            <button
-                                onClick={() => deleteEntry(selectedEntry.id)}
-                                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 transition-colors"
-                            >
-                                <X size={14} /> Delete Entry
-                            </button>
-                        </div>
-                    </div>
-                )}
+                                        <X size={14} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {processedEntries.length === 0 && (
+                            <tr>
+                                <td
+                                    colSpan={dbColumns.length + 2}
+                                    className="px-4 py-8 text-center text-sm text-zinc-400"
+                                >
+                                    No entries
+                                    {Object.values(filters).some(Boolean)
+                                        ? " match your filters"
+                                        : " yet"}
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {/* Add Column Modal */}
@@ -722,7 +731,9 @@ function DatabaseBlock({
         </div>
     );
 }
-// Page Link Block Component
+
+// ─── Page Link Block ──────────────────────────────────────────────────────────
+
 function PageLinkBlock({
     data,
     onChange,
@@ -734,17 +745,18 @@ function PageLinkBlock({
 }) {
     const [showDropdown, setShowDropdown] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-
     const allPagesList = flattenPages(allPages);
     const filteredPages = allPagesList.filter((p) =>
         p.title.toLowerCase().includes(searchQuery.toLowerCase()),
     );
-
     const selectedPageTitle =
         allPagesList.find((p) => p.id === data.pageId)?.title || "Select a page...";
 
     return (
-        <div className="my-2 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
+        <div
+            className="my-2 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-zinc-900"
+            contentEditable={false}
+        >
             <LinkIcon size={16} className="text-blue-600" />
             <div className="relative flex-1">
                 <button
@@ -756,7 +768,6 @@ function PageLinkBlock({
                     </span>
                     {data.pageId && <ExternalLink size={14} className="text-blue-600" />}
                 </button>
-
                 {showDropdown && (
                     <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-lg border border-zinc-300 bg-white shadow-lg">
                         <input
@@ -764,7 +775,7 @@ function PageLinkBlock({
                             placeholder="Search pages..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full border-b border-zinc-200 px-3 py-2 text-sm placeholder-zinc-400 outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full border-b border-zinc-200 px-3 py-2 text-sm outline-none"
                             autoFocus
                         />
                         <div className="max-h-48 overflow-y-auto">
@@ -780,7 +791,7 @@ function PageLinkBlock({
                                         setShowDropdown(false);
                                         setSearchQuery("");
                                     }}
-                                    className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-blue-50 border-b border-zinc-100 last:border-b-0 transition-colors"
+                                    className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-blue-50 border-b border-zinc-100 last:border-b-0"
                                 >
                                     <div className="flex items-center gap-2">
                                         {page.depth > 0 && (
@@ -800,7 +811,8 @@ function PageLinkBlock({
     );
 }
 
-// Embed Block Component
+// ─── Embed Block ──────────────────────────────────────────────────────────────
+
 function EmbedBlock({
     data,
     onChange,
@@ -810,7 +822,6 @@ function EmbedBlock({
 }) {
     const [isEditing, setIsEditing] = useState(!data.url);
     const [tempUrl, setTempUrl] = useState(data.url);
-
     const handleSave = () => {
         if (tempUrl.trim()) {
             onChange({ ...data, url: tempUrl.trim() });
@@ -819,11 +830,14 @@ function EmbedBlock({
     };
 
     return (
-        <div className="my-4 rounded-lg border border-zinc-200 p-4 bg-white">
+        <div
+            className="my-4 rounded-lg border border-zinc-200 p-4 bg-white text-zinc-900"
+            contentEditable={false}
+        >
             <div className="mb-2 flex items-center gap-2">
                 <Code size={18} className="text-zinc-600" />
                 {!isEditing && data.url && (
-                    <span className="text-xs text-zinc-500">{data.url}</span>
+                    <span className="text-xs text-zinc-500 truncate flex-1">{data.url}</span>
                 )}
                 <button
                     onClick={() => {
@@ -835,7 +849,6 @@ function EmbedBlock({
                     {isEditing ? "Cancel" : "Edit URL"}
                 </button>
             </div>
-
             {isEditing ? (
                 <div className="space-y-2">
                     <input
@@ -843,13 +856,13 @@ function EmbedBlock({
                         value={tempUrl}
                         onChange={(e) => setTempUrl(e.target.value)}
                         placeholder="https://example.com"
-                        className="w-full rounded border border-zinc-300 px-3 py-2 text-sm placeholder-zinc-400 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded border border-zinc-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                         autoFocus
                     />
                     <button
                         onClick={handleSave}
                         disabled={!tempUrl.trim()}
-                        className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                     >
                         Embed
                     </button>
@@ -872,129 +885,154 @@ function EmbedBlock({
     );
 }
 
-// Helper function to flatten page tree
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function flattenPages(
     pages: KnowledgeBasePage[],
-    depth: number = 0,
+    depth = 0,
 ): (KnowledgeBasePage & { depth: number })[] {
     return pages.flatMap((page) => [{ ...page, depth }, ...flattenPages(page.children, depth + 1)]);
 }
 
-export type KnowledgeBase = {
-    pages: KnowledgeBasePage[];
-};
+export type KnowledgeBase = { pages: KnowledgeBasePage[] };
+type Props = { knowledgeBase: KnowledgeBase; setKnowledgeBase: (kb: KnowledgeBase) => void };
 
-type Props = {
-    knowledgeBase: KnowledgeBase;
-    setKnowledgeBase: (kb: KnowledgeBase) => void;
-};
+// ─── Root Component ───────────────────────────────────────────────────────────
 
 export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }: Props) {
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+    const [sidebarExpanded, setSidebarExpanded] = useState(true);
+    const [rightPanel, setRightPanel] = useState<React.ReactNode | null>(null);
 
-    // Get first page automatically
     useEffect(() => {
-        if (!selectedPageId && knowledgeBase.pages.length > 0) {
+        if (!selectedPageId && knowledgeBase.pages.length > 0)
             setSelectedPageId(knowledgeBase.pages[0].id);
-        }
     }, [knowledgeBase.pages, selectedPageId]);
 
-    const selectedPage = useMemo(() => {
-        return findPageById(knowledgeBase.pages, selectedPageId);
-    }, [knowledgeBase.pages, selectedPageId]);
+    const selectedPage = useMemo(
+        () => findPageById(knowledgeBase.pages, selectedPageId),
+        [knowledgeBase.pages, selectedPageId],
+    );
 
-    if (!selectedPage) {
-        return <div className="flex h-screen items-center justify-center">No page selected</div>;
-    }
+    if (!selectedPage)
+        return (
+            <div className="flex h-screen items-center justify-center text-zinc-500">
+                No page selected
+            </div>
+        );
 
     return (
         <div className="flex h-screen overflow-hidden bg-white">
             {/* Sidebar */}
-            <div className="w-72 border-r border-zinc-200 overflow-y-auto bg-linear-to-b from-white to-zinc-50 flex flex-col">
-                {/* Header */}
+            <div
+                className={`${sidebarExpanded ? "w-72" : "w-16"} border-r border-zinc-200 overflow-y-auto bg-gradient-to-b from-white to-zinc-50 flex flex-col transition-all duration-300 shrink-0`}
+            >
                 <div className="sticky top-0 bg-white border-b border-zinc-200 px-5 py-6 z-10">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                        <div
+                            className={`flex items-center gap-2 ${!sidebarExpanded && "justify-center w-full"}`}
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
                                 <TagIcon className="text-white" size={18} />
                             </div>
-                            <h1 className="text-lg font-bold text-zinc-900">Knowledge Base</h1>
+                            {sidebarExpanded && (
+                                <h1 className="text-lg font-bold text-zinc-900 whitespace-nowrap">
+                                    Knowledge Base
+                                </h1>
+                            )}
                         </div>
+                        <button
+                            onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                            className={`p-1 hover:bg-zinc-100 rounded transition-colors ${sidebarExpanded && "ml-2"}`}
+                        >
+                            <ChevronUp
+                                size={18}
+                                className={`text-zinc-600 transition-transform ${sidebarExpanded ? "" : "rotate-90"}`}
+                            />
+                        </button>
                     </div>
                 </div>
-
-                {/* Pages List */}
-                <div className="flex-1 overflow-y-auto px-3 py-4">
-                    <div className="mb-3 px-2">
-                        <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
-                            Pages
-                        </h2>
+                {sidebarExpanded && (
+                    <div className="flex-1 overflow-y-auto px-3 py-4">
+                        <div className="mb-3 px-2">
+                            <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                                Pages
+                            </h2>
+                        </div>
+                        <PageTree
+                            pages={knowledgeBase.pages}
+                            selectedPageId={selectedPageId}
+                            setSelectedPageId={(id) => {
+                                setSelectedPageId(id);
+                                setRightPanel(null);
+                            }}
+                            knowledgeBase={knowledgeBase}
+                            setKnowledgeBase={setKnowledgeBase}
+                            level={0}
+                        />
                     </div>
+                )}
+                {sidebarExpanded && (
+                    <div className="border-t border-zinc-200 p-4 bg-white sticky bottom-0">
+                        <button
+                            className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
+                            onClick={() => {
+                                const newPage: KnowledgeBasePage = {
+                                    id: crypto.randomUUID(),
+                                    title: "Untitled",
+                                    blocks: [{ type: "paragraph", content: [] }],
+                                    children: [],
+                                };
+                                setKnowledgeBase({
+                                    ...knowledgeBase,
+                                    pages: [...knowledgeBase.pages, newPage],
+                                });
+                                setSelectedPageId(newPage.id);
+                                setRightPanel(null);
+                            }}
+                        >
+                            <Plus size={18} />
+                            <span>New Page</span>
+                        </button>
+                    </div>
+                )}
+            </div>
 
-                    <PageTree
-                        pages={knowledgeBase.pages}
-                        selectedPageId={selectedPageId}
-                        setSelectedPageId={setSelectedPageId}
-                        knowledgeBase={knowledgeBase}
-                        setKnowledgeBase={setKnowledgeBase}
-                        level={0}
+            {/* Editor + Right Panel */}
+            <div className="flex flex-1 overflow-hidden">
+                <div
+                    className={`${rightPanel ? "flex-1" : "w-full"} overflow-hidden transition-all duration-300`}
+                >
+                    <PageEditor
+                        key={selectedPage.id}
+                        page={selectedPage}
+                        allPages={knowledgeBase.pages}
+                        setRightPanel={setRightPanel}
+                        onChange={(updatedPage) => {
+                            setKnowledgeBase({
+                                ...knowledgeBase,
+                                pages: updatePageById(
+                                    knowledgeBase.pages,
+                                    updatedPage.id,
+                                    updatedPage,
+                                ),
+                            });
+                        }}
                     />
                 </div>
 
-                {/* Add Page Button */}
-                <div className="border-t border-zinc-200 p-4 bg-white sticky bottom-0">
-                    <button
-                        className="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-sm"
-                        onClick={() => {
-                            const newPage: KnowledgeBasePage = {
-                                id: crypto.randomUUID(),
-                                title: "Untitled",
-                                blocks: [
-                                    {
-                                        type: "paragraph",
-                                        content: [],
-                                    },
-                                ],
-                                children: [],
-                            };
-
-                            setKnowledgeBase({
-                                ...knowledgeBase,
-                                pages: [...knowledgeBase.pages, newPage],
-                            });
-
-                            setSelectedPageId(newPage.id);
-                        }}
-                    >
-                        <Plus size={18} />
-                        <span>New Page</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Editor */}
-            <div className="flex-1 overflow-hidden">
-                <PageEditor
-                    key={selectedPage.id}
-                    page={selectedPage}
-                    allPages={knowledgeBase.pages}
-                    onChange={(updatedPage) => {
-                        const updatedPages = updatePageById(
-                            knowledgeBase.pages,
-                            updatedPage.id,
-                            updatedPage,
-                        );
-
-                        setKnowledgeBase({
-                            ...knowledgeBase,
-                            pages: updatedPages,
-                        });
-                    }}
-                />
+                {/* Right panel slot */}
+                {rightPanel && (
+                    <div className="w-[460px] shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col">
+                        {rightPanel}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+
+// ─── Tag Input ────────────────────────────────────────────────────────────────
 
 function TagInput({
     tags,
@@ -1012,116 +1050,83 @@ function TagInput({
     const [selectedType, setSelectedType] = useState<TagType>("generic");
     const [showPopup, setShowPopup] = useState(false);
     const popupRef = useRef<HTMLDivElement>(null);
-
     const { token } = useAuth();
 
-    // Fetch courses when needed
     useEffect(() => {
         if (!token || selectedType !== "course") return;
-
         setLoadingCourses(true);
-        fetch("/api/lms/courses", {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.courses) {
-                    setCourses(data.courses);
-                }
+        fetch("/api/lms/courses", { headers: { Authorization: `Bearer ${token}` } })
+            .then((r) => r.json())
+            .then((d) => {
+                if (d.courses) setCourses(d.courses);
             })
-            .catch((err) => console.error("Failed to fetch courses:", err))
+            .catch(console.error)
             .finally(() => setLoadingCourses(false));
     }, [token, selectedType]);
 
-    // Fetch assignments when needed
     useEffect(() => {
         if (!token || selectedType !== "assignment") return;
-
         setLoadingAssignments(true);
-        fetch("/api/lms/assignments", {
-            headers: { Authorization: `Bearer ${token}` },
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.assignments) {
-                    setAssignments(data.assignments);
-                }
+        fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
+            .then((r) => r.json())
+            .then((d) => {
+                if (d.assignments) setAssignments(d.assignments);
             })
-            .catch((err) => console.error("Failed to fetch assignments:", err))
+            .catch(console.error)
             .finally(() => setLoadingAssignments(false));
     }, [token, selectedType]);
 
     const handleAddTag = () => {
         if (!inputValue.trim()) return;
-
         let tagValue = inputValue.trim();
-
-        // Validate based on type
         if (selectedType === "number" && isNaN(Number(tagValue))) {
             alert("Please enter a valid number");
             return;
         }
-
         if (selectedType === "date") {
-            const dateObj = new Date(tagValue);
-            if (isNaN(dateObj.getTime())) {
+            const d = new Date(tagValue);
+            if (isNaN(d.getTime())) {
                 alert("Please enter a valid date");
                 return;
             }
-            tagValue = dateObj.toISOString().split("T")[0];
+            tagValue = d.toISOString().split("T")[0];
         }
-
         const newTag = formatTag(selectedType, tagValue);
-
-        if (!tags.includes(newTag)) {
-            onTagsChange([...tags, newTag]);
-        }
-
+        if (!tags.includes(newTag)) onTagsChange([...tags, newTag]);
         setInputValue("");
         setShowSuggestions(false);
         setShowPopup(false);
     };
 
-    const handleRemoveTag = (index: number) => {
-        onTagsChange(tags.filter((_, i) => i !== index));
-    };
-
     const getSuggestions = () => {
         if (!inputValue.trim()) return [];
-
-        const query = inputValue.toLowerCase();
-
-        if (selectedType === "course") {
+        const q = inputValue.toLowerCase();
+        if (selectedType === "course")
             return Object.entries(courses)
-                .filter(([_, course]) => course.name.toLowerCase().includes(query))
+                .filter(([, c]: any) => c.name.toLowerCase().includes(q))
                 .slice(0, 5)
-                .map(([id, course]) => ({ id, name: course.name }));
-        }
-
-        if (selectedType === "assignment") {
+                .map(([id, c]: any) => ({ id, name: c.name }));
+        if (selectedType === "assignment")
             return Object.entries(assignments)
-                .filter(([_, assignment]) => assignment.title.toLowerCase().includes(query))
+                .filter(([, a]: any) => a.title.toLowerCase().includes(q))
                 .slice(0, 5)
-                .map(([id, assignment]) => ({ id: id, name: assignment.title }));
-        }
-
+                .map(([id, a]: any) => ({ id, name: a.title }));
         return [];
     };
 
     const suggestions = getSuggestions();
-    const parsedTags = tags.map((tag) => parseTag(tag)).filter((t) => t !== null) as ParsedTag[];
+    const parsedTags = tags.map(parseTag).filter(Boolean) as ParsedTag[];
 
     return (
         <div className="border-b border-zinc-200 px-6 py-4">
-            {/* Tags Display */}
             <div className="flex items-center gap-2 flex-wrap mb-3">
                 {parsedTags.length === 0 ? (
                     <span className="text-sm text-zinc-400 italic">No tags yet</span>
                 ) : (
-                    parsedTags.map((tag, index) => (
+                    parsedTags.map((tag, i) => (
                         <div
-                            key={index}
-                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border ${getTagColor(tag.type)} transition-all hover:shadow-md`}
+                            key={i}
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border ${getTagColor(tag.type)}`}
                         >
                             <span className="text-sm">{getTagIcon(tag.type)}</span>
                             <span className="max-w-xs truncate">
@@ -1132,39 +1137,31 @@ function TagInput({
                                       : tag.display}
                             </span>
                             <button
-                                onClick={() => handleRemoveTag(index)}
-                                className="hover:opacity-70 transition-opacity ml-0.5"
+                                onClick={() => onTagsChange(tags.filter((_, j) => j !== i))}
+                                className="hover:opacity-70 ml-0.5"
                             >
                                 <X size={13} />
                             </button>
                         </div>
                     ))
                 )}
-
-                {/* Add Tag Button */}
                 <button
                     onClick={() => setShowPopup(!showPopup)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 hover:bg-zinc-200 transition-colors border border-zinc-300"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border border-zinc-300"
                 >
                     <Plus size={13} />
                     <span>Add tag</span>
                 </button>
             </div>
 
-            {/* Tag Creation Popup */}
             {showPopup && (
                 <div
                     ref={popupRef}
                     onMouseLeave={() => setShowPopup(false)}
-                    className="fixed z-50 bg-white rounded-xl shadow-xl border border-zinc-200 p-4 w-80 animate-in fade-in duration-200"
-                    style={{
-                        top: "150px",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                    }}
+                    className="fixed z-50 bg-white rounded-xl shadow-xl border border-zinc-200 p-4 w-80"
+                    style={{ top: "150px", left: "50%", transform: "translateX(-50%)" }}
                 >
                     <div className="space-y-4">
-                        {/* Header */}
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <TagIcon size={18} className="text-zinc-700" />
@@ -1172,13 +1169,11 @@ function TagInput({
                             </div>
                             <button
                                 onClick={() => setShowPopup(false)}
-                                className="text-zinc-400 hover:text-zinc-600 transition-colors"
+                                className="text-zinc-400 hover:text-zinc-600"
                             >
                                 <X size={18} />
                             </button>
                         </div>
-
-                        {/* Type Selector */}
                         <div className="space-y-2">
                             <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">
                                 Tag Type
@@ -1190,7 +1185,7 @@ function TagInput({
                                     setInputValue("");
                                     setShowSuggestions(false);
                                 }}
-                                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="generic">🏷️ Generic</option>
                                 <option value="course">📚 Course</option>
@@ -1200,98 +1195,83 @@ function TagInput({
                                 <option value="number"># Number</option>
                             </select>
                         </div>
-
-                        {/* Input Field */}
                         <div className="space-y-2">
                             <label className="text-xs font-semibold text-zinc-700 uppercase tracking-wide">
                                 Value
                             </label>
-                            <div className="relative">
-                                {selectedType === "date" ? (
+                            {selectedType === "date" ? (
+                                <input
+                                    type="date"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            ) : selectedType === "number" ? (
+                                <input
+                                    type="number"
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    placeholder="Enter a number"
+                                    className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            ) : (
+                                <div className="relative">
                                     <input
-                                        type="date"
+                                        type="text"
                                         value={inputValue}
-                                        onChange={(e) => setInputValue(e.target.value)}
-                                        className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        onChange={(e) => {
+                                            setInputValue(e.target.value);
+                                            setShowSuggestions(true);
+                                        }}
+                                        onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
+                                        placeholder={
+                                            selectedType === "course"
+                                                ? "Search courses..."
+                                                : selectedType === "assignment"
+                                                  ? "Search assignments..."
+                                                  : selectedType === "class"
+                                                    ? "Enter class name..."
+                                                    : "Enter tag value..."
+                                        }
+                                        className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        autoFocus
                                     />
-                                ) : selectedType === "number" ? (
-                                    <input
-                                        type="number"
-                                        value={inputValue}
-                                        onChange={(e) => setInputValue(e.target.value)}
-                                        className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="Enter a number"
-                                    />
-                                ) : (
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={inputValue}
-                                            onChange={(e) => {
-                                                setInputValue(e.target.value);
-                                                setShowSuggestions(true);
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                    handleAddTag();
-                                                }
-                                            }}
-                                            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder={
-                                                selectedType === "course"
-                                                    ? "Search courses..."
-                                                    : selectedType === "assignment"
-                                                      ? "Search assignments..."
-                                                      : selectedType === "class"
-                                                        ? "Enter class name..."
-                                                        : "Enter tag value..."
-                                            }
-                                            autoFocus
-                                        />
-
-                                        {/* Suggestions Dropdown */}
-                                        {showSuggestions && suggestions.length > 0 && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-zinc-300 bg-white shadow-lg z-10 max-h-48 overflow-y-auto">
-                                                {suggestions.map((suggestion) => (
-                                                    <button
-                                                        key={suggestion.id}
-                                                        onClick={() => {
-                                                            setInputValue(suggestion.id);
-                                                            setShowSuggestions(false);
-                                                            handleAddTag();
-                                                        }}
-                                                        className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-blue-50 transition-colors border-b border-zinc-100 last:border-b-0"
-                                                    >
-                                                        <div className="font-medium">
-                                                            {suggestion.name}
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {(loadingCourses || loadingAssignments) && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-zinc-300 bg-white p-3 text-center text-xs text-zinc-500">
-                                                Loading options...
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                                    {showSuggestions && suggestions.length > 0 && (
+                                        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-zinc-300 bg-white shadow-lg z-10 max-h-48 overflow-y-auto">
+                                            {suggestions.map((s) => (
+                                                <button
+                                                    key={s.id}
+                                                    onClick={() => {
+                                                        setInputValue(s.id);
+                                                        setShowSuggestions(false);
+                                                        handleAddTag();
+                                                    }}
+                                                    className="w-full px-3 py-2 text-left text-sm text-zinc-700 hover:bg-blue-50 border-b border-zinc-100 last:border-b-0"
+                                                >
+                                                    <div className="font-medium">{s.name}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {(loadingCourses || loadingAssignments) && (
+                                        <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-zinc-300 bg-white p-3 text-center text-xs text-zinc-500">
+                                            Loading options...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
-
-                        {/* Action Buttons */}
                         <div className="flex gap-2 pt-2">
                             <button
                                 onClick={() => setShowPopup(false)}
-                                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleAddTag}
                                 disabled={!inputValue.trim()}
-                                className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                             >
                                 Add Tag
                             </button>
@@ -1303,35 +1283,44 @@ function TagInput({
     );
 }
 
+// ─── Page Editor ──────────────────────────────────────────────────────────────
+
 function PageEditor({
     page,
     onChange,
     allPages,
+    setRightPanel,
 }: {
     page: KnowledgeBasePage;
     onChange: (page: KnowledgeBasePage) => void;
     allPages: KnowledgeBasePage[];
+    setRightPanel: (node: React.ReactNode | null) => void;
 }) {
-    const schema = useMemo(() => createCustomSchema(allPages), []);
-
-    const editor = useCreateBlockNote({
-        initialContent: page.blocks,
-        schema: schema,
-    });
+    const schema = useMemo(
+        () => createCustomSchema(allPages, setRightPanel),
+        [allPages, setRightPanel],
+    );
+    const editor = useCreateBlockNote({ initialContent: page.blocks, schema });
 
     useEffect(() => {
-        const save = async () => {
-            const blocks = editor.document;
+        let timeout: ReturnType<typeof setTimeout>;
 
-            onChange({
-                ...page,
-                blocks: blocks as PartialBlock[],
-            });
+        editor.onEditorContentChange(() => {
+            clearTimeout(timeout);
+
+            timeout = setTimeout(() => {
+                onChange({
+                    ...page,
+                    blocks: structuredClone(editor.document) as PartialBlock[],
+                });
+            }, 500);
+        });
+
+        return () => {
+            clearTimeout(timeout);
         };
-
-        editor.onEditorContentChange(save);
     }, [editor, onChange, page]);
-    // Defined inside PageEditor so `editor` is the instance, not the class
+
     const getSlashMenuItems = async (query: string) => {
         const defaultItems = getDefaultReactSlashMenuItems(editor);
         const customItems: DefaultReactSuggestionItem[] = [
@@ -1384,7 +1373,6 @@ function PageEditor({
                 icon: <Code size={18} />,
             },
         ];
-
         return [...defaultItems, ...customItems].filter(
             (item) => !query || item.title.toLowerCase().includes(query.toLowerCase()),
         );
@@ -1392,126 +1380,23 @@ function PageEditor({
 
     return (
         <div className="flex h-full flex-col bg-gradient-to-b from-white via-white to-zinc-50">
-            {/* Header Section */}
             <div className="border-b border-zinc-200 bg-white">
-                {/* Title */}
                 <div className="px-8 pt-8 pb-4">
                     <input
                         value={page.title}
-                        onChange={(e) =>
-                            onChange({
-                                ...page,
-                                title: e.target.value,
-                            })
-                        }
+                        onChange={(e) => onChange({ ...page, title: e.target.value })}
                         placeholder="Untitled page"
-                        className="w-full bg-transparent text-4xl font-bold text-zinc-900 placeholder-zinc-300 outline-none tracking-tight"
+                        className="w-full bg-transparent text-4xl font-bold text-zinc-900 placeholder-zinc-300 outline-none tracking-tight leading-tight"
                     />
-                    <div className="mt-2 h-1 w-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+                    <div className="mt-2 h-1 w-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
                 </div>
-
-                {/* Tags Section */}
                 <TagInput
                     tags={page.tags || []}
-                    onTagsChange={(tags) =>
-                        onChange({
-                            ...page,
-                            tags,
-                        })
-                    }
+                    onTagsChange={(tags) => onChange({ ...page, tags })}
                 />
             </div>
-
-            {/* Editor Area */}
             <div className="flex-1 overflow-y-auto">
                 <div className="max-w-4xl mx-auto px-8 py-8">
-                    <style>{`
-                        .bn-editor {
-                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                        }
-                        .bn-container {
-                            padding: 0 !important;
-                        }
-                        .bn-editor strong {
-                            font-weight: 600;
-                            color: #18181b;
-                        }
-                        .bn-editor em {
-                            font-style: italic;
-                            color: #3f3f46;
-                        }
-                        .bn-editor h1 {
-                            font-size: 1.875rem;
-                            font-weight: 700;
-                            margin-top: 1.5em;
-                            margin-bottom: 0.5em;
-                            color: #09090b;
-                        }
-                        .bn-editor h2 {
-                            font-size: 1.5rem;
-                            font-weight: 600;
-                            margin-top: 1.25em;
-                            margin-bottom: 0.5em;
-                            color: #18181b;
-                        }
-                        .bn-editor h3 {
-                            font-size: 1.25rem;
-                            font-weight: 600;
-                            margin-top: 1em;
-                            margin-bottom: 0.5em;
-                            color: #27272a;
-                        }
-                        .bn-editor p {
-                            margin: 0.75em 0;
-                            line-height: 1.625;
-                            color: #3f3f46;
-                        }
-                        .bn-editor ul, .bn-editor ol {
-                            margin: 0.75em 0;
-                            padding-left: 1.5em;
-                        }
-                        .bn-editor li {
-                            margin: 0.375em 0;
-                            color: #3f3f46;
-                        }
-                        .bn-editor blockquote {
-                            border-left: 4px solid #e4e4e7;
-                            padding-left: 1rem;
-                            margin: 1em 0;
-                            color: #71717a;
-                            font-style: italic;
-                        }
-                        .bn-editor code {
-                            background-color: #f4f4f5;
-                            padding: 0.125em 0.375em;
-                            border-radius: 0.25rem;
-                            font-family: "Monaco", "Courier New", monospace;
-                            font-size: 0.875em;
-                            color: #d4463f;
-                        }
-                        .bn-editor pre {
-                            background-color: #18181b;
-                            color: #e4e4e7;
-                            padding: 1rem;
-                            border-radius: 0.5rem;
-                            overflow-x: auto;
-                            margin: 1em 0;
-                            line-height: 1.5;
-                        }
-                        .bn-editor pre code {
-                            background-color: transparent;
-                            color: inherit;
-                            padding: 0;
-                        }
-                        .bn-editor a {
-                            color: #2563eb;
-                            text-decoration: underline;
-                            transition: color 0.2s;
-                        }
-                        .bn-editor a:hover {
-                            color: #1d4ed8;
-                        }
-                    `}</style>
                     <BlockNoteView editor={editor} theme="light" slashMenu={false}>
                         <SuggestionMenuController
                             triggerCharacter="/"
@@ -1523,6 +1408,8 @@ function PageEditor({
         </div>
     );
 }
+
+// ─── Page Tree ────────────────────────────────────────────────────────────────
 
 function PageTree({
     pages,
@@ -1544,23 +1431,13 @@ function PageTree({
             {pages.map((page) => (
                 <div key={page.id}>
                     <div
-                        className={`group flex items-center rounded-lg px-3 py-2 cursor-pointer transition-all duration-200 ${
-                            selectedPageId === page.id
-                                ? "bg-blue-100 text-blue-900 shadow-sm"
-                                : "text-zinc-700 hover:bg-zinc-100"
-                        }`}
-                        style={{
-                            paddingLeft: `${level * 16 + 12}px`,
-                        }}
+                        className={`group flex items-center rounded-lg px-3 py-2 cursor-pointer transition-all duration-200 ${selectedPageId === page.id ? "bg-blue-100 text-blue-900 shadow-sm" : "text-zinc-700 hover:bg-zinc-100"}`}
+                        style={{ paddingLeft: `${level * 16 + 12}px` }}
                         onClick={() => setSelectedPageId(page.id)}
                     >
                         <div className="flex-1 min-w-0">
                             <p
-                                className={`truncate text-sm font-medium ${
-                                    selectedPageId === page.id
-                                        ? "text-blue-900"
-                                        : "text-zinc-700 group-hover:text-zinc-900"
-                                }`}
+                                className={`truncate text-sm font-medium ${selectedPageId === page.id ? "text-blue-900" : "text-zinc-700 group-hover:text-zinc-900"}`}
                             >
                                 {page.title || "Untitled"}
                             </p>
@@ -1570,42 +1447,26 @@ function PageTree({
                                 </p>
                             )}
                         </div>
-
                         <button
-                            className="opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 p-1 rounded hover:bg-white/50 transition-all"
+                            className="opacity-0 group-hover:opacity-100 ml-2 shrink-0 p-1 rounded hover:bg-white/50 transition-all"
                             onClick={(e) => {
                                 e.stopPropagation();
-
                                 const child: KnowledgeBasePage = {
                                     id: crypto.randomUUID(),
                                     title: "Untitled",
-                                    blocks: [
-                                        {
-                                            type: "paragraph",
-                                            content: [],
-                                        },
-                                    ],
+                                    blocks: [{ type: "paragraph", content: [] }],
                                     children: [],
                                 };
-
-                                const updatedPages = addChildPage(
-                                    knowledgeBase.pages,
-                                    page.id,
-                                    child,
-                                );
-
                                 setKnowledgeBase({
                                     ...knowledgeBase,
-                                    pages: updatedPages,
+                                    pages: addChildPage(knowledgeBase.pages, page.id, child),
                                 });
-
                                 setSelectedPageId(child.id);
                             }}
                         >
                             <Plus size={14} />
                         </button>
                     </div>
-
                     {page.children.length > 0 && (
                         <PageTree
                             pages={page.children}
@@ -1622,19 +1483,14 @@ function PageTree({
     );
 }
 
+// ─── Tree utilities ───────────────────────────────────────────────────────────
+
 function findPageById(pages: KnowledgeBasePage[], id: string | null): KnowledgeBasePage | null {
     for (const page of pages) {
-        if (page.id === id) {
-            return page;
-        }
-
+        if (page.id === id) return page;
         const child = findPageById(page.children, id);
-
-        if (child) {
-            return child;
-        }
+        if (child) return child;
     }
-
     return null;
 }
 
@@ -1643,16 +1499,11 @@ function updatePageById(
     id: string,
     updatedPage: KnowledgeBasePage,
 ): KnowledgeBasePage[] {
-    return pages.map((page) => {
-        if (page.id === id) {
-            return updatedPage;
-        }
-
-        return {
-            ...page,
-            children: updatePageById(page.children, id, updatedPage),
-        };
-    });
+    return pages.map((page) =>
+        page.id === id
+            ? updatedPage
+            : { ...page, children: updatePageById(page.children, id, updatedPage) },
+    );
 }
 
 function addChildPage(
@@ -1660,17 +1511,9 @@ function addChildPage(
     parentId: string,
     child: KnowledgeBasePage,
 ): KnowledgeBasePage[] {
-    return pages.map((page) => {
-        if (page.id === parentId) {
-            return {
-                ...page,
-                children: [...page.children, child],
-            };
-        }
-
-        return {
-            ...page,
-            children: addChildPage(page.children, parentId, child),
-        };
-    });
+    return pages.map((page) =>
+        page.id === parentId
+            ? { ...page, children: [...page.children, child] }
+            : { ...page, children: addChildPage(page.children, parentId, child) },
+    );
 }
