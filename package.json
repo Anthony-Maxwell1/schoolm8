@@ -21,6 +21,7 @@
         "@codemirror/view": "^6.41.1",
         "@firebase-oss/ui-react": "7.0.2-beta",
         "@google-cloud/local-auth": "^3.0.1",
+        "@icons-pack/react-simple-icons": "^13.13.0",
         "@mantine/core": "^9.1.1",
         "@mantine/hooks": "^9.1.1",
         "@mantine/utils": "^6.0.22",

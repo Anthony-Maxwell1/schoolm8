@@ -36,6 +36,9 @@ export default function FinalDelete() {
     useEffect(() => {
         if (!finalConfirmed || cancelled) return;
         if (!fromSignIn) {
+            alert(
+                "You need to reauthenticate to confirm account deletion. You will be redirected to the sign-in page.",
+            );
             redirect(
                 "/auth/signin?message=" +
                     encodeURIComponent("Please reauthenticate to authorize account deletion.") +
