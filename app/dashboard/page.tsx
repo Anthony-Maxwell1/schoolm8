@@ -13,7 +13,6 @@ export default function DashboardPage() {
     const { css } = useCss();
     const style = css.app.dashboard.page;
     const [mounted, setMounted] = useState(false);
-    const [open, setOpen] = useState(false);
 
     // 1️⃣ mark component as mounted (client-side)
     useEffect(() => {
@@ -59,54 +58,9 @@ export default function DashboardPage() {
     return (
         <div className={style.main["ROOT-STYLE"]}>
             {/* Dashboard */}
-            <main className="flex-1">
+            <main className={style.main.content["ROOT-STYLE"]}>
                 <Dashboard editable={false} />
             </main>
-            {/* Semicircle tab with arrow */}
-            <div
-                className={`${style.editorTab["ROOT-STYLE"]}
-            ${open ? "w-25 px-3" : "w-10 px-0"}`}
-            >
-                {/* Toggle area */}
-                <div
-                    className={style.editorTab.toggle["ROOT-STYLE"]}
-                    onClick={() => setOpen(!open)}
-                >
-                    <div
-                        className={`transform transition-transform duration-300 ${
-                            open ? "rotate-180 -translate-x-3" : "rotate-0"
-                        }`}
-                    >
-                        <ChevronRight className={style.editorTab.icon["ROOT-STYLE"]} />
-                    </div>
-                </div>
-
-                {/* Buttons (visible when open) */}
-                {open && (
-                    <div className={style.editorTab.buttons["ROOT-STYLE"]}>
-                        <div
-                            className="flex h-6 w-6 cursor-pointer items-center justify-center"
-                            onClick={(e) => {
-                                e.stopPropagation(); // prevent toggle
-                                window.location.href = "/dashboard/editor"; // navigate to editor
-                                console.log("Edit clicked");
-                            }}
-                        >
-                            <Edit className="text-white" />
-                        </div>
-                        <div
-                            className="flex h-6 w-6 cursor-pointer items-center justify-center"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                window.location.href = "/settings"; // navigate to settings
-                                console.log("Settings clicked");
-                            }}
-                        >
-                            <Settings className="text-white" />
-                        </div>
-                    </div>
-                )}
-            </div>
         </div>
     );
 }

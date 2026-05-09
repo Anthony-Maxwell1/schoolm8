@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import KnowledgeBaseEditor, { KnowledgeBase } from "@/components/KnowledgeBase";
 import { useAuth } from "@/context/authContext";
+import { useCss } from "@/lib/css";
 
 const STORAGE_KEY = "schoolm8_knowledge_cache";
 
@@ -29,6 +30,9 @@ export default function KnowledgeBaseApp() {
     const { loading: loading_, user, token } = useAuth();
 
     const [loading, setLoading] = useState(true);
+
+    const { css } = useCss();
+    const style = css.app.knowledgeBase;
 
     /**
      * 1. Load from localStorage immediately (instant UI)
@@ -104,7 +108,7 @@ export default function KnowledgeBaseApp() {
     };
 
     if (loading) {
-        return <div className="flex h-screen items-center justify-center">Loading...</div>;
+        return <div className={style.loading["ROOT-STYLE"]}>Loading...</div>;
     }
 
     return (

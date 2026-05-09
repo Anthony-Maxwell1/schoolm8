@@ -129,6 +129,7 @@ const defaultCss: any = {
                     "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 ease-in-out shadow-xl",
                 "sidebarCollapsed-style": "w-18",
                 "sidebarExpanded-style": "w-64",
+                "sidebarHidden-style": "-translate-x-full",
                 branding: {
                     "ROOT-STYLE":
                         "p-4 border-b border-slate-700 flex items-center justify-between gap-2",
@@ -296,6 +297,8 @@ const defaultCss: any = {
                 "ROOT-STYLE": "transition-all duration-300",
                 "sidebarCollapsed-style": "ml-18",
                 "sidebarExpanded-style": "ml-64",
+                "sidebarHidden-style": "",
+                "sidebarHideable-style": "ml-0",
             },
         },
         Dashboard: {
@@ -466,6 +469,9 @@ const defaultCss: any = {
             page: {
                 main: {
                     "ROOT-STYLE": "h-screen flex",
+                    content: {
+                        "ROOT-STYLE": "flex-1",
+                    },
                 },
                 empty: {
                     "ROOT-STYLE":
@@ -506,6 +512,107 @@ const defaultCss: any = {
                         "ROOT-STYLE": "w-5 h-5 text-white",
                     },
                 },
+            },
+            editor: {
+                main: {
+                    "ROOT-STYLE": "h-screen flex relative",
+                    editorOpen: {
+                        "ROOT-STYLE":
+                            "fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm",
+                        inner: {
+                            "ROOT-STYLE":
+                                "w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden",
+                        },
+                    },
+
+                    header: {
+                        "ROOT-STYLE":
+                            "flex items-center justify-between border-b border-gray-100 px-5 py-4",
+                        title: { "ROOT-STYLE": "text-lg font-semibold text-gray-900" },
+                        subtitle: { "ROOT-STYLE": "text-sm text-gray-500" },
+                        closeButton: {
+                            "ROOT-STYLE":
+                                "rounded-md px-2 py-1 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-700",
+                        },
+                    },
+
+                    content: {
+                        "ROOT-STYLE": "flex flex-col gap-4 px-5 py-4",
+                        labelGroup: { "ROOT-STYLE": "flex flex-col gap-1" },
+                        input: {
+                            "ROOT-STYLE":
+                                "rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100",
+                        },
+                    },
+
+                    dangerZone: {
+                        "ROOT-STYLE": "rounded-xl border border-red-100 bg-red-50 p-3",
+                        inner: { "ROOT-STYLE": "flex items-start justify-between gap-3" },
+                        title: { "ROOT-STYLE": "text-sm font-medium text-red-700" },
+                        desc: { "ROOT-STYLE": "mt-1 text-xs text-red-600" },
+                        button: {
+                            "ROOT-STYLE":
+                                "rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-600",
+                        },
+                    },
+
+                    footer: {
+                        "ROOT-STYLE": "flex justify-end gap-2 border-t border-gray-100 px-5 py-4",
+                        cancel: {
+                            "ROOT-STYLE":
+                                "rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100",
+                        },
+                        save: {
+                            "ROOT-STYLE":
+                                "rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600",
+                        },
+                    },
+
+                    globalEditor: {
+                        overlay: {
+                            "ROOT-STYLE":
+                                "fixed inset-0 bg-black/50 flex items-center justify-center z-50",
+                        },
+                        card: { "ROOT-STYLE": "bg-white p-4 rounded shadow-lg w-96" },
+                        saveButton: {
+                            "ROOT-STYLE": "mt-4 px-3 py-1 bg-blue-500 text-white rounded",
+                        },
+                    },
+
+                    asideLeft: {
+                        "ROOT-STYLE": "w-48 border-r p-2",
+                        pageButton: {
+                            "ROOT-STYLE": "w-full mb-2 bg-blue-600 text-white p-1 cursor-pointer",
+                        },
+                        pageItem: { "ROOT-STYLE": "block w-full text-left p-1" },
+                    },
+
+                    registry: {
+                        "ROOT-STYLE": "w-64 border-l p-2 overflow-auto",
+                        heading: { "ROOT-STYLE": "font-bold" },
+                    },
+
+                    dragPreview: {
+                        "ROOT-STYLE":
+                            "absolute pointer-events-none border-2 border-blue-500 bg-blue-200 opacity-50",
+                    },
+
+                    floatingButtons: {
+                        globalOptions: {
+                            "ROOT-STYLE":
+                                "fixed bottom-14 right-4 bg-red-600 text-white px-3 py-1 rounded cursor-pointer",
+                        },
+                        backLink: {
+                            "ROOT-STYLE":
+                                "fixed bottom-4 right-4 bg-green-600 text-white px-3 py-1 rounded",
+                        },
+                    },
+                },
+            },
+        },
+        knowledgeBase: {
+            loading: {
+                "ROOT-STYLE": "flex h-screen items-center justify-center",
             },
         },
         onboarding: {
@@ -907,6 +1014,17 @@ const defaultCss: any = {
                 },
                 loadingInner: {
                     "ROOT-STYLE": "flex flex-col items-center gap-4",
+                    spinner: {
+                        "ROOT-STYLE":
+                            "h-12 w-12 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-400",
+                    },
+                    text: {
+                        "ROOT-STYLE": "text-slate-400",
+                        CONTENT: "Loading...",
+                    },
+                },
+                icon: {
+                    "ROOT-STYLE": "w-5 h-5",
                 },
                 section: {
                     "ROOT-STYLE": "space-y-4",

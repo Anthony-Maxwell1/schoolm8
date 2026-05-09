@@ -19,7 +19,9 @@ import * as Sentry from "@sentry/nextjs";
 // Icon mapping - you can expand this with more icons
 
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
-    const { items, sidebarCollapsed, setSidebarCollapsed, ICON_MAP } = useNavigation();
+    const { items, sidebarCollapsed, setSidebarCollapsed, ICON_MAP, sidebarHideable } =
+        useNavigation();
+    const [sidebarHidden, setSidebarHidden] = useState(false);
     const pathname = usePathname();
     const { css } = useCss();
 
@@ -41,6 +43,74 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         const stored = localStorage.getItem("hiddenMap");
         return stored ? JSON.parse(stored) : {};
     });
+
+    const asideRef = useRef<HTMLElement | null>(null);
+
+    useEffect(() => {
+        if (!sidebarHideable) return;
+
+        let hideTimeout: ReturnType<typeof setTimeout> | null = null;
+        let showTimeout: ReturnType<typeof setTimeout> | null = null;
+
+        const EDGE_THRESHOLD = 10;
+        const DEBOUNCE_MS = 120;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            // Cursor touching left edge -> show sidebar
+            if (e.clientX <= EDGE_THRESHOLD) {
+                if (hideTimeout) {
+                    clearTimeout(hideTimeout);
+                    hideTimeout = null;
+                }
+
+                if (!showTimeout) {
+                    showTimeout = setTimeout(() => {
+                        setSidebarHidden(false);
+                        showTimeout = null;
+                    }, DEBOUNCE_MS);
+                }
+
+                return;
+            }
+
+            // If sidebar exists and mouse is inside it, keep open
+            if (asideRef.current) {
+                const rect = asideRef.current.getBoundingClientRect();
+
+                const hoveringAside =
+                    e.clientX >= rect.left &&
+                    e.clientX <= rect.right &&
+                    e.clientY >= rect.top &&
+                    e.clientY <= rect.bottom;
+
+                if (hoveringAside) {
+                    if (hideTimeout) {
+                        clearTimeout(hideTimeout);
+                        hideTimeout = null;
+                    }
+
+                    return;
+                }
+            }
+
+            // Mouse left sidebar -> hide it
+            if (!hideTimeout) {
+                hideTimeout = setTimeout(() => {
+                    setSidebarHidden(true);
+                    hideTimeout = null;
+                }, DEBOUNCE_MS);
+            }
+        };
+
+        window.addEventListener("mousemove", handleMouseMove);
+
+        return () => {
+            window.removeEventListener("mousemove", handleMouseMove);
+
+            if (hideTimeout) clearTimeout(hideTimeout);
+            if (showTimeout) clearTimeout(showTimeout);
+        };
+    }, [sidebarHideable]);
 
     const [feedback, setFeedback] = useState<ReturnType<typeof Sentry.getFeedback> | null>(null); // Sentry
     // Read `getFeedback` on the client only, to avoid hydration errors during server rendering
@@ -87,7 +157,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                     sidebarCollapsed
                         ? navigationCss.main["sidebarCollapsed-style"]
                         : navigationCss.main["sidebarExpanded-style"],
+                    sidebarHideable && sidebarHidden
+                        ? navigationCss.main["sidebarHidden-style"]
+                        : "",
                 )}
+                ref={asideRef}
             >
                 {/* Logo */}
                 <div className={navigationCss.main.branding["ROOT-STYLE"]}>
@@ -526,6 +600,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                     sidebarCollapsed
                         ? navigationCss.contents["sidebarCollapsed-style"]
                         : navigationCss.contents["sidebarExpanded-style"],
+                    sidebarHidden ? navigationCss.contents["sidebarHidden-style"] : "",
+                    sidebarHideable ? navigationCss.contents["sidebarHideable-style"] : "",
                 )}
             >
                 {children}
