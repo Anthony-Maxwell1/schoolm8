@@ -27,6 +27,8 @@ type NavigationContextValue = {
     setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
     ICON_MAP: Record<string, ComponentType<{ className?: string }>>;
     DEFAULT_ITEMS: NavigationItem[];
+    sidebarHideable: boolean;
+    setSidebarHideable: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const NavigationContext = createContext<NavigationContextValue | undefined>(undefined);
@@ -34,6 +36,7 @@ const NavigationContext = createContext<NavigationContextValue | undefined>(unde
 type NavigationProviderProps = {
     children: React.ReactNode;
     defaultSidebarCollapsed?: boolean;
+    defaultSidebarHideable?: boolean;
 };
 
 const DEFAULT_ITEMS: NavigationItem[] = [
@@ -160,10 +163,12 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
 
 const ITEMS_STORAGE_KEY = "navigationItems";
 const SIDEBAR_STORAGE_KEY = "sidebarCollapsed";
+const SIDEBAR_HIDEABLE_KEY = "sidebarHideable";
 
 export function NavigationProvider({
     children,
     defaultSidebarCollapsed = false,
+    defaultSidebarHideable = false,
 }: NavigationProviderProps) {
     const [items, setItems] = useState<NavigationItem[]>(() => {
         if (typeof window === "undefined") return DEFAULT_ITEMS;
@@ -187,9 +192,29 @@ export function NavigationProvider({
         }
     });
 
+    const [sidebarHideable, setSidebarHideable] = useState(() => {
+        if (typeof window === "undefined") return defaultSidebarHideable;
+
+        try {
+            const stored = localStorage.getItem(SIDEBAR_HIDEABLE_KEY);
+            return stored ? (JSON.parse(stored) as boolean) : defaultSidebarHideable;
+        } catch {
+            return defaultSidebarHideable;
+        }
+    });
+
     const value = useMemo(
-        () => ({ items, setItems, sidebarCollapsed, setSidebarCollapsed, ICON_MAP, DEFAULT_ITEMS }),
-        [items, sidebarCollapsed],
+        () => ({
+            items,
+            setItems,
+            sidebarCollapsed,
+            setSidebarCollapsed,
+            sidebarHideable,
+            setSidebarHideable,
+            ICON_MAP,
+            DEFAULT_ITEMS,
+        }),
+        [items, sidebarCollapsed, sidebarHideable],
     );
 
     useEffect(() => {
@@ -203,6 +228,12 @@ export function NavigationProvider({
             localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(sidebarCollapsed));
         }
     }, [sidebarCollapsed]);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem(SIDEBAR_HIDEABLE_KEY, JSON.stringify(sidebarHideable));
+        }
+    }, [sidebarHideable]);
 
     return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;
 }

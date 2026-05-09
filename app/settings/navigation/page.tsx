@@ -8,7 +8,8 @@ import { createElement, useState } from "react";
 const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
 
 export default function NavigationSettings() {
-    const { setItems, items, ICON_MAP, DEFAULT_ITEMS } = useNavigation();
+    const { setItems, items, ICON_MAP, DEFAULT_ITEMS, sidebarHideable, setSidebarHideable } =
+        useNavigation();
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     const updateItem = (
@@ -333,6 +334,15 @@ export default function NavigationSettings() {
                             Add Item
                         </button>
                     </details>
+                    <button
+                        className="w-full px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium transition flex flex-row items-center justify-center gap-2 group"
+                        onClick={() => setSidebarHideable(!sidebarHideable)}
+                    >
+                        <div
+                            className={`w-5 h-5 border-3 transition-colors duration-200 ${sidebarHideable ? "bg-green-500 border-green-300 border-r-green-700 border-b-green-700 group-hover:border-green-700 group-hover:border-r-green-300 group-hover:border-b-green-300" : "bg-red-500 border-red-300 border-r-red-700 border-b-red-700 group-hover:border-red-700 group-hover:border-r-red-300 group-hover:border-b-red-300"}`}
+                        ></div>
+                        Toggle Sidebar Hideable
+                    </button>
                     <button
                         className="w-full px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium transition"
                         onClick={() => {

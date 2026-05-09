@@ -947,14 +947,14 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
         <div className="flex h-screen overflow-hidden bg-white">
             {/* Sidebar */}
             <div
-                className={`${sidebarExpanded ? "w-72" : "w-16"} border-r border-zinc-200 overflow-y-auto bg-gradient-to-b from-white to-zinc-50 flex flex-col transition-all duration-300 shrink-0`}
+                className={`${sidebarExpanded ? "w-72" : "w-16"} border-r border-zinc-200 overflow-y-auto bg-linear-to-b from-white to-zinc-50 flex flex-col transition-all duration-300 shrink-0`}
             >
                 <div className="sticky top-0 bg-white border-b border-zinc-200 px-5 py-6 z-10">
                     <div className="flex items-center justify-between">
                         <div
                             className={`flex items-center gap-2 ${!sidebarExpanded && "justify-center w-full"}`}
                         >
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
                                 <TagIcon className="text-white" size={18} />
                             </div>
                             {sidebarExpanded && (
@@ -1045,7 +1045,7 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
 
                 {rightPanel && (
                     <div
-                        className={`${rightPanelExpanded ? "flex-1" : "w-[460px]"} shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col transition-all duration-300`}
+                        className={`${rightPanelExpanded ? "flex-1" : "w-115"} shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col transition-all duration-300`}
                     >
                         <div className="flex items-center justify-end px-2 py-1 border-b border-zinc-100 bg-zinc-50 shrink-0">
                             <button
@@ -1423,7 +1423,7 @@ function PageEditor({
     };
 
     return (
-        <div className="flex h-full flex-col bg-gradient-to-b from-white via-white to-zinc-50">
+        <div className="flex h-full flex-col bg-linear-to-b from-white via-white to-zinc-50">
             <div className="border-b border-zinc-200 bg-white">
                 <div className="px-8 pt-8 pb-4">
                     <input
@@ -1432,7 +1432,7 @@ function PageEditor({
                         placeholder="Untitled page"
                         className="w-full bg-transparent text-4xl font-bold text-zinc-900 placeholder-zinc-300 outline-none tracking-tight leading-tight"
                     />
-                    <div className="mt-2 h-1 w-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
+                    <div className="mt-2 h-1 w-16 bg-linear-to-r from-blue-500 to-blue-600 rounded-full" />
                 </div>
                 <TagInput
                     tags={page.tags || []}

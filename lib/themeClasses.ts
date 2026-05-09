@@ -34,10 +34,10 @@ export const defaultThemes: ThemeMap = {
     retro: {
         classes: {
             TileOuter: tw(`
-        relative pt-[26px] overflow-visible
+        relative pt-6.5 overflow-visible
         bg-[#c0c0c0]
         border-t-2 border-l-2 border-[#dfdfdf]
-        border-b-2 border-r-2 border-[#808080]
+        border-b-2 border-r-2 border-b-[#808080] border-r-[#808080]
         shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
         group
       `),
@@ -45,7 +45,7 @@ export const defaultThemes: ThemeMap = {
         relative overflow-visible
         bg-[#c0c0c0]
         border-t-2 border-l-2 border-[#dfdfdf]
-        border-b-2 border-r-2 border-[#808080]
+        border-b-2 border-r-2 border-b-[#808080] border-r-[#808080]
         shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
         group
       `),
@@ -54,26 +54,26 @@ export const defaultThemes: ThemeMap = {
         bg-white
         flex flex-col overflow-hidden p-3
         border-t-2 border-l-2 border-[#808080]
-        border-b-2 border-r-2 border-[#dfdfdf]
+        border-b-2 border-r-2 border-b-[#dfdfdf] border-r-[#dfdfdf]
         shadow-[inset_-1px_-1px_0_0_#ffffff,inset_1px_1px_0_0_#000000]
       `),
         },
         TopBar: `
-      <div class="absolute top-0 left-0 right-0 h-[26px] z-30 flex items-center justify-between px-1
+      <div class="absolute top-0 left-0 right-0 h-6.5 z-30 flex items-center justify-between px-1
                   bg-[#000080]
                   border-t-2 border-l-2 border-[#dfdfdf]
-                  border-b-2 border-r-2 border-[#808080]
+                  border-b-2 border-r-2 border-b-[#808080] border-r-[#808080]
                   shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]">
         <div class="flex items-center gap-1 flex-1 min-w-0">
-          <div class="w-4 h-4 bg-[#c0c0c0] border border-black flex items-center justify-center flex-shrink-0
+          <div class="w-4 h-4 bg-[#c0c0c0] border border-black flex items-center justify-center shrink-0
                       shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#808080]">
             <div class="w-2 h-2 bg-[#000080]"></div>
           </div>
-          <span class="text-white font-['MS_Sans_Serif',_'Arial',_sans-serif] text-sm font-bold truncate tracking-wide">
+          <span class="text-white font-['MS_Sans_Serif','Arial',sans-serif] text-sm font-bold truncate tracking-wide">
             {__TILE_TITLE__}
           </span>
         </div>
-        <div class="flex gap-0.5 flex-shrink-0">
+        <div class="flex gap-0.5 shrink-0">
           <button class="w-4 h-4 bg-[#c0c0c0] border border-black flex items-center justify-center
                          shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#808080]
                          active:shadow-[inset_-1px_-1px_0_0_#ffffff,inset_1px_1px_0_0_#808080]
@@ -176,14 +176,14 @@ export const defaultThemes: ThemeMap = {
                   rounded-t-lg
                   shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <div class="w-5 h-5 rounded flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+          <div class="w-5 h-5 rounded flex items-center justify-center bg-linear-to-br from-blue-500 to-blue-600 shadow-sm">
             <div class="w-2.5 h-2.5 bg-white/90 rounded-sm"></div>
           </div>
           <span class="text-sm font-normal text-gray-800 truncate tracking-tight">
             {__TILE_TITLE__}
           </span>
         </div>
-        <div class="flex gap-3 items-center flex-shrink-0">
+        <div class="flex gap-3 items-center shrink-0">
           <button class="w-11 h-7 rounded hover:bg-gray-200/70 transition-colors flex items-center justify-center group">
             <svg class="w-3 h-3 text-gray-700 group-hover:text-gray-900" fill="currentColor" viewBox="0 0 16 16">
               <rect x="3" y="7" width="10" height="2" rx="1"/>
@@ -227,20 +227,19 @@ export const defaultThemes: ThemeMap = {
       `),
         },
         TopBar: `
-      <div class="absolute -top-0 left-0 right-0 h-[52px] z-30 flex items-center justify-between px-5
+      <div class="absolute top-0 left-0 right-0 h-13 z-30 flex items-center justify-between px-5
                   bg-white/15 backdrop-blur-3xl
                   border border-white/20
                   rounded-t-[20px]
                   shadow-[0_4px_16px_rgba(31,38,135,0.1),0_0_0_1px_rgba(255,255,255,0.1)_inset]
                   transition-all duration-500
                   hover:bg-white/20
-                  relative
                   before:absolute before:inset-0 before:rounded-t-[20px]
-                  before:bg-gradient-to-b before:from-white/10 before:to-transparent
+                  before:bg-linear-to-b before:from-white/10 before:to-transparent
                   before:pointer-events-none">
         <div class="flex items-center gap-3 flex-1 min-w-0 relative z-10">
           <div class="w-6 h-6 rounded-full flex items-center justify-center
-                      bg-gradient-to-br from-blue-400/40 to-purple-500/40
+                      bg-linear-to-br from-blue-400/40 to-purple-500/40
                       backdrop-blur-sm
                       border border-white/30
                       shadow-[0_2px_8px_rgba(0,0,0,0.1),0_0_0_1px_rgba(255,255,255,0.2)_inset]">
@@ -250,7 +249,7 @@ export const defaultThemes: ThemeMap = {
             {__TILE_TITLE__}
           </span>
         </div>
-        <div class="flex gap-2 items-center flex-shrink-0 relative z-10">
+        <div class="flex gap-2 items-center shrink-0 relative z-10">
           <button class="w-9 h-9 rounded-full hover:bg-white/20 backdrop-blur-sm transition-all duration-300 flex items-center justify-center group border border-transparent hover:border-white/20">
             <svg class="w-3.5 h-3.5 text-gray-700/80 group-hover:text-gray-900 transition-colors" fill="currentColor" viewBox="0 0 16 16">
               <rect x="3" y="7" width="10" height="2" rx="1"/>
@@ -296,7 +295,7 @@ export const defaultThemes: ThemeMap = {
                   hover:bg-neutral-800/50">
         <div class="flex items-center gap-3 flex-1 min-w-0">
           <div class="w-5 h-5 rounded-md flex items-center justify-center
-                      bg-gradient-to-br from-neutral-700/60 to-neutral-800/60
+                      bg-linear-to-br from-neutral-700/60 to-neutral-800/60
                       border border-white/10
                       shadow-inner">
             <div class="w-2.5 h-2.5 bg-neutral-400/80 rounded-sm"></div>
@@ -305,7 +304,7 @@ export const defaultThemes: ThemeMap = {
             {__TILE_TITLE__}
           </span>
         </div>
-        <div class="flex gap-2 items-center flex-shrink-0">
+        <div class="flex gap-2 items-center shrink-0">
           <button class="w-8 h-8 rounded-lg hover:bg-white/5 transition-colors flex items-center justify-center group">
             <svg class="w-3 h-3 text-neutral-400 group-hover:text-neutral-200" fill="currentColor" viewBox="0 0 16 16">
               <rect x="3" y="7" width="10" height="2" rx="1"/>
