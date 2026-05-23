@@ -74,8 +74,10 @@ export default function LMS() {
         return (
             <div className={style.loading["ROOT-STYLE"]}>
                 <div className={style.loadingInner["ROOT-STYLE"]}>
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-600 border-t-emerald-500" />
-                    <p className="text-slate-400">Loading...</p>
+                    <div className={style.loadingInner.spinner["ROOT-STYLE"]} />
+                    <p className={style.loadingInner.text["ROOT-STYLE"]}>
+                        {style.loadingInner.text.CONTENT}
+                    </p>
                 </div>
             </div>
         );
@@ -118,7 +120,7 @@ export default function LMS() {
                     onClick={() => scroll(refProp, "left")}
                     className={cn(style.navButton["ROOT-STYLE"], style.navButton.left)}
                 >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className={style.icon["ROOT-STYLE"]} />
                 </button>
 
                 {/* Scroll Area */}
