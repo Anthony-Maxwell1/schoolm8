@@ -77,7 +77,7 @@
 ### Tooling
 
 - Node.js
-- npm
+- pnpm
 - create-next-app
 - VS Code
 
