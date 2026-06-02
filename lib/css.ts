@@ -582,9 +582,17 @@ const defaultCss: any = {
                     asideLeft: {
                         "ROOT-STYLE": "w-48 border-r p-2",
                         pageButton: {
-                            "ROOT-STYLE": "w-full mb-2 bg-blue-600 text-white p-1 cursor-pointer",
+                            "ROOT-STYLE":
+                                "w-full mb-2 text-slate-800 p-1 cursor-pointer rounded-md border-slate-800 border-2",
                         },
-                        pageItem: { "ROOT-STYLE": "block w-full text-left p-1" },
+                        pageItem: {
+                            "ROOT-STYLE":
+                                "block w-full text-left p-1 text-slate-800 border-2 border-slate-800 rounded-md justify-between flex items-center",
+                            menu: {
+                                "ROOT-STYLE":
+                                    "text-slate-800 hover:bg-slate-200 p-1 rounded-md cursor-pointer transition-colors",
+                            },
+                        },
                     },
 
                     registry: {

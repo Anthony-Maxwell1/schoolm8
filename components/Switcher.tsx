@@ -10,11 +10,13 @@ export default function AnimatedSwitcher({
     value,
     onChange,
     className,
+    highlightClassName,
 }: {
     options: Option[];
     value?: string;
     onChange?: (value: string) => void;
     className?: string;
+    highlightClassName?: string;
 }) {
     const [indicatorStyle, setIndicatorStyle] = useState({
         left: 0,
@@ -49,11 +51,13 @@ export default function AnimatedSwitcher({
     return (
         <div
             ref={containerRef}
-            className={`relative flex w-fit rounded-xl bg-white/10 backdrop-blur-lg p-1 ${className || ""}`}
+            className={
+                className || `relative flex w-fit rounded-xl bg-white/10 backdrop-blur-lg p-1`
+            }
         >
             {/* sliding highlight */}
             <div
-                className="absolute top-1 bottom-1 rounded-lg bg-white/20 transition-all duration-300 ease-out"
+                className={`absolute top-1 bottom-1 rounded-lg bg-white/20 transition-all duration-300 ease-out ${highlightClassName || ""}`}
                 style={{
                     left: indicatorStyle.left,
                     width: indicatorStyle.width,
@@ -72,7 +76,7 @@ export default function AnimatedSwitcher({
                         onClick={() => onChange?.(opt.value)}
                         className={`relative z-10 px-4 py-1 text-sm transition-colors ${
                             active ? "text-white" : "text-white/60"
-                        }`}
+                        }${highlightClassName || ""}`}
                     >
                         {opt.label}
                     </button>

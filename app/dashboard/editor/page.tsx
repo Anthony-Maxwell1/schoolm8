@@ -6,13 +6,19 @@ import { Dashboard } from "@/components/Dashboard";
 import { useState, useRef, useEffect } from "react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
+import { Menu } from "lucide-react";
+import Switcher from "@/components/Switcher";
 
 export const RegistryBrowser = ({
     nodes,
     onStartDrag,
+    openSection,
+    setOpenSection,
 }: {
     nodes: RegistryNode[];
     onStartDrag: (node: RegistryNode, initialMouse: { x: number; y: number }) => void;
+    openSection: string;
+    setOpenSection: (id: string) => void;
 }) => (
     <ul className="ml-2">
         {nodes.map((n) => {
@@ -20,21 +26,40 @@ export const RegistryBrowser = ({
 
             return (
                 <li key={n.id} className="mb-1">
-                    <div
-                        className="cursor-pointer p-1 rounded hover:bg-gray-200"
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                            onStartDrag(n, { x: e.clientX, y: e.clientY });
-                        }}
-                    >
-                        {Component ? (
-                            <Component />
-                        ) : (
-                            <span className="font-semibold">{n.label}</span>
-                        )}
-                    </div>
-
-                    {n.children && <RegistryBrowser nodes={n.children} onStartDrag={onStartDrag} />}
+                    {Component ? (
+                        <div
+                            className="cursor-pointer p-2 rounded hover:bg-gray-200 flex items-center gap-2 border border-gray-200 bg-white"
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                onStartDrag(n, { x: e.clientX, y: e.clientY });
+                            }}
+                        >
+                            <Menu size={16} />
+                            <div>
+                                <p className="font-semibold text-sm">{n.label}</p>
+                                <p className="text-xs text-gray-500">{n.id}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <button
+                                className="w-full text-left font-semibold px-2 py-1 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:shadow-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                onClick={() => {
+                                    openSection == n.id ? setOpenSection("") : setOpenSection(n.id);
+                                }}
+                            >
+                                {n.label}
+                            </button>
+                            {n.children && openSection === n.id && (
+                                <RegistryBrowser
+                                    nodes={n.children}
+                                    onStartDrag={onStartDrag}
+                                    openSection={openSection}
+                                    setOpenSection={setOpenSection}
+                                />
+                            )}
+                        </div>
+                    )}
                 </li>
             );
         })}
@@ -69,7 +94,16 @@ export default function EditorPage() {
 
     const { css } = useCss();
 
+    const [registryType, setRegistryType] = useState<"tiles" | "panels">("tiles");
+
+    const registryTypeOptions = [
+        { label: "Tiles", value: "tiles" },
+        { label: "Panels", value: "panels" },
+    ];
+
     const style = css.app.dashboard.editor.main;
+
+    const [openSection, setOpenSection] = useState<string>("");
 
     // prevent hydration mismatch
     useEffect(() => {
@@ -341,6 +375,16 @@ export default function EditorPage() {
                         }}
                     >
                         {p.label}
+                        <button
+                            className={style.asideLeft.pageItem.menu["ROOT-STYLE"]}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentPage(p.id);
+                                setPageEditorOpen(true);
+                            }}
+                        >
+                            <Menu />
+                        </button>
                     </button>
                 ))}
             </aside>
@@ -352,23 +396,36 @@ export default function EditorPage() {
 
             {/* registry */}
             <aside className={style.registry["ROOT-STYLE"]}>
-                <h3 className={style.registry.heading["ROOT-STYLE"]}>Tiles</h3>
-                <RegistryBrowser
-                    nodes={TileRegistry}
-                    onStartDrag={(node, mouse) => {
-                        setMousePos(mouse);
-                        startDrag(node, "tile");
-                    }}
+                <Switcher
+                    options={registryTypeOptions}
+                    value={registryType}
+                    onChange={setRegistryType as (value: string) => void}
+                    className="bg-black/30 relative w-full rounded-xl backdrop-blur-lg p-1 flex flex-row"
+                    highlightClassName="w-full flex-1"
                 />
+                {registryType === "tiles" && (
+                    <RegistryBrowser
+                        nodes={TileRegistry}
+                        onStartDrag={(node, mouse) => {
+                            setMousePos(mouse);
+                            startDrag(node, "tile");
+                        }}
+                        openSection={openSection}
+                        setOpenSection={setOpenSection}
+                    />
+                )}
 
-                <h3 className="font-bold mt-4">Panels</h3>
-                <RegistryBrowser
-                    nodes={PanelRegistry}
-                    onStartDrag={(node, mouse) => {
-                        setMousePos(mouse);
-                        startDrag(node, "panel");
-                    }}
-                />
+                {registryType === "panels" && (
+                    <RegistryBrowser
+                        nodes={PanelRegistry}
+                        onStartDrag={(node, mouse) => {
+                            setMousePos(mouse);
+                            startDrag(node, "panel");
+                        }}
+                        openSection={openSection}
+                        setOpenSection={setOpenSection}
+                    />
+                )}
             </aside>
 
             {/* drag preview */}
