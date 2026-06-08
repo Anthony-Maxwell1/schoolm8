@@ -1,36 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;400;500&display=swap");
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "fumadocs-ui/css/solar.css";
 @import "fumadocs-ui/css/preset.css";
+/* -----------------------------
+   THEME TOKENS (TAILWIND v4)
+------------------------------ */
+@theme {
+    /* Apache palette */
+    --color-apache-50: #fcf8ee;
+    --color-apache-100: #f5ebd0;
+    --color-apache-200: #ead59d;
+    --color-apache-300: #e2c178;
+    --color-apache-400: #d7a448;
+    --color-apache-500: #ce8832;
+    --color-apache-600: #b66a29;
+    --color-apache-700: #984e25;
+    --color-apache-800: #7c3f24;
+    --color-apache-900: #673420;
+    --color-apache-950: #3a1a0e;
 
-@custom-variant dark (&:is(.dark *));
-@custom-variant hover (&:hover);
+    /* Fonts */
+    --font-sans: "DM Sans", system-ui, sans-serif;
+    --font-display: "Instrument Serif", Georgia, serif;
+    --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
+    /* Semantic mapping (light theme default) */
+    --color-background: var(--color-apache-50);
+    --color-foreground: var(--color-apache-950);
+
+    --color-primary: var(--color-apache-500);
+    --color-primary-foreground: var(--color-apache-50);
+
+    --color-secondary: var(--color-apache-200);
+    --color-secondary-foreground: var(--color-apache-900);
+
+    --color-muted: var(--color-apache-100);
+    --color-border: var(--color-apache-200);
+}
+
+/* -----------------------------
+   DARK THEME OVERRIDES
+------------------------------ */
+.dark {
+    @theme {
+        --color-background: var(--color-apache-950);
+        --color-foreground: var(--color-apache-50);
+
+        --color-primary: var(--color-apache-400);
+        --color-primary-foreground: var(--color-apache-950);
+
+        --color-secondary: var(--color-apache-800);
+        --color-secondary-foreground: var(--color-apache-100);
+
+        --color-muted: #2a1509;
+        --color-border: var(--color-apache-800);
+    }
+}
+
+/* -----------------------------
+   BASE STYLES
+------------------------------ */
 @layer base {
-    /* Smooth rendering + better typography defaults */
     html {
         @apply antialiased;
     }
 
     body {
-        @apply bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+        @apply min-h-screen bg-background text-foreground font-sans;
         @apply transition-colors duration-300;
-        @apply min-h-screen;
+        line-height: 1.7;
     }
 
-    /* Better default font stack */
-    body {
-        @apply font-sans;
-    }
-
-    /* Improve link appearance globally (optional but nice) */
     a {
-        @apply text-blue-600 dark:text-blue-400 hover:underline;
+        @apply text-primary hover:underline;
     }
 
-    /* Selection styling */
     ::selection {
-        @apply bg-blue-500 text-white;
+        @apply bg-primary text-white;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-display tracking-tight leading-tight text-foreground;
+    }
+}
+
+/* -----------------------------
+   TYPOGRAPHY SCALE
+------------------------------ */
+@layer base {
+    h1 {
+        @apply text-5xl;
+    }
+    h2 {
+        @apply text-4xl;
+    }
+    h3 {
+        @apply text-2xl;
+    }
+    h4 {
+        @apply text-xl;
+    }
+    h5 {
+        @apply text-lg;
+    }
+    h6 {
+        @apply text-base;
     }
 }
 

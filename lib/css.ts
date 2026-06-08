@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { baseCss } from "./css-base-additions";
 
 const STORAGE_KEY = "app-css";
 
 // your original object
 const defaultCss: any = {
     components: {
+        base: baseCss,
         tiles: {
             Timetable: {
                 TimetableList: {
