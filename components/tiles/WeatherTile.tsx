@@ -193,8 +193,8 @@ export const WeatherTile = ({ location }: { location: string }) => {
             setError(null);
             try {
                 const url = new URL("https://api.open-meteo.com/v1/forecast");
-                url.searchParams.set("latitude", String(coords.lat));
-                url.searchParams.set("longitude", String(coords.lng));
+                url.searchParams.set("latitude", String(coords?.lat));
+                url.searchParams.set("longitude", String(coords?.lng));
                 url.searchParams.set(
                     "current",
                     "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",

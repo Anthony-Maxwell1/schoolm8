@@ -211,7 +211,7 @@ export const baseCss = {
         },
         rootHoverable: {
             "ROOT-STYLE":
-                "rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] shadow-[var(--shadow-md)] transition-[transform,shadow] duration-[var(--duration-base)] ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)] cursor-pointer",
+                "rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] shadow-[var(--shadow-md)] duration-[var(--duration-base)] ease-[var(--ease-spring)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)] cursor-pointer",
         },
         rootFlat: {
             "ROOT-STYLE":
