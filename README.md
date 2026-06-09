@@ -2,7 +2,8 @@
 
 ## Organise your school life — in one place.
 
-**Schoolm8** is a student productivity platform designed to centralise assignments, tasks, schedules, and study planning across school systems like **Canvas** and **Edumate**, with future **AI-powered optimisation**.
+SchoolM8 is an all-in-one student productivity platform designed to simplify school life by bringing assignments, timetables, calendars, study planning, and AI-powered learning support into a single application. It integrates with platforms such as Canvas LMS and Edumate to automatically sync coursework, deadlines, announcements, and class schedules. SchoolM8 also includes an AI tutor that can provide personalised academic assistance based on a student's actual subjects and upcoming assignments, as well as a smart study planner that helps students manage their time effectively. The goal of SchoolM8 is to reduce stress, improve organisation, and help students achieve better academic outcomes through intelligent, student-focused technology.
+
 
 ---
 
