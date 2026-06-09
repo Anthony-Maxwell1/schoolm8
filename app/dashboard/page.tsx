@@ -3,11 +3,11 @@
 import { Dashboard } from "@/components/Dashboard";
 import { useLayout } from "@/context/layoutContext";
 import { useEffect, useState } from "react";
-import { ChevronRight, Edit, HelpCircle, Settings } from "lucide-react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 import { Button, EmptyState } from "@/components/ui/components";
 import { useRouter } from "next/navigation";
+import Icon from "@/components/ui/icon";
 
 export default function DashboardPage() {
     const { allowed, loading: accessLoading } = useAccessControl("dashboard");
@@ -40,7 +40,7 @@ export default function DashboardPage() {
             <div className="flex flex-col items-center justify-center gap-4 h-screen">
                 <EmptyState
                     title="No Pages found"
-                    icon={<HelpCircle />}
+                    icon={<Icon label="Help" icon="help" style="main" />}
                     actions={[
                         <Button key="create" onClick={() => router.push("/dashboard/editor")}>
                             Create your first page!

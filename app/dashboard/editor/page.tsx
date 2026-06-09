@@ -7,8 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 import { Menu } from "lucide-react";
-import Switcher from "@/components/Switcher";
-import { Button, TextInput, Card, CardBody, Alert, Modal } from "@/components/ui/components";
+import { Button, TextInput, Card, CardBody, Alert, Modal, Tabs, TabList, Tab, TabPanel } from "@/components/ui/components";
 import { useRouter } from "next/navigation";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,7 +106,6 @@ export default function EditorPage() {
     const [draggingNode, setDraggingNode] = useState<RegistryNode | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [dragType, setDragType] = useState<"tile" | "panel" | null>(null);
-    const [registryType, setRegistryType] = useState<"tiles" | "panels">("tiles");
     const [openSection, setOpenSection] = useState<string>("");
     const [pageEditorOpen, setPageEditorOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -420,37 +418,34 @@ export default function EditorPage() {
 
             {/* ── Registry sidebar ── */}
             <aside className={style.registry["ROOT-STYLE"]}>
-                <div className="mb-3">
-                    <Switcher
-                        options={registryTypeOptions}
-                        value={registryType}
-                        onChange={setRegistryType as (value: string) => void}
-                        className="relative flex w-full flex-row rounded-xl bg-black/30 p-1 backdrop-blur-lg"
-                        highlightClassName="w-full flex-1"
-                    />
-                </div>
-                {registryType === "tiles" && (
-                    <RegistryBrowser
-                        nodes={TileRegistry}
-                        onStartDrag={(node, mouse) => {
-                            setMousePos(mouse);
-                            startDrag(node, "tile");
-                        }}
-                        openSection={openSection}
-                        setOpenSection={setOpenSection}
-                    />
-                )}
-                {registryType === "panels" && (
-                    <RegistryBrowser
-                        nodes={PanelRegistry}
-                        onStartDrag={(node, mouse) => {
-                            setMousePos(mouse);
-                            startDrag(node, "panel");
-                        }}
-                        openSection={openSection}
-                        setOpenSection={setOpenSection}
-                    />
-                )}
+                <Tabs defaultTab="tiles">
+                    <TabList>
+                        <Tab id="tiles">Tiles</Tab>
+                        <Tab id="panels">Panels</Tab>
+                    </TabList>
+                    <TabPanel id="tiles">
+                        <RegistryBrowser
+                            nodes={TileRegistry}
+                            onStartDrag={(node, mouse) => {
+                                setMousePos(mouse);
+                                startDrag(node, "tile");
+                            }}
+                            openSection={openSection}
+                            setOpenSection={setOpenSection}
+                        />
+                    </TabPanel>
+                    <TabPanel id="panels">
+                        <RegistryBrowser
+                            nodes={PanelRegistry}
+                            onStartDrag={(node, mouse) => {
+                                setMousePos(mouse);
+                                startDrag(node, "panel");
+                            }}
+                            openSection={openSection}
+                            setOpenSection={setOpenSection}
+                        />
+                    </TabPanel>
+                </Tabs>,
             </aside>
 
             {/* ── Drag preview ── */}

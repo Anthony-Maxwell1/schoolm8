@@ -87,8 +87,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             ? size === "sm"
                 ? "iconSm"
                 : size === "lg"
-                  ? "iconLg"
-                  : "iconMd"
+                    ? "iconLg"
+                    : "iconMd"
             : size;
 
         return (
@@ -233,10 +233,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                     <select ref={ref} id={id} className={cn(rs(sel.field), className)} {...props}>
                         {options
                             ? options.map((o) => (
-                                  <option key={o.value} value={o.value} disabled={o.disabled}>
-                                      {o.label}
-                                  </option>
-                              ))
+                                <option key={o.value} value={o.value} disabled={o.disabled}>
+                                    {o.label}
+                                </option>
+                            ))
                             : children}
                     </select>
                     {/* Chevron icon */}
@@ -801,10 +801,10 @@ export function Skeleton({
         variant === "text"
             ? "text"
             : variant === "avatar"
-              ? "avatar"
-              : variant === "button"
-                ? "button"
-                : "root";
+                ? "avatar"
+                : variant === "button"
+                    ? "button"
+                    : "root";
 
     if (variant === "text" && lines > 1) {
         return (
@@ -1022,7 +1022,7 @@ interface TabsContextValue {
 
 const TabsContext = createContext<TabsContextValue>({
     active: "",
-    setActive: () => {},
+    setActive: () => { },
     variant: "pill",
 });
 
@@ -1348,6 +1348,7 @@ export interface ModalProps {
     size?: "md" | "lg";
     children?: ReactNode;
     footer?: ReactNode;
+    zIndex?: number;
 }
 
 export function Modal({
@@ -1358,6 +1359,7 @@ export function Modal({
     size = "md",
     children,
     footer,
+    zIndex = 400
 }: ModalProps) {
     const { css } = useCss();
     const m = css.components?.base?.modal ?? {};
@@ -1383,6 +1385,7 @@ export function Modal({
                 aria-modal
                 aria-labelledby={title ? "modal-title" : undefined}
                 className={rs(m[contentKey])}
+                style={{ zIndex }}
             >
                 {(title || description) && (
                     <div className={rs(m.header)}>
@@ -1523,8 +1526,8 @@ export function Stat({ label, value, delta, icon, className }: StatProps) {
         delta?.direction === "up"
             ? "positive-style"
             : delta?.direction === "down"
-              ? "negative-style"
-              : "neutral-style";
+                ? "negative-style"
+                : "neutral-style";
 
     return (
         <div className={cn(rs(s.root), className)}>
