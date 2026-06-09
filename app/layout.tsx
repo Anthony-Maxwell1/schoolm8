@@ -38,7 +38,7 @@ https://github.com/Anthony-Maxwell1/schoolm8
                             <AuthProvider>
                                 <AccessControlProvider>
                                     <TaskManager />
-                                    <ToastContainer position="bottom-right" />
+                                    <ToastContainer position="top-right" />
                                     <ClientAuthGuard>
                                         <Navigation>{children}</Navigation>
                                     </ClientAuthGuard>

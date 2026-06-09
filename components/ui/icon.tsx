@@ -1,4 +1,4 @@
-import { HelpCircle, Layout, Plus, Settings, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight, HelpCircle, Layout, Plus, Settings, StickyNote } from "lucide-react";
 
 const icons: Record<string, Record<string, React.ComponentType<any>>> = {
     "main": {
@@ -7,6 +7,8 @@ const icons: Record<string, Record<string, React.ComponentType<any>>> = {
         "help": HelpCircle,
         "plus": Plus,
         "StickyNote": StickyNote,
+        "ChevronLeft": ChevronLeft,
+        "ChevronRight": ChevronRight
     }
 }
 

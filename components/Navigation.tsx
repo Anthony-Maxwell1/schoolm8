@@ -15,6 +15,9 @@ import { usePathname } from "next/navigation";
 import { useCss } from "@/lib/css";
 import { cn } from "@/lib/utils";
 import * as Sentry from "@sentry/nextjs";
+import { Button, Divider } from "./ui/components";
+import Icon from "./ui/icon";
+import { toast } from "react-toastify";
 
 // Icon mapping - you can expand this with more icons
 
@@ -127,7 +130,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             const unsubscribe = feedback.attachTo(buttonRef.current);
             return unsubscribe;
         }
-        return () => {};
+        return () => { };
     }, [feedback]);
 
     useEffect(() => {
@@ -166,21 +169,35 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                 {/* Logo */}
                 <div className={navigationCss.main.branding["ROOT-STYLE"]}>
                     {!sidebarCollapsed && (
-                        <h2 className={navigationCss.main.branding.logotext["ROOT-STYLE"]}>
+                        <h3 className={navigationCss.main.branding.logotext["ROOT-STYLE"]}>
                             {navigationCss.main.branding.logotext.CONTENT}
-                        </h2>
+                        </h3>
                     )}
-                    <button
+                    <Button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title={sidebarCollapsed ? "Expand" : "Collapse"} iconOnly={true} variant="ghost" leftIcon={sidebarCollapsed ? (
+                        <Icon
+                            icon="ChevronRight"
+                            color="--color-on-secondary"
+                        />
+                    ) : (
+                        <Icon
+                            icon="ChevronLeft"
+                            color="--color-on-secondary"
+                        />
+                    )}>
+
+                    </Button>
+
+                    {/* <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                         className={cn(
                             navigationCss.main.branding.expandcollapse["ROOT-STYLE"],
                             sidebarCollapsed
                                 ? navigationCss.main.branding.expandcollapse[
-                                      "sidebarCollapsed-style"
-                                  ]
+                                "sidebarCollapsed-style"
+                                ]
                                 : navigationCss.main.branding.expandcollapse[
-                                      "sidebarExpanded-style"
-                                  ],
+                                "sidebarExpanded-style"
+                                ],
                         )}
                         title={sidebarCollapsed ? "Expand" : "Collapse"}
                     >
@@ -197,8 +214,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 }
                             />
                         )}
-                    </button>
+                    </button> */}
                 </div>
+                <Divider />
+
 
                 {/* Navigation Items */}
                 <nav className={navigationCss.main.items["ROOT-STYLE"]}>
@@ -216,7 +235,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                     key={item.id}
                                     className={
                                         navigationCss.main.items.itemwithchildren.wrapper[
-                                            "ROOT-STYLE"
+                                        "ROOT-STYLE"
                                         ]
                                     }
                                 >
@@ -226,31 +245,31 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                             navigationCss.main.items.itemwithchildren["ROOT-STYLE"],
                                             active
                                                 ? navigationCss.main.items.itemwithchildren[
-                                                      "active-style"
-                                                  ]
+                                                "active-style"
+                                                ]
                                                 : navigationCss.main.items.itemwithchildren[
-                                                      "inactive-style"
-                                                  ],
+                                                "inactive-style"
+                                                ],
                                             sidebarCollapsed
                                                 ? navigationCss.main.items.itemwithchildren[
-                                                      "sidebarCollapsed-style"
-                                                  ]
+                                                "sidebarCollapsed-style"
+                                                ]
                                                 : navigationCss.main.items.itemwithchildren[
-                                                      "sidebarExpanded-style"
-                                                  ],
+                                                "sidebarExpanded-style"
+                                                ],
                                         )}
                                         title={item.label}
                                     >
                                         <IconComponent
                                             className={cn(
                                                 navigationCss.main.items.itemwithchildren.icon[
-                                                    "ROOT-STYLE"
+                                                "ROOT-STYLE"
                                                 ],
                                                 sidebarCollapsed
                                                     ? navigationCss.main.items.itemwithchildren
-                                                          .icon["sidebarCollapsed-style"]
+                                                        .icon["sidebarCollapsed-style"]
                                                     : navigationCss.main.items.itemwithchildren
-                                                          .icon["sidebarExpanded-style"],
+                                                        .icon["sidebarExpanded-style"],
                                             )}
                                         />
 
@@ -258,7 +277,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                             <span
                                                 className={
                                                     navigationCss.main.items.itemwithchildren.label[
-                                                        "ROOT-STYLE"
+                                                    "ROOT-STYLE"
                                                     ]
                                                 }
                                             >
@@ -299,7 +318,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                         className={
                                                             navigationCss.main.items
                                                                 .itemwithchildren.collapse.icon[
-                                                                "ROOT-STYLE"
+                                                            "ROOT-STYLE"
                                                             ]
                                                         }
                                                     />
@@ -308,7 +327,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                         className={
                                                             navigationCss.main.items
                                                                 .itemwithchildren.collapse.icon[
-                                                                "ROOT-STYLE"
+                                                            "ROOT-STYLE"
                                                             ]
                                                         }
                                                     />
@@ -333,9 +352,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                     .wrapper["ROOT-STYLE"],
                                                 isCollapsed
                                                     ? navigationCss.main.items.itemwithchildren
-                                                          .children.wrapper["collapsed-style"]
+                                                        .children.wrapper["collapsed-style"]
                                                     : navigationCss.main.items.itemwithchildren
-                                                          .children.wrapper["expanded-style"],
+                                                        .children.wrapper["expanded-style"],
                                             )}
                                             style={{
                                                 display: hiddenMap[item.id] ? "none" : undefined,
@@ -355,26 +374,26 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                         className={cn(
                                                             navigationCss.main.items
                                                                 .itemwithchildren.children[
-                                                                "ROOT-STYLE"
+                                                            "ROOT-STYLE"
                                                             ],
                                                             childActive
                                                                 ? navigationCss.main.items
-                                                                      .itemwithchildren.children[
-                                                                      "active-style"
-                                                                  ]
+                                                                    .itemwithchildren.children[
+                                                                "active-style"
+                                                                ]
                                                                 : navigationCss.main.items
-                                                                      .itemwithchildren.children[
-                                                                      "inactive-style"
-                                                                  ],
+                                                                    .itemwithchildren.children[
+                                                                "inactive-style"
+                                                                ],
                                                             sidebarCollapsed
                                                                 ? navigationCss.main.items
-                                                                      .itemwithchildren.children[
-                                                                      "sidebarCollapsed-style"
-                                                                  ]
+                                                                    .itemwithchildren.children[
+                                                                "sidebarCollapsed-style"
+                                                                ]
                                                                 : navigationCss.main.items
-                                                                      .itemwithchildren.children[
-                                                                      "sidebarExpanded-style"
-                                                                  ],
+                                                                    .itemwithchildren.children[
+                                                                "sidebarExpanded-style"
+                                                                ],
                                                         )}
                                                         title={child.label}
                                                     >
@@ -382,19 +401,19 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                                             className={cn(
                                                                 navigationCss.main.items
                                                                     .itemwithchildren.children.icon[
-                                                                    "ROOT-STYLE"
+                                                                "ROOT-STYLE"
                                                                 ],
                                                                 sidebarCollapsed
                                                                     ? navigationCss.main.items
-                                                                          .itemwithchildren.children
-                                                                          .icon[
-                                                                          "sidebarCollapsed-style"
-                                                                      ]
+                                                                        .itemwithchildren.children
+                                                                        .icon[
+                                                                    "sidebarCollapsed-style"
+                                                                    ]
                                                                     : navigationCss.main.items
-                                                                          .itemwithchildren.children
-                                                                          .icon[
-                                                                          "sidebarExpanded-style"
-                                                                      ],
+                                                                        .itemwithchildren.children
+                                                                        .icon[
+                                                                    "sidebarExpanded-style"
+                                                                    ],
                                                             )}
                                                         />
                                                         {!sidebarCollapsed && (
@@ -437,11 +456,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                         navigationCss.main.items.item.icon["ROOT-STYLE"],
                                         sidebarCollapsed
                                             ? navigationCss.main.items.item.icon[
-                                                  "sidebarCollapsed-style"
-                                              ]
+                                            "sidebarCollapsed-style"
+                                            ]
                                             : navigationCss.main.items.item.icon[
-                                                  "sidebarExpanded-style"
-                                              ],
+                                            "sidebarExpanded-style"
+                                            ],
                                     )}
                                 />
                                 {!sidebarCollapsed && (
@@ -457,6 +476,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                         );
                     })}
                 </nav>
+
+                <Divider />
 
                 {/* Bottom Navigation */}
                 <div
@@ -478,11 +499,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                     : navigationCss.main.bottomnav.settings.inner["inactive-style"],
                                 sidebarCollapsed
                                     ? navigationCss.main.bottomnav.settings.inner[
-                                          "sidebarCollapsed-style"
-                                      ]
+                                    "sidebarCollapsed-style"
+                                    ]
                                     : navigationCss.main.bottomnav.settings.inner[
-                                          "sidebarExpanded-style"
-                                      ],
+                                    "sidebarExpanded-style"
+                                    ],
                             )}
                         >
                             <Menu
@@ -500,7 +521,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 <span
                                     className={
                                         navigationCss.main.bottomnav.settings.inner.icon.active[
-                                            "ROOT-STYLE"
+                                        "ROOT-STYLE"
                                         ]
                                     }
                                 />
@@ -526,11 +547,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                     : navigationCss.main.bottomnav.docs.inner["inactive-style"],
                                 sidebarCollapsed
                                     ? navigationCss.main.bottomnav.docs.inner[
-                                          "sidebarCollapsed-style"
-                                      ]
+                                    "sidebarCollapsed-style"
+                                    ]
                                     : navigationCss.main.bottomnav.docs.inner[
-                                          "sidebarExpanded-style"
-                                      ],
+                                    "sidebarExpanded-style"
+                                    ],
                             )}
                         >
                             <BookOpenText
@@ -543,7 +564,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 <span
                                     className={
                                         navigationCss.main.bottomnav.docs.inner.icon.active[
-                                            "ROOT-STYLE"
+                                        "ROOT-STYLE"
                                         ]
                                     }
                                 />
@@ -568,12 +589,18 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                     : navigationCss.main.bottomnav.feedback.inner["inactive-style"],
                                 sidebarCollapsed
                                     ? navigationCss.main.bottomnav.feedback.inner[
-                                          "sidebarCollapsed-style"
-                                      ]
+                                    "sidebarCollapsed-style"
+                                    ]
                                     : navigationCss.main.bottomnav.feedback.inner[
-                                          "sidebarExpanded-style"
-                                      ],
+                                    "sidebarExpanded-style"
+                                    ],
                             )}
+                            onClick={() => toast.info("This is a bug report form, not a feature suggestion form! Email anthony@thatdev.org for that instead.", {
+                                closeOnClick: true,
+                                closeButton: true,
+                                draggable: true,
+                                type: "info"
+                            })}
                         >
                             <MessageCircle
                                 className={
@@ -585,7 +612,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                                 <span
                                     className={
                                         navigationCss.main.bottomnav.feedback.inner.icon.active[
-                                            "ROOT-STYLE"
+                                        "ROOT-STYLE"
                                         ]
                                     }
                                 />

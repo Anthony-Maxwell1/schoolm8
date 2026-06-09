@@ -128,25 +128,25 @@ const defaultCss: any = {
         Navigation: {
             main: {
                 "ROOT-STYLE":
-                    "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 ease-in-out shadow-xl",
+                    "bg-[var(--color-secondary)] shadow-[var(--shadow-md)] flex flex-col h-screen fixed left-0 top-0 z-50 transition-all duration-300 ease-in-out shadow-xl",
                 "sidebarCollapsed-style": "w-18",
                 "sidebarExpanded-style": "w-64",
                 "sidebarHidden-style": "-translate-x-full",
                 branding: {
                     "ROOT-STYLE":
-                        "p-4 border-b border-slate-700 flex items-center justify-between gap-2",
+                        "p-4 flex items-center justify-between gap-2 items-center",
                     logotext: {
-                        "ROOT-STYLE": "text-white text-lg font-bold",
+                        "ROOT-STYLE": "text-[var(--color-on-secondary)]",
                         CONTENT: "schoolm8",
                     },
                     expandcollapse: {
-                        "ROOT-STYLE":
-                            "text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 cursor-pointer",
-                        "sidebarCollapsed-style": "mx-auto",
-                        "sidebarExpanded-style": "ml-auto",
-                        icon: {
-                            "ROOT-STYLE": "w-5 h-5",
-                        },
+                        // "ROOT-STYLE":
+                        //     "text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 cursor-pointer",
+                        // "sidebarCollapsed-style": "mx-auto",
+                        // "sidebarExpanded-style": "ml-auto",
+                        // icon: {
+                        //     "ROOT-STYLE": "w-5 h-5",
+                        // },
                     },
                 },
                 items: {
@@ -157,8 +157,8 @@ const defaultCss: any = {
                         },
                         "ROOT-STYLE": "flex items-center px-3 py-2 rounded-lg transition-all",
                         "active-style":
-                            "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white",
-                        "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                        "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                         "sidebarCollapsed-style": "",
                         "sidebarExpanded-style": "gap-3",
                         icon: {
@@ -171,7 +171,7 @@ const defaultCss: any = {
                         },
                         collapse: {
                             "ROOT-STYLE":
-                                "ml-auto p-1 rounded hover:bg-slate-400 hover:text-slate-900 text-slate-400 transition-colors cursor-pointer",
+                                "ml-auto p-1 rounded hover:bg-[var(--color-secondary)] hover:text-[var(--color-on-secondary)] text-[var(--color-on-primary)] transition-colors cursor-pointer",
                             icon: {
                                 "ROOT-STYLE": "w-4 h-4",
                             },
@@ -185,8 +185,8 @@ const defaultCss: any = {
                             "ROOT-STYLE":
                                 "flex items-center px-3 py-2 rounded-lg transition-all cursor-pointer",
                             "active-style":
-                                "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white",
-                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                                "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "",
                             "sidebarExpanded-style": "gap-3",
                             icon: {
@@ -202,8 +202,8 @@ const defaultCss: any = {
                     item: {
                         "ROOT-STYLE": "flex items-center px-3 py-2 rounded-lg transition-all",
                         "active-style":
-                            "bg-emerald-500/20 border-l-2 border-l-emerald-500 text-white",
-                        "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                        "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                         "sidebarCollapsed-style": "",
                         "sidebarExpanded-style": "gap-3",
                         icon: {
@@ -217,7 +217,7 @@ const defaultCss: any = {
                     },
                 },
                 bottomnav: {
-                    "ROOT-STYLE": "border-t border-slate-700 flex items-center gap-2 p-3",
+                    "ROOT-STYLE": "flex items-center gap-2 p-3",
                     "sidebarCollapsed-style": "flex-col",
                     "sidebarExpanded-style": "flex-row",
 
@@ -229,8 +229,8 @@ const defaultCss: any = {
                         inner: {
                             "ROOT-STYLE":
                                 "flex w-full items-center rounded-lg px-3 py-2.5 transition-all relative",
-                            "active-style": "bg-emerald-500/20 text-white",
-                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "active-style": "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "justify-center",
                             "sidebarExpanded-style": "justify-start gap-2",
 
@@ -253,8 +253,8 @@ const defaultCss: any = {
                         inner: {
                             "ROOT-STYLE":
                                 "inline-flex items-center justify-center rounded-lg p-2.5 transition-all relative",
-                            "active-style": "bg-emerald-500/20 text-white",
-                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "active-style": "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "",
                             "sidebarExpanded-style": "",
 
@@ -278,7 +278,7 @@ const defaultCss: any = {
                             "ROOT-STYLE":
                                 "inline-flex items-center justify-center rounded-lg p-2.5 transition-all relative cursor-pointer",
                             "active-style": "bg-emerald-500/20 text-white",
-                            "inactive-style": "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "",
                             "sidebarExpanded-style": "",
 
@@ -1612,7 +1612,7 @@ function saveStore(store: CssThemeStore) {
 
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(normalised));
-    } catch {}
+    } catch { }
 }
 
 // ✅ MAIN HOOK (reactive)
