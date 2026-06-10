@@ -33,7 +33,10 @@ import {
 
 type EventType = StandardEvent["type"];
 
-const EVENT_BADGE: Record<EventType, { variant: "info" | "warning" | "primary" | "default"; label: string }> = {
+const EVENT_BADGE: Record<
+    EventType,
+    { variant: "info" | "warning" | "primary" | "default"; label: string }
+> = {
     class: { variant: "info", label: "Class" },
     break: { variant: "warning", label: "Break" },
     event: { variant: "primary", label: "Event" },
@@ -51,15 +54,14 @@ function EventCard({
     event: StandardEvent & { date: string };
     showDate?: boolean;
 }) {
+    console.log(event);
+    console.log("Event type:", event.type); // Debug log to check event type
     const badge = EVENT_BADGE[event.type] ?? EVENT_BADGE.other;
 
     return (
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-4 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]">
             <div className="mb-3 flex items-start justify-between gap-3">
-                <Text
-                    variant="h5"
-                    className="leading-snug"
-                >
+                <Text variant="h5" className="leading-snug">
                     {event.title}
                 </Text>
                 <Badge variant={badge.variant} pill className="shrink-0">
@@ -141,7 +143,12 @@ function TimetableSkeleton({ viewMode }: { viewMode: "grid" | "list" }) {
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <Skeleton variant="text" width="65%" height={22} />
-                                        <Skeleton variant="text" width={52} height={20} className="rounded-full shrink-0" />
+                                        <Skeleton
+                                            variant="text"
+                                            width={52}
+                                            height={20}
+                                            className="rounded-full shrink-0"
+                                        />
                                     </div>
                                     <Skeleton variant="text" width="50%" />
                                     <Skeleton variant="text" width="40%" />
@@ -158,7 +165,12 @@ function TimetableSkeleton({ viewMode }: { viewMode: "grid" | "list" }) {
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <Skeleton variant="text" width="55%" height={22} />
-                                        <Skeleton variant="text" width={52} height={20} className="rounded-full shrink-0" />
+                                        <Skeleton
+                                            variant="text"
+                                            width={52}
+                                            height={20}
+                                            className="rounded-full shrink-0"
+                                        />
                                     </div>
                                     <Skeleton variant="text" width="35%" />
                                     <Skeleton variant="text" width="45%" />
@@ -183,7 +195,9 @@ export default function TimetablePage() {
     const [timetableData, setTimetableData] = useState<StandardTimetable[]>([]);
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [filterType, setFilterType] = useState<"all" | "class" | "break" | "event" | "other">("all");
+    const [filterType, setFilterType] = useState<"all" | "class" | "break" | "event" | "other">(
+        "all",
+    );
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -218,6 +232,7 @@ export default function TimetablePage() {
                 console.error("Failed to fetch timetable:", err);
                 setError("Failed to load timetable. Please try again.");
             })
+            .then(() => console.log("Fetched timetable data:", timetableData)) // Debug log to check fetched data
             .finally(() => setIsLoading(false));
     }, [user, token, loading, selectedDate, accessLoading, allowed]);
 
@@ -237,9 +252,7 @@ export default function TimetablePage() {
 
     // ── Derived data ──────────────────────────────────────────────────────
     const getAllEvents = (): (StandardEvent & { date: string })[] =>
-        timetableData.flatMap((day) =>
-            day.events.map((event) => ({ ...event, date: day.date })),
-        );
+        timetableData.flatMap((day) => day.events.map((event) => ({ ...event, date: day.date })));
 
     const applyFilters = (events: (StandardEvent & { date: string })[]) =>
         events.filter((e) => {
@@ -272,14 +285,11 @@ export default function TimetablePage() {
     // ── Render ────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-[var(--color-surface)]">
-
             {/* ── Toolbar ── */}
             <div className="sticky top-0 z-[var(--z-sticky)] border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]/90 backdrop-blur-md">
                 <div className="mx-auto max-w-7xl px-6 py-3 space-y-3">
-
                     {/* Row 1: view toggle + week nav */}
                     <div className="flex items-center justify-between gap-4">
-
                         {/* View toggle */}
                         <div className="flex gap-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-muted)] p-0.5">
                             {(["grid", "list"] as const).map((mode) => (
@@ -294,10 +304,11 @@ export default function TimetablePage() {
                                             : "text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]",
                                     ].join(" ")}
                                 >
-                                    {mode === "grid"
-                                        ? <Grid3x3 className="h-4 w-4" />
-                                        : <List className="h-4 w-4" />
-                                    }
+                                    {mode === "grid" ? (
+                                        <Grid3x3 className="h-4 w-4" />
+                                    ) : (
+                                        <List className="h-4 w-4" />
+                                    )}
                                 </button>
                             ))}
                         </div>
@@ -313,8 +324,13 @@ export default function TimetablePage() {
                                 onClick={() => changeWeek("prev")}
                             />
                             <div className="min-w-32 text-center">
-                                <Text variant="caption" className="block">Week of</Text>
-                                <Text variant="bodySm" className="font-medium text-[var(--color-text-primary)]">
+                                <Text variant="caption" className="block">
+                                    Week of
+                                </Text>
+                                <Text
+                                    variant="bodySm"
+                                    className="font-medium text-[var(--color-text-primary)]"
+                                >
                                     {weekLabel}
                                 </Text>
                             </div>
@@ -357,7 +373,6 @@ export default function TimetablePage() {
 
             {/* ── Main content ── */}
             <div className="mx-auto max-w-7xl px-6 py-8">
-
                 {/* Error */}
                 {error && !isLoading && (
                     <Alert
@@ -415,8 +430,11 @@ export default function TimetablePage() {
                 )}
 
                 {/* List view */}
-                {!isLoading && !error && timetableData.length > 0 && viewMode === "list" && (
-                    filteredEvents.length === 0 ? (
+                {!isLoading &&
+                    !error &&
+                    timetableData.length > 0 &&
+                    viewMode === "list" &&
+                    (filteredEvents.length === 0 ? (
                         <EmptyState
                             icon={<Calendar className="h-7 w-7" />}
                             title="No events found"
@@ -428,8 +446,7 @@ export default function TimetablePage() {
                                 <EventCard key={idx} event={event} showDate />
                             ))}
                         </div>
-                    )
-                )}
+                    ))}
             </div>
         </div>
     );

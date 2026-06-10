@@ -2,8 +2,9 @@
 
 import { useAuth } from "@/context/authContext";
 import { SiCanvas, SiGoogleclassroom } from "@icons-pack/react-simple-icons";
-import { Table, ChevronRight } from "lucide-react";
-import { Text, Divider, Badge } from "@/components/ui/components";
+import { Table, ChevronRight, Pill } from "lucide-react";
+import { Text, Divider, Badge, Card } from "@/components/ui/components";
+import { useEffect, useState } from "react";
 
 function IntegrationRow({
     icon,
@@ -46,7 +47,32 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function IntegrationsPage() {
-    const { signOut } = useAuth();
+    const { user, loading } = useAuth();
+    const [connectedServices, setConnectedServices] = useState({
+        canvas: false,
+        googleClassroom: false,
+        edumate: false,
+        generic: false,
+    });
+
+    useEffect(() => {
+        if (loading || !user) return;
+
+        fetch("/api/lms/linked")
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("Linked LMS response:", data); // Debug log to check API response
+                setConnectedServices({
+                    canvas: data.lms === "canvas",
+                    googleClassroom: data.lms === "googleClassroom",
+                    edumate: false, // Placeholder, implement actual check when API is ready
+                    generic: false, // Placeholder, implement actual check when API is ready
+                });
+            })
+            .catch((err) => {
+                console.error("Error fetching linked LMS:", err);
+            });
+    }, [user, loading]);
 
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
@@ -58,30 +84,44 @@ export default function IntegrationsPage() {
                     Integrations
                 </h1>
                 <Text variant="bodyLg" className="mt-3 text-[var(--color-text-secondary)]">
-                    Connect Schoolm8 to your <em>learning tools</em> — your LMS, timetable,
-                    and any other services your school uses.
+                    Connect Schoolm8 to your <em>learning tools</em> — your LMS, timetable, and any
+                    other services your school uses.
                 </Text>
 
                 <Divider className="my-10" />
 
                 <SectionLabel>Learning Management System</SectionLabel>
                 <Text variant="bodySm" className="mb-4">
-                    Link your LMS so Schoolm8 can pull assignments, announcements, and course data automatically.
+                    Link your LMS so Schoolm8 can pull assignments, announcements, and course data
+                    automatically.
                 </Text>
-                <nav className="space-y-1">
-                    <IntegrationRow
-                        icon={<SiCanvas className="h-5 w-5" />}
-                        label="Canvas"
-                    />
-                    <IntegrationRow
-                        icon={<SiGoogleclassroom className="h-5 w-5" />}
-                        label="Google Classroom"
-                    />
-                </nav>
+
+                {connectedServices.canvas || connectedServices.googleClassroom ? (
+                    <Card>
+                        {connectedServices.canvas ? (
+                            <Badge variant="success" className="mb-2">
+                                Canvas connected as LMS!
+                            </Badge>
+                        ) : connectedServices.googleClassroom ? (
+                            <Badge variant="success" className="mb-2">
+                                Google Classroom connected as LMS!
+                            </Badge>
+                        ) : null}
+                    </Card>
+                ) : (
+                    <nav className="space-y-1">
+                        <IntegrationRow icon={<SiCanvas className="h-5 w-5" />} label="Canvas" />
+                        <IntegrationRow
+                            icon={<SiGoogleclassroom className="h-5 w-5" />}
+                            label="Google Classroom"
+                        />
+                    </nav>
+                )}
 
                 <SectionLabel>Timetable</SectionLabel>
                 <Text variant="bodySm" className="mb-4">
-                    Connect your timetable provider for schedule views, class reminders, and personalised study guides.
+                    Connect your timetable provider for schedule views, class reminders, and
+                    personalised study guides.
                 </Text>
                 <nav className="space-y-1">
                     <IntegrationRow
@@ -90,7 +130,7 @@ export default function IntegrationsPage() {
                                 src="https://edumate.com.au/favicon.ico"
                                 alt="Edumate"
                                 className="h-5 w-5"
-                            // style={{ filter: "invert(40%) sepia(60%) saturate(400%) hue-rotate(10deg)" }}
+                                // style={{ filter: "invert(40%) sepia(60%) saturate(400%) hue-rotate(10deg)" }}
                             />
                         }
                         label="Edumate"

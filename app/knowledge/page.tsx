@@ -107,9 +107,9 @@ export default function KnowledgeBaseApp() {
         });
     };
 
-    if (loading) {
-        return <div className={style.loading["ROOT-STYLE"]}>Loading...</div>;
-    }
+    // if (loading) {                                                               Assume your authenticated, and go from cache!
+    //     return <div className={style.loading["ROOT-STYLE"]}>Loading...</div>;
+    // }
 
     return (
         <KnowledgeBaseEditor knowledgeBase={knowledgeBase} setKnowledgeBase={updateKnowledgeBase} />
