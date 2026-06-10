@@ -1,37 +1,116 @@
 "use client";
+
 import { useAuth } from "@/context/authContext";
+import { Text, Divider, Alert, Button, Modal } from "@/components/ui/components";
+import { useState } from "react";
+import { LogOut, Mail, Trash2 } from "lucide-react";
 
-const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
+export default function AccountPage() {
+    const { signOut, user } = useAuth();
+    const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
 
-export default function Settings() {
-    const { signOut } = useAuth();
     return (
-        <div
-            className="relative min-h-screen bg-cover bg-center"
-            style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
-        >
-            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
-            {/* Main container */}
-            <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
-                {/* LEFT PANEL: step list */}
-                <div className="w-full max-w-70 rounded-2xl ring-1 ring-white/50 bg-white/30 backdrop-blur-lg overflow-hidden flex flex-col shadow-xl">
-                    <button
-                        className="text-left w-full p-3 transition text-red-200 hover:bg-black/5 cursor-pointer"
-                        onClick={signOut}
-                    >
-                        Log Out
-                    </button>
-                    <button className="text-left w-full p-3 transition text-blue-300 hover:bg-black/5 cursor-pointer">
-                        Change email
-                    </button>
-                    <a
-                        className="text-left w-full p-3 transition text-red-700 hover:bg-black/5 cursor-pointer"
-                        href="/settings/account/delete"
-                    >
-                        Delete account
-                    </a>
+        <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
+            <div className="mx-auto max-w-lg">
+                <Text variant="label" className="mb-2 block">
+                    Settings
+                </Text>
+                <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] tracking-[-0.01em] font-normal text-[var(--color-text-primary)]">
+                    Account
+                </h1>
+                <Text variant="bodyLg" className="mt-3 text-[var(--color-text-secondary)]">
+                    Manage your <em>identity</em> — update your email, sign out, or
+                    permanently close your account.
+                </Text>
+
+                {user?.email && (
+                    <p className="mt-2 text-sm text-[var(--color-text-tertiary)]">
+                        Signed in as <span className="font-medium text-[var(--color-text-secondary)]">{user.email}</span>
+                    </p>
+                )}
+
+                <Divider className="my-10" />
+
+                {/* Actions */}
+                <div className="divide-y divide-[var(--color-border-subtle)]">
+
+                    {/* Change email */}
+                    <div className="flex items-start justify-between gap-6 py-5">
+                        <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[var(--color-text-primary)]">Change email</p>
+                            <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
+                                Update the email address linked to your Schoolm8 account.
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            leftIcon={<Mail className="h-3.5 w-3.5" />}
+                        >
+                            Change
+                        </Button>
+                    </div>
+
+                    {/* Sign out */}
+                    <div className="flex items-start justify-between gap-6 py-5">
+                        <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[var(--color-text-primary)]">Sign out</p>
+                            <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
+                                Sign out of this device. Your data will remain saved.
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSignOutConfirmOpen(true)}
+                            leftIcon={<LogOut className="h-3.5 w-3.5" />}
+                        >
+                            Sign out
+                        </Button>
+                    </div>
+
+                    {/* Delete account */}
+                    <div className="flex items-start justify-between gap-6 py-5">
+                        <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[var(--color-danger)]">Delete account</p>
+                            <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
+                                Permanently delete your account and all associated data. This cannot be undone.
+                            </p>
+                        </div>
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            as="a"
+                            href="/settings/account/delete"
+                            leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                        >
+                            Delete
+                        </Button>
+                    </div>
+
                 </div>
             </div>
+
+            {/* Sign out confirm */}
+            <Modal
+                open={signOutConfirmOpen}
+                onClose={() => setSignOutConfirmOpen(false)}
+                title="Sign out?"
+                footer={
+                    <>
+                        <Button variant="ghost" onClick={() => setSignOutConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="outline" onClick={signOut}>
+                            Yes, sign out
+                        </Button>
+                    </>
+                }
+            >
+                <Text variant="bodySm">
+                    You'll be returned to the login screen. All your data stays saved in the cloud.
+                </Text>
+            </Modal>
         </div>
     );
 }

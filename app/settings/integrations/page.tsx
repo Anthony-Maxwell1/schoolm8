@@ -1,67 +1,105 @@
 "use client";
+
 import { useAuth } from "@/context/authContext";
 import { SiCanvas, SiGoogleclassroom } from "@icons-pack/react-simple-icons";
-import { Table } from "lucide-react";
-const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
+import { Table, ChevronRight } from "lucide-react";
+import { Text, Divider, Badge } from "@/components/ui/components";
 
-export default function Settings() {
-    const { signOut } = useAuth();
+function IntegrationRow({
+    icon,
+    label,
+    connected,
+    onClick,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    connected?: boolean;
+    onClick?: () => void;
+}) {
     return (
-        <div
-            className="relative min-h-screen bg-cover bg-center"
-            style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
+        <button
+            className="group flex w-full items-center gap-4 rounded-[var(--radius-lg)] px-4 py-4 text-left transition-colors duration-[var(--duration-fast)] hover:bg-[var(--color-muted)]"
+            onClick={onClick}
         >
-            <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/30 to-black/50 backdrop-blur-sm" />
-            {/* Main container */}
-            <div className="relative z-10 flex min-h-screen items-center justify-center px-6 gap-8">
-                {/* LEFT PANEL: step list */}
-                <div className="w-full max-w-80 rounded-2xl ring-1 ring-white/50 bg-white/30 backdrop-blur-lg overflow-hidden flex flex-col shadow-xl">
-                    <details className="bg-white/10 m-4 rounded-xl overflow-hidden">
-                        <summary className="cursor-pointer text-center w-full bg-blue-500 text-white py-4 px-4">
-                            Learning Management System
-                        </summary>
-                        <button
-                            className="w-full p-3 text-left text-white hover:bg-black/5 cursor-pointer flex items-center gap-2 transition"
-                            onClick={signOut}
-                        >
-                            <SiCanvas />
-                            <span>Canvas</span>
-                        </button>
-                        <button
-                            className="w-full p-3 text-left text-white hover:bg-black/5 cursor-pointer flex items-center gap-2 transition"
-                            onClick={signOut}
-                        >
-                            <SiGoogleclassroom />
-                            <span>Google Classroom</span>
-                        </button>
-                    </details>
-                    <details className="bg-white/10 m-4 rounded-xl overflow-hidden">
-                        <summary className="cursor-pointer text-center w-full bg-blue-500 text-white py-4 px-4">
-                            Timetable
-                        </summary>
-                        <button
-                            className="w-full p-3 text-left text-white hover:bg-black/5 cursor-pointer flex items-center gap-2 transition"
-                            onClick={signOut}
-                        >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] text-[var(--color-primary)]">
+                {icon}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="font-medium text-[var(--color-text-primary)]">{label}</p>
+            </div>
+            {connected !== undefined && (
+                <Badge variant={connected ? "success" : "default"} dot>
+                    {connected ? "Connected" : "Not connected"}
+                </Badge>
+            )}
+            <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-disabled)] transition-transform group-hover:translate-x-0.5" />
+        </button>
+    );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+    return (
+        <Text variant="label" className="mb-1 mt-8 block first:mt-0">
+            {children}
+        </Text>
+    );
+}
+
+export default function IntegrationsPage() {
+    const { signOut } = useAuth();
+
+    return (
+        <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
+            <div className="mx-auto max-w-lg">
+                <Text variant="label" className="mb-2 block">
+                    Settings
+                </Text>
+                <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] tracking-[-0.01em] font-normal text-[var(--color-text-primary)]">
+                    Integrations
+                </h1>
+                <Text variant="bodyLg" className="mt-3 text-[var(--color-text-secondary)]">
+                    Connect Schoolm8 to your <em>learning tools</em> — your LMS, timetable,
+                    and any other services your school uses.
+                </Text>
+
+                <Divider className="my-10" />
+
+                <SectionLabel>Learning Management System</SectionLabel>
+                <Text variant="bodySm" className="mb-4">
+                    Link your LMS so Schoolm8 can pull assignments, announcements, and course data automatically.
+                </Text>
+                <nav className="space-y-1">
+                    <IntegrationRow
+                        icon={<SiCanvas className="h-5 w-5" />}
+                        label="Canvas"
+                    />
+                    <IntegrationRow
+                        icon={<SiGoogleclassroom className="h-5 w-5" />}
+                        label="Google Classroom"
+                    />
+                </nav>
+
+                <SectionLabel>Timetable</SectionLabel>
+                <Text variant="bodySm" className="mb-4">
+                    Connect your timetable provider for schedule views, class reminders, and personalised study guides.
+                </Text>
+                <nav className="space-y-1">
+                    <IntegrationRow
+                        icon={
                             <img
                                 src="https://edumate.com.au/favicon.ico"
-                                alt="Website Favicon"
-                                className="w-7 h-7"
-                                style={{
-                                    filter: "invert(100%) sepia(100%) grayscale(100%) brightness(150%)",
-                                }}
+                                alt="Edumate"
+                                className="h-5 w-5"
+                            // style={{ filter: "invert(40%) sepia(60%) saturate(400%) hue-rotate(10deg)" }}
                             />
-                            <span>Edumate</span>
-                        </button>
-                        <button
-                            className="w-full p-3 text-left text-white hover:bg-black/5 cursor-pointer flex items-center gap-2 transition"
-                            onClick={signOut}
-                        >
-                            <Table />
-                            <span>Generic</span>
-                        </button>
-                    </details>
-                </div>
+                        }
+                        label="Edumate"
+                    />
+                    <IntegrationRow
+                        icon={<Table className="h-5 w-5" />}
+                        label="Generic (iCal / file upload)"
+                    />
+                </nav>
             </div>
         </div>
     );
