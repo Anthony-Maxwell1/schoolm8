@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { assertAccess } from "@/lib/access/serverAccessControl";
 
-export default async function GET(req: Request) {
+export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("q");

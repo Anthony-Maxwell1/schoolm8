@@ -1,5 +1,5 @@
 // /pages/api/classroom/attach-submit.ts
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { google } from "googleapis";
@@ -12,13 +12,11 @@ import {
 import { db, auth } from "@/lib/firebaseAdmin";
 import { assertAccess } from "@/lib/access/serverAccessControl";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST") return res.status(405).end();
-
+export async function POST(req: Request) {
     try {
-        const authHeader = req.headers.authorization;
+        const authHeader = req.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer "))
-            return res.status(401).json({ error: "Missing Authorization" });
+            return NextResponse.json({ error: "Missing Authorization" }, { status: 401 });
 
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
@@ -30,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]);
 
         if (accessResult.status !== 200) {
-            return res.status(accessResult.status).json({ error: accessResult.body!.error });
+            return NextResponse.json({ error: accessResult.body!.error }, { status: accessResult.status });
         }
 
         const userDoc = await db.collection("users").doc(userId).get();
@@ -47,9 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
         oAuth2Client.setCredentials(tokenData);
 
-        const { courseId, assignmentId, name, contentType, contentBase64 } = req.body;
+        const { courseId, assignmentId, name, contentType, contentBase64 } = await req.json();
         if (!courseId || !assignmentId || !name || !contentType || !contentBase64)
-            return res.status(400).json({ error: "Missing fields" });
+            return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
         // Save temp file
         const tempPath = path.join("/tmp", name);
@@ -62,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const submissionId = await getStudentSubmissionId(oAuth2Client, courseId, assignmentId);
 
         if (!submissionId || !fileId)
-            return res.status(404).json({ error: "Submission or file not found" });
+            return NextResponse.json({ error: "Submission or file not found" }, { status: 404 });
 
         // Attach file
         await attachFileToAssignment(oAuth2Client, courseId, assignmentId, submissionId, fileId);
@@ -73,13 +71,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Cleanup
         fs.unlinkSync(tempPath);
 
-        res.status(200).json({
-            message: "Assignment attached and submitted",
-            submissionId,
-            fileId,
-        });
+        return NextResponse.json(
+            {
+                message: "Assignment attached and submitted",
+                submissionId,
+                fileId,
+            },
+            { status: 200 },
+        );
     } catch (err: any) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

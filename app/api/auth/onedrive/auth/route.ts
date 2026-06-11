@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import { db } from "@/lib/firebaseAdmin";
 import { assertAccess } from "@/lib/access/serverAccessControl";
 
-export default async function GET(req: Request) {
+export async function GET(req: Request) {
     const url = new URL(req.url);
     const state = url.searchParams.get("state");
     if (!state) {
@@ -37,5 +36,5 @@ export default async function GET(req: Request) {
     const responseMode = "query";
 
     const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&response_type=${responseType}&redirect_uri=${redirectUri}&response_mode=${responseMode}&scope=${scope}&state=${state}`;
-    redirect(authUrl);
+    return Response.redirect(authUrl);
 }

@@ -134,7 +134,6 @@ export async function POST(req: Request) {
         // formdata-node's File constructor: new File([content], filename, options)
         const file = new File([nodeStream as any], name, {
             type: contentType,
-            size: size,
         });
 
         form.set("file", file);

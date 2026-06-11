@@ -1,17 +1,15 @@
 // /pages/api/classroom/submit.ts
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { getStudentSubmissionId, submitAssignment } from "@/lib/googleClassroom";
 import { assertAccess } from "@/lib/access/serverAccessControl";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== "POST") return res.status(405).end();
-
+export async function POST(req: Request) {
     try {
-        const authHeader = req.headers.authorization;
+        const authHeader = req.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer "))
-            return res.status(401).json({ error: "Missing Authorization" });
+            return NextResponse.json({ error: "Missing Authorization" }, { status: 401 });
 
         const idToken = authHeader.split(" ")[1];
         const decodedToken = await auth.verifyIdToken(idToken);
@@ -23,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ]);
 
         if (accessResult.status !== 200) {
-            return res.status(accessResult.status).json({ error: accessResult.body!.error });
+            return NextResponse.json({ error: accessResult.body!.error }, { status: accessResult.status });
         }
 
         const userDoc = await db.collection("users").doc(userId).get();
@@ -40,20 +38,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         );
         oAuth2Client.setCredentials(tokenData);
 
-        const { courseId, assignmentId } = req.body;
-        if (!courseId || !assignmentId) return res.status(400).json({ error: "Missing fields" });
+        const { courseId, assignmentId } = await req.json();
+        if (!courseId || !assignmentId)
+            return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
         // Get submission ID
         const submissionId = await getStudentSubmissionId(oAuth2Client, courseId, assignmentId);
 
-        if (!submissionId) return res.status(404).json({ error: "Submission not found" });
+        if (!submissionId)
+            return NextResponse.json({ error: "Submission not found" }, { status: 404 });
 
         // Submit assignment
         await submitAssignment(oAuth2Client, courseId, assignmentId, submissionId);
 
-        res.status(200).json({ message: "Assignment submitted", submissionId });
+        return NextResponse.json({ message: "Assignment submitted", submissionId }, { status: 200 });
     } catch (err: any) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

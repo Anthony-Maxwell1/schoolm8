@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db, auth } from "@/lib/firebaseAdmin";
 import { assertAccess } from "@/lib/access/serverAccessControl";
 
-export default async function DELETE(req: Request) {
+export async function DELETE(req: Request) {
     try {
         const { itemId } = await req.json();
         const authHeader = req.headers.get("Authorization");
