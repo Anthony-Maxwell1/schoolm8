@@ -27,6 +27,7 @@ import {
     FileText,
     Minimize2,
     Maximize2,
+    Trash2,
 } from "lucide-react";
 import { useAuth } from "@/context/authContext";
 import { useRef } from "react";
@@ -286,7 +287,7 @@ const createCustomSchema = (
     allPages: KnowledgeBasePage[],
     setRightPanel?: (node: React.ReactNode | null) => void,
 ) => {
-    const noop = () => {};
+    const noop = () => { };
     return BlockNoteSchema.create({
         blockSpecs: {
             ...defaultBlockSpecs,
@@ -416,9 +417,9 @@ function DatabaseBlock({
             prev.map((entry) =>
                 entry.id === entryId
                     ? {
-                          ...entry,
-                          values: { ...entry.values, [key]: { ...entry.values[key], value } },
-                      }
+                        ...entry,
+                        values: { ...entry.values, [key]: { ...entry.values[key], value } },
+                    }
                     : entry,
             ),
         );
@@ -643,8 +644,8 @@ function DatabaseBlock({
                                                         col.type === "number"
                                                             ? "number"
                                                             : col.type === "date"
-                                                              ? "date"
-                                                              : "text"
+                                                                ? "date"
+                                                                : "text"
                                                     }
                                                     value={cell?.value || ""}
                                                     onChange={(e) =>
@@ -915,6 +916,114 @@ type Props = { knowledgeBase: KnowledgeBase; setKnowledgeBase: (kb: KnowledgeBas
 
 // ─── Root Component ───────────────────────────────────────────────────────────
 
+const __TEMPLATE__: PartialBlock[] = [
+    {
+        type: "heading",
+        props: {
+            level: 1,
+        },
+        content: ["Welcome to your Knowledge Base"],
+    },
+    {
+        type: "paragraph",
+        content: [
+            "This is your central space for notes, documentation, ideas, and structured knowledge.",
+        ],
+    },
+
+    {
+        type: "heading",
+        props: {
+            level: 2,
+        },
+        content: ["Getting Started"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Create your first note using the editor toolbar"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Organise content into pages or categories"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Use headings, lists, and tables to structure information"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Search to quickly find anything you've written"],
+    },
+
+    {
+        type: "heading",
+        props: {
+            level: 2,
+        },
+        content: ["Tips & Best Practices"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Use headings to break up long notes for readability"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Keep one idea per page for better organisation"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Link related notes together for a connected knowledge system"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["Use bullet points for quick scanning information"],
+    },
+
+    {
+        type: "heading",
+        props: {
+            level: 2,
+        },
+        content: ["Suggested Structure"],
+    },
+    {
+        type: "paragraph",
+        content: [
+            "You might organise your knowledge base like this:",
+        ],
+    },
+    {
+        type: "bulletListItem",
+        content: ["📁 School / Work Notes"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["📁 Projects"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["📁 Ideas / Brainstorming"],
+    },
+    {
+        type: "bulletListItem",
+        content: ["📁 References & Resources"],
+    },
+
+    {
+        type: "heading",
+        props: {
+            level: 2,
+        },
+        content: ["Next Steps"],
+    },
+    {
+        type: "paragraph",
+        content: [
+            "Start by creating a new page or capturing something you’re currently working on. Your knowledge base grows as you use it.",
+        ],
+    },
+]
+
 export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }: Props) {
     const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -926,22 +1035,13 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
         setRightPanel(node);
     };
 
-    useEffect(() => {
-        if (!selectedPageId && knowledgeBase.pages.length > 0)
-            setSelectedPageId(knowledgeBase.pages[0].id);
+    const selectedPage = useMemo(() => {
+        if (!selectedPageId) return null;
+        return findPageById(knowledgeBase.pages, selectedPageId);
     }, [knowledgeBase.pages, selectedPageId]);
 
-    const selectedPage = useMemo(
-        () => findPageById(knowledgeBase.pages, selectedPageId),
-        [knowledgeBase.pages, selectedPageId],
-    );
-
-    if (!selectedPage)
-        return (
-            <div className="flex h-screen items-center justify-center text-zinc-500">
-                No page selected
-            </div>
-        );
+    console.log(selectedPage)
+    console.log(selectedPageId)
 
     return (
         <div className="flex h-screen overflow-hidden bg-white">
@@ -951,18 +1051,20 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
             >
                 <div className="sticky top-0 bg-white border-b border-zinc-200 px-5 py-6 z-10">
                     <div className="flex items-center justify-between">
-                        <div
-                            className={`flex items-center gap-2 ${!sidebarExpanded && "justify-center w-full"}`}
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
-                                <TagIcon className="text-white" size={18} />
-                            </div>
-                            {sidebarExpanded && (
+
+                        {sidebarExpanded && (
+                            <div
+                                className={`flex items-center gap-2 ${!sidebarExpanded && "justify-center w-full"}`}
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
+                                    <TagIcon className="text-white" size={18} />
+                                </div>
                                 <h1 className="text-lg font-bold text-zinc-900 whitespace-nowrap">
                                     Knowledge Base
                                 </h1>
-                            )}
-                        </div>
+
+                            </div>
+                        )}
                         <button
                             onClick={() => setSidebarExpanded(!sidebarExpanded)}
                             className={`p-1 hover:bg-zinc-100 rounded transition-colors ${sidebarExpanded && "ml-2"}`}
@@ -1021,49 +1123,55 @@ export default function KnowledgeBaseEditor({ knowledgeBase, setKnowledgeBase }:
             </div>
 
             {/* Editor + Right Panel */}
-            <div className="flex flex-1 overflow-hidden">
-                <div
-                    className={`${rightPanel && !rightPanelExpanded ? "flex-1" : rightPanel && rightPanelExpanded ? "hidden" : "w-full"} overflow-hidden transition-all duration-300`}
-                >
-                    <PageEditor
-                        key={selectedPage.id}
-                        page={selectedPage}
-                        allPages={knowledgeBase.pages}
-                        setRightPanel={handleSetRightPanel}
-                        onChange={(updatedPage) => {
-                            setKnowledgeBase({
-                                ...knowledgeBase,
-                                pages: updatePageById(
-                                    knowledgeBase.pages,
-                                    updatedPage.id,
-                                    updatedPage,
-                                ),
-                            });
-                        }}
-                    />
-                </div>
-
-                {rightPanel && (
+            {selectedPage ? (
+                <div className="flex flex-1 overflow-hidden">
                     <div
-                        className={`${rightPanelExpanded ? "flex-1" : "w-115"} shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col transition-all duration-300`}
+                        className={`${rightPanel && !rightPanelExpanded ? "flex-1" : rightPanel && rightPanelExpanded ? "hidden" : "w-full"} overflow-hidden transition-all duration-300`}
                     >
-                        <div className="flex items-center justify-end px-2 py-1 border-b border-zinc-100 bg-zinc-50 shrink-0">
-                            <button
-                                onClick={() => setRightPanelExpanded((v) => !v)}
-                                className="p-1.5 rounded hover:bg-zinc-200 text-zinc-500 hover:text-zinc-700 transition-colors"
-                                title={rightPanelExpanded ? "Collapse panel" : "Expand panel"}
-                            >
-                                {rightPanelExpanded ? (
-                                    <Minimize2 size={14} />
-                                ) : (
-                                    <Maximize2 size={14} />
-                                )}
-                            </button>
-                        </div>
-                        {rightPanel}
+                        <PageEditor
+                            key={selectedPage?.id}
+                            page={selectedPage!}
+                            allPages={knowledgeBase.pages}
+                            setRightPanel={handleSetRightPanel}
+                            onChange={(updatedPage) => {
+                                setKnowledgeBase({
+                                    ...knowledgeBase,
+                                    pages: updatePageById(
+                                        knowledgeBase.pages,
+                                        updatedPage.id,
+                                        updatedPage,
+                                    ),
+                                });
+                            }}
+                        />
                     </div>
-                )}
-            </div>
+
+                    {rightPanel && (
+                        <div
+                            className={`${rightPanelExpanded ? "flex-1" : "w-115"} shrink-0 border-l border-zinc-200 bg-white overflow-hidden flex flex-col transition-all duration-300`}
+                        >
+                            <div className="flex items-center justify-end px-2 py-1 border-b border-zinc-100 bg-zinc-50 shrink-0">
+                                <button
+                                    onClick={() => setRightPanelExpanded((v) => !v)}
+                                    className="p-1.5 rounded hover:bg-zinc-200 text-zinc-500 hover:text-zinc-700 transition-colors"
+                                    title={rightPanelExpanded ? "Collapse panel" : "Expand panel"}
+                                >
+                                    {rightPanelExpanded ? (
+                                        <Minimize2 size={14} />
+                                    ) : (
+                                        <Maximize2 size={14} />
+                                    )}
+                                </button>
+                            </div>
+                            {rightPanel}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="flex-1 flex items-center justify-center">
+                    <p>No page selected</p>
+                </div>
+            )}
         </div>
     );
 }
@@ -1169,8 +1277,8 @@ function TagInput({
                                 {tag.type === "course" && courses[tag.value]
                                     ? courses[tag.value].name
                                     : tag.type === "assignment" && assignments[tag.value]
-                                      ? assignments[tag.value].title
-                                      : tag.display}
+                                        ? assignments[tag.value].title
+                                        : tag.display}
                             </span>
                             <button
                                 onClick={() => onTagsChange(tags.filter((_, j) => j !== i))}
@@ -1264,10 +1372,10 @@ function TagInput({
                                             selectedType === "course"
                                                 ? "Search courses..."
                                                 : selectedType === "assignment"
-                                                  ? "Search assignments..."
-                                                  : selectedType === "class"
-                                                    ? "Enter class name..."
-                                                    : "Enter tag value..."
+                                                    ? "Search assignments..."
+                                                    : selectedType === "class"
+                                                        ? "Enter class name..."
+                                                        : "Enter tag value..."
                                         }
                                         className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         autoFocus
@@ -1491,6 +1599,19 @@ function PageTree({
                                 </p>
                             )}
                         </div>
+                        <button className="opacity-0 group-hover:opacity-100 ml-2 shrink-0 p-1 rounded hover:bg-white/50 transition-all"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!confirm("Are you sure? This will also delete all of the pages children!")) return;
+                                setKnowledgeBase({
+                                    ...knowledgeBase,
+                                    pages: deletePageById(knowledgeBase.pages, page.id),
+                                });
+                                if (selectedPageId === page.id) setSelectedPageId("__NOSELECTION__");
+                            }}
+                        >
+                            <Trash2 size={14} />
+                        </button>
                         <button
                             className="opacity-0 group-hover:opacity-100 ml-2 shrink-0 p-1 rounded hover:bg-white/50 transition-all"
                             onClick={(e) => {
@@ -1530,7 +1651,9 @@ function PageTree({
 // ─── Tree utilities ───────────────────────────────────────────────────────────
 
 function findPageById(pages: KnowledgeBasePage[], id: string | null): KnowledgeBasePage | null {
+    console.log(pages)
     for (const page of pages) {
+        console.log(page.id === id)
         if (page.id === id) return page;
         const child = findPageById(page.children, id);
         if (child) return child;
@@ -1548,6 +1671,12 @@ function updatePageById(
             ? updatedPage
             : { ...page, children: updatePageById(page.children, id, updatedPage) },
     );
+}
+
+function deletePageById(pages: KnowledgeBasePage[], id: string): KnowledgeBasePage[] {
+    return pages
+        .filter((page) => page.id !== id)
+        .map((page) => ({ ...page, children: deletePageById(page.children, id) }));
 }
 
 function addChildPage(

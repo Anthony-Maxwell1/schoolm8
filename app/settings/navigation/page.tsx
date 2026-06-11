@@ -1,370 +1,402 @@
 "use client";
 
 import { useNavigation } from "@/context/navigationContext";
-import { Link as LucidLink, Trash } from "lucide-react";
+import { Trash, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import Link from "next/link";
 import { createElement, useState } from "react";
+import {
+    Button,
+    Text,
+    Divider,
+    Alert,
+    Badge,
+    Toggle,
+    TextInput,
+} from "@/components/ui/components";
 
-const backgroundImage = "/images/backgrounds/builtin/onboarding.png";
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-item row
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SubItemRow({
+    child,
+    onIconChange,
+    onLabelChange,
+    onVisibleChange,
+    onRemove,
+}: {
+    child: any;
+    onIconChange: (v: string) => void;
+    onLabelChange: (v: string) => void;
+    onVisibleChange: (v: boolean) => void;
+    onRemove: () => void;
+}) {
+    return (
+        <div className="flex items-center gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2.5">
+            <GripVertical className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-disabled)]" />
+            <input
+                type="text"
+                value={child.icon}
+                onChange={(e) => onIconChange(e.target.value)}
+                placeholder="Icon"
+                className="w-16 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2 py-1 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
+            />
+            <input
+                type="text"
+                value={child.label}
+                onChange={(e) => onLabelChange(e.target.value)}
+                placeholder="Label"
+                className="flex-1 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2 py-1 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
+            />
+            <label className="flex items-center gap-1.5 cursor-pointer text-xs text-[var(--color-text-secondary)] shrink-0">
+                <input
+                    type="checkbox"
+                    checked={child.visible}
+                    onChange={(e) => onVisibleChange(e.target.checked)}
+                    className="accent-[var(--color-success)] cursor-pointer"
+                />
+                Visible
+            </label>
+            <button
+                type="button"
+                onClick={onRemove}
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-danger)]/80 text-white transition-opacity hover:opacity-90"
+                aria-label="Remove sub-item"
+            >
+                <Trash className="h-3 w-3" />
+            </button>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Nav item accordion row
+// ─────────────────────────────────────────────────────────────────────────────
+
+function NavItemRow({
+    item,
+    index,
+    isOpen,
+    onToggle,
+    onUpdate,
+    onRemove,
+    onAddChild,
+    onRemoveChild,
+    onUpdateChild,
+    onToggleCollapsible,
+    ICON_MAP,
+}: {
+    item: any;
+    index: number;
+    isOpen: boolean;
+    onToggle: () => void;
+    onUpdate: (patch: any) => void;
+    onRemove: () => void;
+    onAddChild: () => void;
+    onRemoveChild: (childIndex: number) => void;
+    onUpdateChild: (childIndex: number, patch: any) => void;
+    onToggleCollapsible: () => void;
+    ICON_MAP: Record<string, any>;
+}) {
+    return (
+        <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)]">
+            {/* Header row */}
+            <button
+                onClick={onToggle}
+                className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--color-muted)]"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)]">
+                        {item.icon && ICON_MAP[item.icon]
+                            ? createElement(ICON_MAP[item.icon], { className: "w-4 h-4 text-[var(--color-primary)]" })
+                            : <span className="text-sm">🔹</span>
+                        }
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-[var(--color-text-primary)]">
+                            {item.label || `Item ${index + 1}`}
+                        </p>
+                        <p className="text-xs text-[var(--color-text-tertiary)]">{item.href}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={item.visible ? "success" : "default"}>
+                        {item.visible ? "Visible" : "Hidden"}
+                    </Badge>
+                    {isOpen
+                        ? <ChevronDown className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                        : <ChevronRight className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                    }
+                </div>
+            </button>
+
+            {/* Expanded body */}
+            {isOpen && (
+                <div className="border-t border-[var(--color-border-subtle)] px-4 pb-4 pt-4 space-y-4">
+                    {/* Fields */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">Icon</span>
+                            <input
+                                className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
+                                value={item.icon}
+                                onChange={(e) => onUpdate({ icon: e.target.value })}
+                                placeholder="Home"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">Label</span>
+                            <input
+                                className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
+                                value={item.label}
+                                onChange={(e) => onUpdate({ label: e.target.value })}
+                                placeholder="Home"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">Href</span>
+                        <input
+                            className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
+                            value={item.href}
+                            onChange={(e) => onUpdate({ href: e.target.value })}
+                            placeholder="/home"
+                        />
+                    </div>
+
+                    {/* Controls row */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <Button
+                            size="sm"
+                            variant={item.visible ? "success" : "outline"}
+                            onClick={() => onUpdate({ visible: !item.visible })}
+                        >
+                            {item.visible ? "Visible" : "Hidden"}
+                        </Button>
+                        <Button size="sm" variant="danger" onClick={onRemove}>
+                            Remove
+                        </Button>
+                        {item.children && item.children.length > 0 && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="ml-auto"
+                                onClick={onToggleCollapsible}
+                            >
+                                {item.collapsible ? "Expandable" : "Unexpandable"}
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Sub-items */}
+                    {item.children && (
+                        <div className="space-y-2 border-l border-[var(--color-border-subtle)] pl-4">
+                            <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">
+                                Sub-items
+                            </p>
+                            {item.children.map((child: any, childIndex: number) => (
+                                <SubItemRow
+                                    key={childIndex}
+                                    child={child}
+                                    onIconChange={(v) => onUpdateChild(childIndex, { icon: v })}
+                                    onLabelChange={(v) => onUpdateChild(childIndex, { label: v })}
+                                    onVisibleChange={(v) => onUpdateChild(childIndex, { visible: v })}
+                                    onRemove={() => onRemoveChild(childIndex)}
+                                />
+                            ))}
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={onAddChild}
+                                leftIcon={
+                                    <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
+                                        <path d="M8 2v12M2 8h12" />
+                                    </svg>
+                                }
+                            >
+                                Add sub-item
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function NavigationSettings() {
     const { setItems, items, ICON_MAP, DEFAULT_ITEMS, sidebarHideable, setSidebarHideable } =
         useNavigation();
     const [openIndex, setOpenIndex] = useState<number | null>(0);
+    const [resetConfirmed, setResetConfirmed] = useState(false);
 
-    const updateItem = (
-        index: number,
-        patch: Partial<{ label: string; icon: string; visible: boolean; href: string }>,
-    ) => {
+    const updateItem = (index: number, patch: Partial<any>) => {
         setItems(items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
     };
 
     const removeItem = (index: number) => {
-        if (!confirm("Are you sure you want to delete this navigation item?")) return;
         setItems(items.filter((_, i) => i !== index));
         if (openIndex === index) setOpenIndex(null);
     };
 
+    const updateChild = (itemIndex: number, childIndex: number, patch: Partial<any>) => {
+        const newItems = [...items];
+        newItems[itemIndex].children![childIndex] = {
+            ...newItems[itemIndex].children![childIndex],
+            ...patch,
+        };
+        setItems(newItems);
+    };
+
+    const removeChild = (itemIndex: number, childIndex: number) => {
+        const newItems = [...items];
+        newItems[itemIndex].children!.splice(childIndex, 1);
+        setItems(newItems);
+    };
+
+    const addChild = (itemIndex: number) => {
+        const newItems = [...items];
+        newItems[itemIndex].children!.push({
+            id: `child-${Date.now()}`,
+            icon: "",
+            label: "New sub-item",
+            visible: true,
+            href: "#",
+        });
+        setItems(newItems);
+    };
+
+    const toggleCollapsible = (index: number) => {
+        const newItems = [...items];
+        newItems[index].collapsible = !newItems[index].collapsible;
+        setItems(newItems);
+    };
+
     return (
-        <div
-            className="relative min-h-screen bg-cover bg-center"
-            style={{ backgroundImage: `url(${backgroundImage})`, backgroundAttachment: "fixed" }}
-        >
-            <div className="absolute inset-0 bg-linear-to-b from-black/45 via-black/35 to-black/60 backdrop-blur-sm" />
+        <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
+            <div className="mx-auto max-w-2xl">
 
-            <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-10">
-                <div className="w-full max-w-3xl rounded-3xl ring-1 ring-white/30 bg-white/15 backdrop-blur-xl shadow-2xl overflow-hidden">
-                    <header className="px-6 py-5 border-b border-white/20">
-                        <h1 className="text-2xl font-semibold text-white">Navigation Settings</h1>
-                        <p className="text-sm text-white/80 mt-1">
-                            Edit labels/icons and collapse each item for a cleaner view.
+                {/* ── Header ── */}
+                <Text variant="label" className="mb-2 block">
+                    Settings
+                </Text>
+                <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] tracking-[-0.01em] font-normal text-[var(--color-text-primary)]">
+                    Navigation
+                </h1>
+                <p className="mt-3 text-lg leading-[1.7] text-[var(--color-text-secondary)]">
+                    Edit labels, icons, and links. Reorder items and control <em className="italic text-[var(--color-text-tertiary)]">what shows</em> in your sidebar.
+                </p>
+
+                <Divider className="my-10" />
+
+                {/* ── Sidebar hideable toggle ── */}
+                <div className="mb-8 flex items-center justify-between">
+                    <div>
+                        <p className="font-medium text-[var(--color-text-primary)]">Hideable sidebar</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">
+                            Sidebar only appears when you hover over it.
                         </p>
-                    </header>
+                    </div>
+                    <Toggle
+                        checked={sidebarHideable}
+                        onChange={(v) => setSidebarHideable(v)}
+                    />
+                </div>
 
-                    <details className="bg-white/10 m-4 rounded-xl overflow-hidden">
-                        <summary className="cursor-pointer text-center w-full bg-blue-500 text-white py-4 px-4">
-                            Navigation Items
-                        </summary>
-                        {items.length === 0 && (
-                            <div className="rounded-xl border border-white/20 bg-white/10 p-4 text-white/80 text-sm">
-                                No navigation items.
-                            </div>
-                        )}
+                <Divider className="my-8" />
 
-                        <div className="p-4 space-y-3">
-                            {items.map((item, index) => {
-                                const isOpen = openIndex === index;
-
-                                return (
-                                    <div
-                                        key={index}
-                                        className="rounded-xl border border-white/20 bg-white/10 overflow-hidden"
-                                    >
-                                        <button
-                                            onClick={() =>
-                                                setOpenIndex((prev) =>
-                                                    prev === index ? null : index,
-                                                )
-                                            }
-                                            className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-white/10 transition"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xl">
-                                                    {item.icon && ICON_MAP[item.icon]
-                                                        ? createElement(ICON_MAP[item.icon], {
-                                                              className: "w-5 h-5 text-white/80",
-                                                          })
-                                                        : "🔹"}
-                                                </span>
-                                                <div>
-                                                    <p className="text-white font-medium">
-                                                        {item.label || `Item ${index + 1}`}
-                                                    </p>
-                                                    <p className="text-xs text-white/70">
-                                                        {item.visible ? "Visible" : "Hidden"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <span className="text-white/80 text-sm">
-                                                {isOpen ? "Hide" : "Edit"}
-                                            </span>
-                                        </button>
-
-                                        {isOpen && (
-                                            <div className="px-4 pb-4 pt-1 border-t border-white/15 space-y-3">
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    <label className="flex flex-col gap-1">
-                                                        <span className="text-xs text-white/80">
-                                                            Icon
-                                                        </span>
-                                                        <input
-                                                            className="rounded-lg bg-black/25 border border-white/20 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-white/40"
-                                                            value={item.icon}
-                                                            onChange={(e) =>
-                                                                updateItem(index, {
-                                                                    icon: e.target.value,
-                                                                })
-                                                            }
-                                                            placeholder="Home"
-                                                        />
-                                                    </label>
-
-                                                    <label className="flex flex-col gap-1">
-                                                        <span className="text-xs text-white/80">
-                                                            Label
-                                                        </span>
-                                                        <input
-                                                            className="rounded-lg bg-black/25 border border-white/20 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-white/40"
-                                                            value={item.label}
-                                                            onChange={(e) =>
-                                                                updateItem(index, {
-                                                                    label: e.target.value,
-                                                                })
-                                                            }
-                                                            placeholder="Home"
-                                                        />
-                                                    </label>
-                                                </div>
-                                                <label className="flex flex-col gap-1">
-                                                    <span className="text-xs text-white/80">
-                                                        Href
-                                                    </span>
-                                                    <input
-                                                        className="rounded-lg bg-black/25 border border-white/20 text-white px-3 py-2 outline-none focus:ring-2 focus:ring-white/40"
-                                                        value={item.href}
-                                                        onChange={(e) =>
-                                                            updateItem(index, {
-                                                                href: e.target.value,
-                                                            })
-                                                        }
-                                                        placeholder="/home"
-                                                    />
-                                                </label>
-
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() =>
-                                                            updateItem(index, {
-                                                                visible: !item.visible,
-                                                            })
-                                                        }
-                                                        className={`px-3 py-2 rounded-lg text-sm font-medium text-white transition ${
-                                                            item.visible
-                                                                ? "bg-emerald-500 hover:bg-emerald-600"
-                                                                : "bg-gray-500 hover:bg-gray-600"
-                                                        }`}
-                                                    >
-                                                        {item.visible ? "Visible" : "Hidden"}
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => removeItem(index)}
-                                                        className="px-3 py-2 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                    {item.children && item.children.length > 0 && (
-                                                        <button
-                                                            onClick={() => {
-                                                                const newItems = [...items];
-                                                                newItems[index].collapsible =
-                                                                    !newItems[index].collapsible;
-                                                                setItems(newItems);
-                                                            }}
-                                                            className="ml-auto px-3 py-2 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition"
-                                                        >
-                                                            {items[index].collapsible
-                                                                ? "Expandable"
-                                                                : "Unexpandable"}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                {item.children && (
-                                                    <div className="mt-3 pl-4 border-l border-white/20">
-                                                        <p className="text-xs text-white/80 mb-2">
-                                                            Sub-items
-                                                        </p>
-                                                        {item.children.map((child, childIndex) => (
-                                                            <div
-                                                                key={childIndex}
-                                                                className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 transition"
-                                                            >
-                                                                <button
-                                                                    className="flex items-center gap-2 bg-red-500/80 p-2 rounded-md"
-                                                                    onClick={() => {
-                                                                        if (
-                                                                            confirm(
-                                                                                "Are you sure you want to delete this sub-item?",
-                                                                            )
-                                                                        ) {
-                                                                            const newItems = [
-                                                                                ...items,
-                                                                            ];
-                                                                            newItems[
-                                                                                index
-                                                                            ].children!.splice(
-                                                                                childIndex,
-                                                                                1,
-                                                                            );
-                                                                            setItems(newItems);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <Trash className="w-3.5 h-3.5 text-white/80 cursor-pointer" />
-                                                                </button>
-                                                                {/* Icon */}
-                                                                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-black/30">
-                                                                    {child.icon &&
-                                                                    ICON_MAP[child.icon] ? (
-                                                                        createElement(
-                                                                            ICON_MAP[child.icon],
-                                                                            {
-                                                                                className:
-                                                                                    "w-4 h-4 text-white/80",
-                                                                            },
-                                                                        )
-                                                                    ) : (
-                                                                        <span className="text-sm">
-                                                                            🔹
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-
-                                                                {/* Inputs */}
-                                                                <div className="flex flex-1 items-center gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={child.icon}
-                                                                        onChange={(e) => {
-                                                                            const newItems = [
-                                                                                ...items,
-                                                                            ];
-                                                                            newItems[
-                                                                                index
-                                                                            ].children![
-                                                                                childIndex
-                                                                            ].icon = e.target.value;
-                                                                            setItems(newItems);
-                                                                        }}
-                                                                        placeholder="Icon"
-                                                                        className="w-20 rounded-md bg-black/30 border border-white/10 px-2 py-1 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-white/40"
-                                                                    />
-
-                                                                    <input
-                                                                        type="text"
-                                                                        value={child.label}
-                                                                        onChange={(e) => {
-                                                                            const newItems = [
-                                                                                ...items,
-                                                                            ];
-                                                                            newItems[
-                                                                                index
-                                                                            ].children![
-                                                                                childIndex
-                                                                            ].label =
-                                                                                e.target.value;
-                                                                            setItems(newItems);
-                                                                        }}
-                                                                        placeholder="Label"
-                                                                        className="flex-1 rounded-md bg-black/30 border border-white/10 px-2 py-1 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-white/40"
-                                                                    />
-                                                                </div>
-
-                                                                {/* Visibility toggle */}
-                                                                <label className="flex items-center gap-2 text-xs text-white/80 cursor-pointer">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={child.visible}
-                                                                        onChange={(e) => {
-                                                                            const newItems = [
-                                                                                ...items,
-                                                                            ];
-                                                                            newItems[
-                                                                                index
-                                                                            ].children![
-                                                                                childIndex
-                                                                            ].visible =
-                                                                                e.target.checked;
-                                                                            setItems(newItems);
-                                                                        }}
-                                                                        className="accent-emerald-500 cursor-pointer"
-                                                                    />
-                                                                    Visible
-                                                                </label>
-                                                            </div>
-                                                        ))}
-                                                        <button
-                                                            onClick={() => {
-                                                                const newItems = [...items];
-                                                                newItems[index].children!.push({
-                                                                    id: `child-${Date.now()}`,
-                                                                    icon: "",
-                                                                    label: "New Sub-item",
-                                                                    visible: true,
-                                                                    href: "#",
-                                                                });
-                                                                setItems(newItems);
-                                                            }}
-                                                            className="mt-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition"
-                                                        >
-                                                            Add Sub-item
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <button
-                            onClick={() =>
-                                setItems([
-                                    ...items,
-                                    {
-                                        id: `item-${Date.now()}`,
-                                        label: "New Item",
-                                        href: "#",
-                                        visible: true,
-                                    },
-                                ])
-                            }
-                            className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium transition"
-                        >
-                            Add Item
-                        </button>
-                    </details>
-                    <button
-                        className="w-full px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium transition flex flex-row items-center justify-center gap-2 group"
-                        onClick={() => setSidebarHideable(!sidebarHideable)}
+                {/* ── Nav items ── */}
+                <div className="mb-4 flex items-center justify-between">
+                    <Text variant="label">
+                        Navigation items
+                    </Text>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                            setItems([
+                                ...items,
+                                {
+                                    id: `item-${Date.now()}`,
+                                    label: "New item",
+                                    href: "#",
+                                    visible: true,
+                                },
+                            ])
+                        }
+                        leftIcon={
+                            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
+                                <path d="M8 2v12M2 8h12" />
+                            </svg>
+                        }
                     >
-                        <div
-                            className={`w-5 h-5 border-3 transition-colors duration-200 ${sidebarHideable ? "bg-green-500 border-green-300 border-r-green-700 border-b-green-700 group-hover:border-green-700 group-hover:border-r-green-300 group-hover:border-b-green-300" : "bg-red-500 border-red-300 border-r-red-700 border-b-red-700 group-hover:border-red-700 group-hover:border-r-red-300 group-hover:border-b-red-300"}`}
-                        ></div>
-                        Toggle Sidebar Hideable
-                    </button>
-                    <button
-                        className="w-full px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium transition"
+                        Add item
+                    </Button>
+                </div>
+
+                {items.length === 0 ? (
+                    <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-subtle)] bg-[var(--color-muted)] px-6 py-8 text-center">
+                        <p className="text-sm text-[var(--color-text-tertiary)]">No navigation items. Add one above.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        {items.map((item, index) => (
+                            <NavItemRow
+                                key={item.id ?? index}
+                                item={item}
+                                index={index}
+                                isOpen={openIndex === index}
+                                onToggle={() => setOpenIndex((prev) => prev === index ? null : index)}
+                                onUpdate={(patch) => updateItem(index, patch)}
+                                onRemove={() => removeItem(index)}
+                                onAddChild={() => addChild(index)}
+                                onRemoveChild={(ci) => removeChild(index, ci)}
+                                onUpdateChild={(ci, patch) => updateChild(index, ci, patch)}
+                                onToggleCollapsible={() => toggleCollapsible(index)}
+                                ICON_MAP={ICON_MAP}
+                            />
+                        ))}
+                    </div>
+                )}
+
+                <Divider className="my-10" />
+
+                {/* ── Footer actions ── */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <Button
+                        variant="danger"
+                        size="sm"
                         onClick={() => {
-                            if (
-                                confirm(
-                                    "Are you sure you want to reset the navigation to its default state?",
-                                )
-                            ) {
-                                setItems(DEFAULT_ITEMS);
-                            }
+                            setItems(DEFAULT_ITEMS);
+                            setResetConfirmed(true);
+                            setTimeout(() => setResetConfirmed(false), 3000);
                         }}
                     >
                         Reset to default
-                    </button>
+                    </Button>
+
                     <Link
                         href="/settings/appearance"
-                        className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 text-white py-4 transition"
+                        className="inline-flex items-center gap-2 text-sm text-[var(--color-text-tertiary)] underline-offset-4 transition-colors hover:text-[var(--color-text-primary)] hover:underline"
                     >
-                        <LucidLink className="w-5 h-5" />
-                        <span>Edit Appearance of navigation here.</span>
+                        Edit navigation appearance →
                     </Link>
                 </div>
+
+                {resetConfirmed && (
+                    <div className="mt-4">
+                        <Alert
+                            variant="success"
+                            title="Reset complete"
+                            description="Navigation restored to its default state."
+                            onClose={() => setResetConfirmed(false)}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
