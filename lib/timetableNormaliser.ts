@@ -86,6 +86,8 @@ export function getWeekDates(startDate: string) {
 export function normaliseEdumateDay(edumate: any): StandardTimetable {
     const timezone = edumate?.events?.[0]?.startDateTime?.timezone ?? "Australia/Sydney";
 
+    console.log(edumate.events?.[0]?.eventType); // Debug log to check event type in Edumate data
+
     return {
         source: "edumate",
         date: edumate.SQLDate,
@@ -93,7 +95,7 @@ export function normaliseEdumateDay(edumate: any): StandardTimetable {
         timezone,
         events: (edumate.events || []).map((event: any, index: number) => ({
             id: `${edumate.SQLDate}-${index}`,
-            type: "class",
+            type: event.eventType,
 
             title: event.activityName,
 
