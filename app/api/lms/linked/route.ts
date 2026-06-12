@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
         const userData: any = userDoc.data();
 
-        if (!userData.lms) return NextResponse.json({ lms: "NONE" }, { status: 400 });
+        if (!userData.lms) return NextResponse.json({ lms: null }, { status: 404 });
         return NextResponse.json({ lms: userData.lms });
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
