@@ -1,0 +1,81 @@
+---
+title: Get a free Gemini API key
+description: Set up the Google Gemini key that powers SchoolMate's AI tutor, scheduler, and study tools.
+---
+
+import { Stepper, Step } from "@/components/mdx/Stepper";
+import { Callout } from "fumadocs-ui/components/callout";
+
+SchoolMate's AI features — the **tutor**, **smart scheduler**, and **study suite** — run on
+**Google Gemini** using *your own* API key. The free tier is generous and is plenty for everyday
+study use. It takes about a minute to set up.
+
+<Callout type="info">
+    Your key is stored **encrypted** and scoped to your account. SchoolMate only uses it to make
+    Gemini requests on your behalf, and it is never shown back to your browser.
+</Callout>
+
+## Quick steps
+
+<Stepper completedIcon={false}>
+    <Step title="Open Google AI Studio">
+        Go to [aistudio.google.com](https://aistudio.google.com) and sign in with any Google
+        account (a personal Gmail works fine).
+
+        > _Placeholder: the AI Studio landing page with the "Get API key" button in the left sidebar._
+    </Step>
+    <Step title="Create an API key">
+        Click **Get API key** (left sidebar), then **Create API key**. If asked, choose to create
+        the key in a new or existing Google Cloud project — either is fine.
+
+        > _Placeholder: the "Create API key" dialog._
+    </Step>
+    <Step title="Copy the key">
+        Your key appears once you create it. Most keys look like `AIzaSy…`, but the exact format
+        can vary — paste whatever AI Studio gives you and SchoolMate will verify it. Click **Copy**.
+
+        <Callout type="warning">
+            Treat this key like a password. Don't paste it into public chats, commits, or
+            screenshots. If it ever leaks, delete it in AI Studio and create a new one.
+        </Callout>
+    </Step>
+    <Step title="Paste it into SchoolMate">
+        Open **[Settings → AI](/settings/ai)**, paste the key into the **Add your key** field, and
+        click **Validate & save**. SchoolMate makes a quick test call to confirm it works before
+        storing it.
+
+        > _Placeholder: SchoolMate's Settings → AI page showing a "Connected" status badge._
+    </Step>
+    <Step title="Pick a model (optional)">
+        On the same page you can choose which Gemini model to use. **Gemini 2.0 Flash** is the
+        recommended default: fast, capable, and easy on the free-tier limits.
+    </Step>
+</Stepper>
+
+## Free-tier limits
+
+Gemini's free tier is rate-limited (a capped number of requests per minute and per day). For normal
+study use you'll rarely hit it. If you do, SchoolMate shows a **"Rate limited"** badge — just wait a
+minute and try again, or switch to a lighter model like **Gemini 2.0 Flash-Lite**.
+
+<Callout type="info">
+    Current limits and pricing live on Google's
+    [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) page.
+</Callout>
+
+## Managing your key
+
+- **Status** — Settings → AI shows whether your key is `Connected`, `Invalid`, or `Rate limited`.
+- **Replace** — paste a new key any time to swap it out.
+- **Remove** — delete the stored key with one click. AI features pause until you add a new one.
+
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| "This API key was rejected by Google." | The key is wrong or was deleted in AI Studio. Create a fresh one and paste it again. |
+| "Rate limited" badge | You hit the free-tier limit. Wait a minute, or pick a faster/lighter model. |
+| AI pages show "Connect your Gemini key" | No key is saved yet — follow the steps above. |
+
+Once your key shows **Connected**, head to the **[AI Tutor](/tutor)** and ask "What's due this
+week?" to see it working with your real Canvas data.

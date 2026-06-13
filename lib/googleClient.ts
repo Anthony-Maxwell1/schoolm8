@@ -18,6 +18,9 @@ const scopes = {
         "https://www.googleapis.com/auth/classroom.topics",
         "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
     ],
+    // Read + write events on the user's calendars. Lets us see existing commitments
+    // (busy time) and add study sessions back to Google Calendar.
+    calendar: ["https://www.googleapis.com/auth/calendar.events"],
 };
 
 export type ScopeCategory = keyof typeof scopes;

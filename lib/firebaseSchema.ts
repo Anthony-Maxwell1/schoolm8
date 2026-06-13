@@ -157,6 +157,33 @@ export const saveLMSAnnouncements = async (
 };
 
 /**
+ * Remove course docs that are no longer in `keepIds`. Used after a sync so that
+ * last year's (now inactive) courses stop showing up. When `sourceType` is given,
+ * only courses of that type are pruned (so e.g. a Canvas sync won't delete
+ * Google Classroom courses).
+ */
+export const pruneLMSCourses = async (
+    userId: string,
+    keepIds: string[],
+    sourceType?: string,
+) => {
+    const keep = new Set(keepIds);
+    const snapshot = await getLMSCoursesRef(userId).get();
+    const batch = db.batch();
+    let deletions = 0;
+    snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (sourceType && data?.type !== sourceType) return;
+        if (!keep.has(doc.id)) {
+            batch.delete(doc.ref);
+            deletions += 1;
+        }
+    });
+    if (deletions > 0) await batch.commit();
+    return deletions;
+};
+
+/**
  * Get a user's LMS courses
  */
 export const getLMSCourses = async (userId: string) => {

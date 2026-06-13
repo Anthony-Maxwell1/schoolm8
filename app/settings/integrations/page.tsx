@@ -3,18 +3,23 @@
 import { useAuth } from "@/context/authContext";
 import { SiCanvas, SiGoogleclassroom } from "@icons-pack/react-simple-icons";
 import { Table, ChevronRight, CheckCircle2 } from "lucide-react";
+import { SiGooglecalendar } from "@icons-pack/react-simple-icons";
 import {
     Text,
     Divider,
     Badge,
+    Card,
     Button,
-    Spinner,
-    Modal,
     TextInput,
-    Select,
+    Modal,
     Alert,
+    Select,
+    Spinner,
 } from "@/components/ui/components";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+
+type IntegrationKey = "canvas" | "classroom" | "edumate" | "generic";
 import Image from "next/image";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
@@ -25,9 +30,10 @@ import image0002 from "@/public/images/onboarding/0002.png";
 
 type ConnectedServices = {
     canvas: boolean;
-    googleClassroom: boolean;
+    classroom: boolean;
     edumate: boolean;
     generic: boolean;
+    calendar: boolean;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -54,12 +60,14 @@ function SuccessBanner({ label }: { label: string }) {
 function IntegrationRow({
     icon,
     label,
+    description,
     connected,
     locked,
     onClick,
 }: {
     icon: React.ReactNode;
     label: string;
+    description?: string;
     connected: boolean;
     locked: boolean;
     onClick: () => void;
@@ -75,6 +83,9 @@ function IntegrationRow({
             </div>
             <div className="flex-1 min-w-0">
                 <p className="font-medium text-[var(--color-text-primary)]">{label}</p>
+                {description && (
+                    <p className="text-sm text-[var(--color-text-secondary)]">{description}</p>
+                )}
             </div>
             <Badge variant={connected ? "success" : "default"} dot>
                 {connected ? "Connected" : "Not connected"}
@@ -576,12 +587,14 @@ export default function IntegrationsPage() {
 
     const [connected, setConnected] = useState<ConnectedServices>({
         canvas: false,
-        googleClassroom: false,
+        classroom: false,
         edumate: false,
         generic: false,
+        calendar: false,
     });
     const [lmsLoading, setLmsLoading] = useState(true);
     const [timetableLoading, setTimetableLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     const [canvasOpen, setCanvasOpen] = useState(false);
     const [classroomOpen, setClassroomOpen] = useState(false);
@@ -610,6 +623,40 @@ export default function IntegrationsPage() {
             cancelled = true;
         };
     }, [user, loading, token]);
+
+    const connectCalendar = async () => {
+        if (connected.calendar) {
+            if (!confirm("Disconnect Google Calendar?")) return;
+            try {
+                await fetch("/api/calendar/disconnect", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setConnected((p) => ({ ...p, calendar: false }));
+                toast.success("Google Calendar disconnected.");
+            } catch {
+                toast.error("Could not disconnect Google Calendar");
+            }
+            return;
+        }
+        setSubmitting(true);
+        try {
+            const res = await fetch("/api/auth/universalState", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    scopeGroup: "calendar",
+                    redirectUrl: "/settings/integrations?calendar=connected",
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to start Google sign-in");
+            window.location.href = `/api/auth/google/auth?state=${data.state}&scope=calendar`;
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to start Google sign-in");
+            setSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         if (loading || !user || !token) return;
@@ -643,7 +690,7 @@ export default function IntegrationsPage() {
         }
     }, []);
 
-    const lmsLocked = connected.canvas || connected.googleClassroom;
+    const lmsLocked = connected.canvas || connected.classroom;
     const timetableLocked = connected.edumate || connected.generic;
 
     return (
@@ -703,7 +750,7 @@ export default function IntegrationsPage() {
                         <IntegrationRow
                             icon={<SiGoogleclassroom className="h-5 w-5" />}
                             label="Google Classroom"
-                            connected={connected.googleClassroom}
+                            connected={connected.classroom}
                             locked={lmsLocked}
                             onClick={() => setClassroomOpen(true)}
                         />
@@ -766,6 +813,25 @@ export default function IntegrationsPage() {
                         />
                     </div>
                 )}
+                <SectionLabel>Calendar</SectionLabel>
+                <Text variant="bodySm" className="mb-4">
+                    Connect Google Calendar so the Smart Scheduler can see your existing events and
+                    add study sessions straight to your calendar.
+                </Text>
+                <nav className="space-y-1">
+                    <IntegrationRow
+                        icon={<SiGooglecalendar className="h-5 w-5" />}
+                        label="Google Calendar"
+                        locked={false}
+                        description={
+                            connected.calendar
+                                ? "Reading events & adding study sessions"
+                                : "Sign in with Google (read & add events)"
+                        }
+                        connected={connected.calendar}
+                        onClick={connectCalendar}
+                    />
+                </nav>
             </div>
 
             <CanvasModal
