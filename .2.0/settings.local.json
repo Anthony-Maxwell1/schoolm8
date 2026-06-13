@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dlx *)",
+      "Bash(echo \"=== chat ===\"; ls -R app/api/chat 2>/dev/null; echo \"=== knowledge ===\"; ls -R app/api/knowledge 2>/dev/null; echo \"=== skills dir ===\"; ls ~/.claude/skills 2>/dev/null; echo \"=== project skills ===\"; ls .claude/skills 2>/dev/null)",
+      "Bash(pnpm add *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\).dependencies; ['@google/genai','zod','react-markdown','remark-gfm','remark-math','rehype-katex','katex','rehype-highlight','highlight.js'].forEach\\(k=>console.log\\(k, p[k]\\)\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(tee /tmp/tsc.out)",
+      "Bash(pnpm dev *)",
+      "Bash(tee /tmp/dev.log)",
+      "Bash(curl -s -o /tmp/k.json -w '%{http_code}' http://localhost:3007/api/ai/key)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /tmp/t.json -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{\\\\\"message\\\\\":\\\\\"hi\\\\\"}' http://localhost:3007/api/ai/tutor)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' http://localhost:3007/api/ai/conversations)",
+      "Bash(curl -s -o /tmp/d.html -w '%{http_code}' http://localhost:3007/docs/gemini-setup)"
+    ]
+  }
+}

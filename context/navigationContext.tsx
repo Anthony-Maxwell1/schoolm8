@@ -98,6 +98,37 @@ const DEFAULT_ITEMS: NavigationItem[] = [
         ],
     },
     {
+        id: "ai",
+        label: "AI Tools",
+        href: "/tutor",
+        icon: "Sparkles",
+        visible: true,
+        collapsible: true,
+        children: [
+            {
+                id: "tutor",
+                label: "AI Tutor",
+                href: "/tutor",
+                icon: "Bot",
+                visible: true,
+            },
+            {
+                id: "scheduler",
+                label: "Smart Scheduler",
+                href: "/scheduler",
+                icon: "CalendarClock",
+                visible: true,
+            },
+            {
+                id: "study",
+                label: "Study Suite",
+                href: "/study",
+                icon: "BookOpenCheck",
+                visible: true,
+            },
+        ],
+    },
+    {
         id: "settings",
         label: "Settings",
         href: "/settings",
@@ -110,6 +141,13 @@ const DEFAULT_ITEMS: NavigationItem[] = [
                 label: "Integrations",
                 href: "/settings/integrations",
                 icon: "Link",
+                visible: true,
+            },
+            {
+                id: "ai-settings",
+                label: "AI & Keys",
+                href: "/settings/ai",
+                icon: "Sparkles",
                 visible: true,
             },
             {
@@ -159,6 +197,11 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
     SlidersHorizontal: require("lucide-react").SlidersHorizontal,
     User: require("lucide-react").User,
     List: require("lucide-react").ListChecks,
+    Sparkles: require("lucide-react").Sparkles,
+    Bot: require("lucide-react").Bot,
+    CalendarClock: require("lucide-react").CalendarClock,
+    BookOpenCheck: require("lucide-react").BookOpenCheck,
+    KeyRound: require("lucide-react").KeyRound,
 };
 
 const ITEMS_STORAGE_KEY = "navigationItems";

@@ -1,5 +1,5 @@
 {
     "title": "Welcome!",
     "root": true,
-    "pages": ["index", "users", "developers", "admins"]
+    "pages": ["index", "gemini-setup", "users", "developers", "admins"]
 }

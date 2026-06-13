@@ -1,0 +1,43 @@
+{
+    "folders": [
+        {
+            "name": "schoolm8 2.0",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "search.exclude": {
+            "**/node_modules": true,
+            "**/.next": true,
+            "**/.source": true,
+            "**/pnpm-lock.yaml": true
+        },
+        "files.associations": {
+            "*.code-workspace": "jsonc"
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "dbaeumer.vscode-eslint",
+            "esbenp.prettier-vscode",
+            "bradlc.vscode-tailwindcss"
+        ]
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Start dev server (Windows-safe)",
+                "type": "shell",
+                "command": "npx --no-install next dev --turbo",
+                "detail": "Use this instead of 'pnpm dev' on Windows (pnpm's postinstall symlink hits EPERM).",
+                "isBackground": true,
+                "problemMatcher": [],
+                "presentation": {
+                    "reveal": "always",
+                    "panel": "dedicated"
+                }
+            }
+        ]
+    }
+}

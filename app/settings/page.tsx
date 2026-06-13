@@ -9,6 +9,7 @@ import {
     UserCircle,
     ListTodo,
     ChevronRight,
+    Sparkles,
 } from "lucide-react";
 
 const LINKS = [
@@ -17,6 +18,12 @@ const LINKS = [
         label: "Integrations",
         description: "Connect your LMS, timetable, and other services.",
         icon: Puzzle,
+    },
+    {
+        href: "/settings/ai",
+        label: "AI & API keys",
+        description: "Add your Gemini key, pick a model, manage AI features.",
+        icon: Sparkles,
     },
     {
         href: "/settings/appearance",

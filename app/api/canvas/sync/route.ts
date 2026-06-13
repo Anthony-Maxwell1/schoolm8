@@ -8,6 +8,7 @@ import {
     saveLMSAnnouncements,
     saveLMSCourses,
     getLMSAssignments,
+    pruneLMSCourses,
 } from "@/lib/firebaseSchema";
 
 /* =========================
@@ -274,10 +275,19 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
        Fetch Courses
     ========================= */
 
-    const courses: CanvasCourse[] =
-        (await fetchJson(`${canvasBaseUrl}/api/v1/courses?include[]=course_image`)) || [];
+    // Only fetch courses the student is *actively* enrolled in. This keeps the app
+    // to the current year — concluded (past) courses report a non-active enrolment
+    // state and are excluded. `term` lets us label/verify the year.
+    const rawCourses: CanvasCourse[] =
+        (await fetchAllPages(
+            `${canvasBaseUrl}/api/v1/courses?enrollment_state=active&include[]=course_image&include[]=term&per_page=100`,
+        )) || [];
 
-    console.log(JSON.stringify(courses[0], null, 2));
+    // Canvas returns placeholder objects for courses restricted by date (typically
+    // past/unavailable enrolments) — drop anything without a real name.
+    const courses: CanvasCourse[] = rawCourses.filter(
+        (c: any) => c && c.name && !c.access_restricted_by_date,
+    );
 
     const courseMap = Object.fromEntries(courses.map((c) => [c.id.toString(), c.name]));
 
@@ -407,6 +417,8 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
             url: `${canvasBaseUrl}/courses/${c.id}`,
             updatedAt: new Date().toISOString(),
             image_download_url: c.image_download_url || null,
+            term: (c as any).term?.name ?? null,
+            endAt: (c as any).end_at ?? null,
             type: "CanvasCourse",
         };
     }
@@ -421,6 +433,10 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
         saveLMSAnnouncements(userId, updatedAnnouncements),
         saveLMSCourses(userId, coursesMap),
     ]);
+
+    // Drop any Canvas courses that are no longer active (e.g. last year's) so the
+    // UI only shows the current year. Only prunes Canvas courses.
+    await pruneLMSCourses(userId, Object.keys(coursesMap), "CanvasCourse");
 
     return {
         assignments: updatedAssignments,
