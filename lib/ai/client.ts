@@ -54,6 +54,7 @@ export function classifyGeminiError(err: unknown): KeyValidationResult {
         lower.includes("resource_exhausted") ||
         lower.includes("429")
     ) {
+        console.warn("Gemini key hit a quota or rate limit:", raw);
         return {
             state: "quota",
             message: "Your key is valid but has hit a rate or quota limit. Try again shortly.",

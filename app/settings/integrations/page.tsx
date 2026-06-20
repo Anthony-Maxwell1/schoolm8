@@ -8,7 +8,6 @@ import {
     Text,
     Divider,
     Badge,
-    Card,
     Button,
     TextInput,
     Modal,
@@ -19,7 +18,6 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-type IntegrationKey = "canvas" | "classroom" | "edumate" | "generic";
 import Image from "next/image";
 import image0001 from "@/public/images/onboarding/0001.png";
 import image0002 from "@/public/images/onboarding/0002.png";
@@ -74,7 +72,7 @@ function IntegrationRow({
 }) {
     return (
         <button
-            disabled={locked && !connected}
+            disabled={locked}
             onClick={onClick}
             className="group flex w-full items-center gap-4 rounded-[var(--radius-lg)] px-4 py-4 text-left transition-colors duration-[var(--duration-fast)] hover:bg-[var(--color-muted)] disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -183,7 +181,7 @@ function CanvasModal({
                     hint="The domain only — e.g. yourschool.instructure.com"
                 />
                 <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)]">
-                    <Image src={image0001} alt="Canvas base URL example" className="w-full" />
+                    <Image src={image0001} alt="Canvas base URL example" />
                 </div>
                 <TextInput
                     label="Access token"
@@ -193,7 +191,7 @@ function CanvasModal({
                     hint="Canvas → Account → Settings → Approved Integrations → New Access Token"
                 />
                 <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)]">
-                    <Image src={image0002} alt="Canvas access token example" className="w-full" />
+                    <Image src={image0002} alt="Canvas access token example" />
                 </div>
             </div>
         </Modal>

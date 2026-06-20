@@ -24,10 +24,18 @@ import {
     Spinner,
 } from "@/components/ui/components";
 import { useAuth } from "@/context/authContext";
-import { GEMINI_MODELS, DEFAULT_GEMINI_MODEL } from "@/lib/ai/models";
 import type { PublicAiSettings, KeyStatus } from "@/lib/ai/geminiKey";
 
-const STATUS_META: Record<KeyStatus, { label: string; variant: "success" | "danger" | "warning" | "default" }> = {
+interface GeminiModel {
+    id: string;
+    label: string;
+    description: string;
+}
+
+const STATUS_META: Record<
+    KeyStatus,
+    { label: string; variant: "success" | "danger" | "warning" | "default" }
+> = {
     valid: { label: "Connected", variant: "success" },
     invalid: { label: "Invalid key", variant: "danger" },
     quota: { label: "Rate limited", variant: "warning" },
@@ -42,6 +50,7 @@ export default function AiSettingsPage() {
     const [keyInput, setKeyInput] = useState("");
     const [saving, setSaving] = useState(false);
     const [savingModel, setSavingModel] = useState(false);
+    const [models, setModels] = useState<GeminiModel[]>([]);
 
     const load = useCallback(async () => {
         if (!token) return;
@@ -59,9 +68,26 @@ export default function AiSettingsPage() {
         }
     }, [token]);
 
+    const fetchModels = useCallback(async () => {
+        if (!token) return;
+        try {
+            const res = await fetch("/api/ai/models", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error((await res.json()).error ?? "Failed to load models");
+            const data = await res.json();
+            setModels(data.models);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to load models");
+        }
+    }, [token]);
+
     useEffect(() => {
-        if (!authLoading && token) load();
-    }, [authLoading, token, load]);
+        if (!authLoading && token) {
+            load();
+            fetchModels();
+        }
+    }, [authLoading, token, load, fetchModels]);
 
     const saveKey = async () => {
         const trimmed = keyInput.trim();
@@ -114,7 +140,11 @@ export default function AiSettingsPage() {
     };
 
     const removeKey = async () => {
-        if (!confirm("Remove your Gemini key? AI features will stop working until you add a new one.")) {
+        if (
+            !confirm(
+                "Remove your Gemini key? AI features will stop working until you add a new one.",
+            )
+        ) {
             return;
         }
         try {
@@ -155,7 +185,11 @@ export default function AiSettingsPage() {
                         <Spinner size="sm" /> Loading your AI settings…
                     </div>
                 ) : !user ? (
-                    <Alert variant="warning" title="Sign in required" description="Sign in to manage your Gemini key." />
+                    <Alert
+                        variant="warning"
+                        title="Sign in required"
+                        description="Sign in to manage your Gemini key."
+                    />
                 ) : (
                     <>
                         {/* Current status */}
@@ -232,9 +266,11 @@ export default function AiSettingsPage() {
                                 Google AI Studio
                             </Link>
                             . Most keys look like{" "}
-                            <code className="rounded bg-[var(--color-muted)] px-1 py-0.5 text-[0.85em]">AIzaSy…</code>{" "}
-                            but yours may differ — we verify it for you, so just paste what AI Studio
-                            gave you.
+                            <code className="rounded bg-[var(--color-muted)] px-1 py-0.5 text-[0.85em]">
+                                AIzaSy…
+                            </code>{" "}
+                            but yours may differ — we verify it for you, so just paste what AI
+                            Studio gave you.
                         </Text>
                         <div className="flex items-start gap-2">
                             <TextInput
@@ -264,20 +300,27 @@ export default function AiSettingsPage() {
                             Choose which Gemini model powers your tutor, scheduler, and study tools.
                         </Text>
                         <Select
-                            value={settings?.model ?? DEFAULT_GEMINI_MODEL}
+                            value={settings?.model ?? models[0]?.id}
                             disabled={savingModel}
                             onChange={(e) => changeModel(e.target.value)}
-                            options={GEMINI_MODELS.map((m) => ({ value: m.id, label: m.label }))}
+                            options={models.map((m) => ({ value: m.id, label: m.label }))}
                         />
                         <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">
-                            {GEMINI_MODELS.find((m) => m.id === (settings?.model ?? DEFAULT_GEMINI_MODEL))?.description}
+                            {
+                                models.find((m) => m.id === (settings?.model ?? models[0]?.id))
+                                    ?.description
+                            }
                         </p>
 
                         {/* Help */}
                         <Divider className="my-8" />
                         <div className="flex flex-wrap items-center gap-2">
                             <Link href="/docs/gemini-setup">
-                                <Button variant="outline" size="sm" rightIcon={<ExternalLink className="h-3.5 w-3.5" />}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    rightIcon={<ExternalLink className="h-3.5 w-3.5" />}
+                                >
                                     Step-by-step setup guide
                                 </Button>
                             </Link>
@@ -289,8 +332,9 @@ export default function AiSettingsPage() {
                         </div>
 
                         <p className="mt-6 text-xs text-[var(--color-text-tertiary)]">
-                            Your key is encrypted at rest and scoped to your account. It is only used
-                            to make Gemini requests on your behalf and is never shown in the browser.
+                            Your key is encrypted at rest and scoped to your account. It is only
+                            used to make Gemini requests on your behalf and is never shown in the
+                            browser.
                         </p>
                     </>
                 )}

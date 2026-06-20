@@ -15,8 +15,6 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import { cn } from "@/lib/utils";
-import "katex/dist/katex.min.css";
-import "highlight.js/styles/github.css";
 
 export const Markdown = memo(function Markdown({
     children,
@@ -34,7 +32,10 @@ export const Markdown = memo(function Markdown({
         >
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex, [rehypeHighlight, { detect: true, ignoreMissing: true }]]}
+                rehypePlugins={[
+                    rehypeKatex,
+                    [rehypeHighlight, { detect: true, ignoreMissing: true }],
+                ]}
                 components={{
                     p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
                     h1: ({ children }) => (
