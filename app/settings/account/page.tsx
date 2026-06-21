@@ -1,13 +1,14 @@
 "use client";
 
 import { useAuth } from "@/context/authContext";
-import { Text, Divider, Alert, Button, Modal } from "@/components/ui/components";
+import { Text, Divider, Alert, Button, Modal, TextInput } from "@/components/ui/components";
 import { useState } from "react";
-import { LogOut, Mail, Trash2 } from "lucide-react";
+import { LogOut, Mail, Trash2, User } from "lucide-react";
 
 export default function AccountPage() {
     const { signOut, user } = useAuth();
     const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
+    const [nameChangeOpen, setNameChangeOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
@@ -19,13 +20,16 @@ export default function AccountPage() {
                     Account
                 </h1>
                 <Text variant="bodyLg" className="mt-3 text-[var(--color-text-secondary)]">
-                    Manage your <em>identity</em> — update your email, sign out, or
-                    permanently close your account.
+                    Manage your <em>identity</em> — update your email, sign out, or permanently
+                    close your account.
                 </Text>
 
                 {user?.email && (
                     <p className="mt-2 text-sm text-[var(--color-text-tertiary)]">
-                        Signed in as <span className="font-medium text-[var(--color-text-secondary)]">{user.email}</span>
+                        Signed in as{" "}
+                        <span className="font-medium text-[var(--color-text-secondary)]">
+                            {user.email}
+                        </span>
                     </p>
                 )}
 
@@ -33,11 +37,30 @@ export default function AccountPage() {
 
                 {/* Actions */}
                 <div className="divide-y divide-[var(--color-border-subtle)]">
-
+                    <div className="flex items-start justify-between gap-6 py-5">
+                        <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[var(--color-text-primary)]">
+                                Change name
+                            </p>
+                            <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
+                                Update the name associated with your Schoolm8 account.
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            leftIcon={<User className="h-3.5 w-3.5" />}
+                            onClick={() => setNameChangeOpen(true)}
+                        >
+                            Change
+                        </Button>
+                    </div>
                     {/* Change email */}
                     <div className="flex items-start justify-between gap-6 py-5">
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-[var(--color-text-primary)]">Change email</p>
+                            <p className="font-medium text-[var(--color-text-primary)]">
+                                Change email
+                            </p>
                             <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
                                 Update the email address linked to your Schoolm8 account.
                             </p>
@@ -74,20 +97,19 @@ export default function AccountPage() {
                         <div className="flex-1 min-w-0">
                             <p className="font-medium text-[var(--color-danger)]">Delete account</p>
                             <p className="mt-0.5 text-sm text-[var(--color-text-secondary)]">
-                                Permanently delete your account and all associated data. This cannot be undone.
+                                Permanently delete your account and all associated data. This cannot
+                                be undone.
                             </p>
                         </div>
                         <Button
                             variant="danger"
                             size="sm"
-                            as="a"
-                            href="/settings/account/delete"
+                            onClick={() => (window.location.href = "/settings/account/delete")}
                             leftIcon={<Trash2 className="h-3.5 w-3.5" />}
                         >
                             Delete
                         </Button>
                     </div>
-
                 </div>
             </div>
 
@@ -110,6 +132,23 @@ export default function AccountPage() {
                 <Text variant="bodySm">
                     You'll be returned to the login screen. All your data stays saved in the cloud.
                 </Text>
+            </Modal>
+            <Modal
+                open={nameChangeOpen}
+                onClose={() => setNameChangeOpen(false)}
+                title="Change name"
+                footer={
+                    <>
+                        <Button variant="ghost" onClick={() => setNameChangeOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="outline" onClick={() => alert("Not implemented yet")}>
+                            Save
+                        </Button>
+                    </>
+                }
+            >
+                <TextInput placeholder="Your name" defaultValue={user?.displayName || ""} />
             </Modal>
         </div>
     );

@@ -26,21 +26,11 @@ export async function DELETE(req: Request) {
 
         // ---------- QUERY PARAMS ----------
         const url = new URL(req.url);
-        const userId = url.searchParams.get("userId");
         const noteId = url.searchParams.get("noteId");
 
-        if (!userId) throw new Error("Missing userId");
         if (!noteId) throw new Error("Missing noteId");
 
-        // Prevent user editing someone else's data
-        if (authedUserId !== userId) {
-            return NextResponse.json(
-                { error: "Unauthorized: cannot modify another user's notes" },
-                { status: 403 },
-            );
-        }
-
-        const userRef = db.collection("users").doc(userId);
+        const userRef = db.collection("users").doc(authedUserId);
         const userDoc = await userRef.get();
 
         if (!userDoc.exists) throw new Error("User not found");
