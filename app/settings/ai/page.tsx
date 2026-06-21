@@ -110,6 +110,11 @@ export default function AiSettingsPage() {
             setSettings(data);
             setKeyInput("");
             toast.success("Gemini key verified and saved.");
+
+            // Auto-select first model if none set yet
+            if (!data.model && models.length > 0) {
+                await changeModel(models[0].id);
+            }
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Could not save key");
         } finally {

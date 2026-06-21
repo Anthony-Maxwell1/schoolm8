@@ -45,12 +45,12 @@ export const GEMINI_MODELS: GeminiModel[] = [
         description: "Legacy fast model. Use if newer models are unavailable.",
         tier: "fast",
     },
-];
+]; // extremely outdated
 
 export const DEFAULT_GEMINI_MODEL = "gemini-2.0-flash";
 
 export function isValidModelId(id: string): boolean {
-    return GEMINI_MODELS.some((m) => m.id === id);
+    return true; // TODO: strict validation through gemini api
 }
 
 export function resolveModel(id: string | undefined | null): string {

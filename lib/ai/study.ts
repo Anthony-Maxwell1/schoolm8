@@ -61,7 +61,10 @@ export async function buildMaterial(
                   .join("\n")
             : "";
         return {
-            material: truncate(`Assignment: ${a.title}\nCourse: ${a.courseName}\n\n${a.description ?? ""}${rubric}`, MAX_MATERIAL_CHARS),
+            material: truncate(
+                `Assignment: ${a.title}\nCourse: ${a.courseName}\n\n${a.description ?? ""}${rubric}`,
+                MAX_MATERIAL_CHARS,
+            ),
             label: a.title,
         };
     }
@@ -76,11 +79,12 @@ export async function buildMaterial(
     const items = (Object.values(assignmentsMap ?? {}) as StoredAssignment[]).filter(
         (a) => a.courseId === sourceId,
     );
-    const body = items
-        .map((a) => `• ${a.title}: ${truncate(a.description ?? "", 400)}`)
-        .join("\n");
+    const body = items.map((a) => `• ${a.title}: ${truncate(a.description ?? "", 400)}`).join("\n");
     return {
-        material: truncate(`Course: ${course.name}\n\nAssignments and topics covered:\n${body}`, MAX_MATERIAL_CHARS),
+        material: truncate(
+            `Course: ${course.name}\n\nAssignments and topics covered:\n${body}`,
+            MAX_MATERIAL_CHARS,
+        ),
         label: course.name,
     };
 }
@@ -117,7 +121,13 @@ export async function generateFlashcards(
                 `Create ${count} high-quality study flashcards from the material. Return STRICT JSON ` +
                 `only: { "cards": [ { "front": string, "back": string } ] }. Fronts are concise ` +
                 `questions or prompts; backs are clear, correct answers. Cover the key concepts, not ` +
-                `trivia. No markdown fences.`,
+                `trivia. No markdown fences. Cover content, not details. Don't do trivia, do core concepts ` +
+                `and connections, such as Pythagorean theorem, not "what year did Pythagoras live?". ` +
+                `However, you must test with exam-style questions, however this must not be trivia, rather ` +
+                `covered content or questions you'd find in an exam, such as "what's the difference between mitosis and meiosis?" or "why does the Pythagorean theorem only apply to right triangles?".` +
+                `with a mixing of application questions such as "x = 2^4/3". Be accurate and concise. ` +
+                `Don't fixate on specific topics, and don't focus on assessment details, rather just the actual skills for said assessment. ` +
+                `Focus on exams and similar, avoiding details about project-based assessments, unless that is the specific assignment provided.`,
         },
     });
     const parsed = flashcardsSchema.safeParse(JSON.parse(stripFences(res.text ?? "")));
@@ -169,7 +179,10 @@ export async function generateQuiz(
                 `short-answer. Return STRICT JSON only: { "questions": [ { "type": "mcq"|"short", ` +
                 `"question": string, "options"?: string[] (mcq only, include the correct one), ` +
                 `"answer": string (for mcq, the exact correct option text), "explanation": string } ] }. ` +
-                `Explanations should teach why the answer is right. No markdown fences.`,
+                `Explanations should teach why the answer is right. No markdown fences.` +
+                `Do not focus on due dates, or assignments, or dates or the like. ` +
+                `Focus on exams, or content, and applications of same content. ` +
+                `Avoid assignment details or instructions, rather focusing on content such as velocity.`,
         },
     });
     const parsed = quizSchema.safeParse(JSON.parse(stripFences(res.text ?? "")));

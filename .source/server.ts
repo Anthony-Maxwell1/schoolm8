@@ -7,9 +7,9 @@ import * as __fd_glob_12 from "../content/docs/users/getting-started.mdx?collect
 import * as __fd_glob_11 from "../content/docs/users/features.mdx?collection=docs"
 import * as __fd_glob_10 from "../content/docs/users/faq.mdx?collection=docs"
 import * as __fd_glob_9 from "../content/docs/users/customization.mdx?collection=docs"
-import * as __fd_glob_8 from "../content/docs/admins/index.mdx?collection=docs"
-import * as __fd_glob_7 from "../content/docs/developers/index.mdx?collection=docs"
-import * as __fd_glob_6 from "../content/docs/developers/customization.mdx?collection=docs"
+import * as __fd_glob_8 from "../content/docs/developers/index.mdx?collection=docs"
+import * as __fd_glob_7 from "../content/docs/developers/customization.mdx?collection=docs"
+import * as __fd_glob_6 from "../content/docs/admins/index.mdx?collection=docs"
 import * as __fd_glob_5 from "../content/docs/index.mdx?collection=docs"
 import * as __fd_glob_4 from "../content/docs/gemini-setup.mdx?collection=docs"
 import { default as __fd_glob_3 } from "../content/docs/users/meta.json?collection=docs"
@@ -24,4 +24,4 @@ const create = server<typeof Config, import("fumadocs-mdx/runtime/types").Intern
   }
 }>({"doc":{"passthroughs":["extractedReferences"]}});
 
-export const docs = await create.docs("docs", "content/docs", {"meta.json": __fd_glob_0, "admins/meta.json": __fd_glob_1, "developers/meta.json": __fd_glob_2, "users/meta.json": __fd_glob_3, }, {"gemini-setup.mdx": __fd_glob_4, "index.mdx": __fd_glob_5, "developers/customization.mdx": __fd_glob_6, "developers/index.mdx": __fd_glob_7, "admins/index.mdx": __fd_glob_8, "users/customization.mdx": __fd_glob_9, "users/faq.mdx": __fd_glob_10, "users/features.mdx": __fd_glob_11, "users/getting-started.mdx": __fd_glob_12, "users/index.mdx": __fd_glob_13, "users/premium.mdx": __fd_glob_14, "users/settings.mdx": __fd_glob_15, "users/troubleshooting.mdx": __fd_glob_16, });
+export const docs = await create.docs("docs", "content/docs", {"meta.json": __fd_glob_0, "admins/meta.json": __fd_glob_1, "developers/meta.json": __fd_glob_2, "users/meta.json": __fd_glob_3, }, {"gemini-setup.mdx": __fd_glob_4, "index.mdx": __fd_glob_5, "admins/index.mdx": __fd_glob_6, "developers/customization.mdx": __fd_glob_7, "developers/index.mdx": __fd_glob_8, "users/customization.mdx": __fd_glob_9, "users/faq.mdx": __fd_glob_10, "users/features.mdx": __fd_glob_11, "users/getting-started.mdx": __fd_glob_12, "users/index.mdx": __fd_glob_13, "users/premium.mdx": __fd_glob_14, "users/settings.mdx": __fd_glob_15, "users/troubleshooting.mdx": __fd_glob_16, });

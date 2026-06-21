@@ -9,7 +9,7 @@
 import { db } from "@/lib/firebaseAdmin";
 import { decryptSecret, encryptSecret, isEncrypted, maskSecret } from "@/lib/crypto";
 import { DEFAULT_GEMINI_MODEL, resolveModel } from "./models";
-import type { GeminiKeyState } from "./client";
+import { validateGeminiKey, type GeminiKeyState } from "./client";
 
 export type KeyStatus = GeminiKeyState | "unset";
 
@@ -52,14 +52,28 @@ export async function getPublicAiSettings(uid: string): Promise<PublicAiSettings
     };
 }
 
+export async function testApiKey(uid: string): Promise<KeyStatus> {
+    const ai = await readAi(uid);
+    if (!ai.geminiKeyEnc) return "unset";
+    try {
+        const rawKey = isEncrypted(ai.geminiKeyEnc)
+            ? decryptSecret(ai.geminiKeyEnc)
+            : ai.geminiKeyEnc; // tolerate any legacy plaintext, will be re-encrypted on next save
+        const result = await validateGeminiKey(rawKey);
+
+        await saveGeminiKey(uid, rawKey, result.state);
+        return result.state;
+    } catch {
+        return "error";
+    }
+}
+
 /** Decrypt and return the raw Gemini key, or null if none is set. Server-only. */
 export async function getDecryptedGeminiKey(uid: string): Promise<string | null> {
     const ai = await readAi(uid);
     if (!ai.geminiKeyEnc) return null;
     try {
-        return isEncrypted(ai.geminiKeyEnc)
-            ? decryptSecret(ai.geminiKeyEnc)
-            : ai.geminiKeyEnc; // tolerate any legacy plaintext, will be re-encrypted on next save
+        return isEncrypted(ai.geminiKeyEnc) ? decryptSecret(ai.geminiKeyEnc) : ai.geminiKeyEnc; // tolerate any legacy plaintext, will be re-encrypted on next save
     } catch {
         return null;
     }
@@ -70,11 +84,7 @@ export async function getSelectedModel(uid: string): Promise<string> {
     return resolveModel(ai.model);
 }
 
-export async function saveGeminiKey(
-    uid: string,
-    rawKey: string,
-    status: KeyStatus,
-): Promise<void> {
+export async function saveGeminiKey(uid: string, rawKey: string, status: KeyStatus): Promise<void> {
     const now = new Date().toISOString();
     await userRef(uid).set(
         {

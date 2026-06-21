@@ -17,8 +17,10 @@ import {
     getPublicAiSettings,
     saveGeminiKey,
     saveSelectedModel,
+    testApiKey,
 } from "@/lib/ai/geminiKey";
 import { isValidModelId } from "@/lib/ai/models";
+import { get } from "http";
 
 export const runtime = "nodejs";
 
@@ -78,6 +80,8 @@ export async function POST(req: Request) {
                 return NextResponse.json({ error: "Unknown model" }, { status: 400 });
             }
             await saveSelectedModel(uid, model);
+
+            await testApiKey(uid);
         }
 
         // If a key was supplied, verify it before storing.
@@ -87,15 +91,18 @@ export async function POST(req: Request) {
 
             if (result.state === "invalid") {
                 // Genuinely bad key — don't store it.
-                return NextResponse.json({ error: result.message, state: "invalid" }, { status: 400 });
+                return NextResponse.json(
+                    { error: result.message, state: "invalid" },
+                    { status: 400 },
+                );
             }
             if (result.state === "error") {
-                // Couldn't reach Google to verify — ask the user to retry.
-                return NextResponse.json({ error: result.message, state: "error" }, { status: 502 });
+                return NextResponse.json(
+                    { error: result.message, state: "error" },
+                    { status: 502 },
+                );
             }
 
-            // "valid" or "quota": the key authenticated, so save it. A quota result
-            // just means it's rate-limited right now — still a working key.
             await saveGeminiKey(uid, apiKey, result.state === "quota" ? "quota" : "valid");
             note =
                 result.state === "quota"
