@@ -23,7 +23,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
 
     const { css } = useCss();
 
-    const style = css.app.lms.announcement;
+    const style = css.app.lmsLegacy.announcement;
 
     const [data, setData] = useState<Announcement | null>(null);
 

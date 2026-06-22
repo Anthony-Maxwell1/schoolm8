@@ -198,7 +198,7 @@ export default function AiSettingsPage() {
                 ) : (
                     <>
                         {/* Current status */}
-                        <Card className="mb-8">
+                        <Card className="mb-8 p-4">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] text-[var(--color-primary)]">

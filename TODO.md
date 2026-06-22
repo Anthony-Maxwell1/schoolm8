@@ -5,6 +5,7 @@
 - More granular control over AI
 - Privacy controls
 - Change email and other account data
+- Stylise LMS announcement page
 
 BUGS
 

@@ -56,7 +56,9 @@ export default function SchedulerPage() {
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [blocks, setBlocks] = useState<Block[]>([]);
-    const [unplaced, setUnplaced] = useState<{ taskId: string; title: string; remainingMinutes: number }[]>([]);
+    const [unplaced, setUnplaced] = useState<
+        { taskId: string; title: string; remainingMinutes: number }[]
+    >([]);
     const [saved, setSaved] = useState<Block[]>([]);
     const [saving, setSaving] = useState(false);
 
@@ -125,7 +127,9 @@ export default function SchedulerPage() {
                 const tt = data.timetable;
                 if (!tt || typeof tt !== "object") continue;
                 const days = Array.isArray(tt) ? tt : Object.values(tt);
-                for (const day of days as { events?: { type: string; start: string; end: string; title: string }[] }[]) {
+                for (const day of days as {
+                    events?: { type: string; start: string; end: string; title: string }[];
+                }[]) {
                     for (const e of day.events ?? []) {
                         if (e.type === "class" || e.type === "event") {
                             busy.push({ start: e.start, end: e.end, title: e.title });
@@ -192,7 +196,9 @@ export default function SchedulerPage() {
             );
             setUnplaced(data.unplaced ?? []);
             if ((data.blocks ?? []).length === 0) {
-                toast.info("No free time found — try increasing hours/day or freeing up your timetable.");
+                toast.info(
+                    "No free time found — try increasing hours/day or freeing up your timetable.",
+                );
             }
         } catch (err) {
             toast.error(err instanceof Error ? err.message : "Could not build a plan");
@@ -209,7 +215,9 @@ export default function SchedulerPage() {
         const recurrence = weeks > 0 ? [`RRULE:FREQ=WEEKLY;COUNT=${weeks}`] : undefined;
         const events = toPush.map((b) => ({
             summary: `📚 ${b.title}${b.sessionCount > 1 ? ` (${b.sessionIndex}/${b.sessionCount})` : ""}`,
-            description: b.reasoning ? `Planned by SchoolMate — ${b.reasoning}` : "Planned by SchoolMate",
+            description: b.reasoning
+                ? `Planned by SchoolMate — ${b.reasoning}`
+                : "Planned by SchoolMate",
             start: b.start,
             end: b.end,
             timeZone,
@@ -309,7 +317,7 @@ export default function SchedulerPage() {
                 </p>
 
                 {/* Input */}
-                <Card className="mt-8">
+                <Card className="mt-8 p-4">
                     <Textarea
                         value={text}
                         onChange={(e) => setText(e.target.value)}
@@ -320,7 +328,9 @@ export default function SchedulerPage() {
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-[var(--color-text-tertiary)]" />
-                            <span className="text-sm text-[var(--color-text-secondary)]">Study time per day</span>
+                            <span className="text-sm text-[var(--color-text-secondary)]">
+                                Study time per day
+                            </span>
                             <Select
                                 value={hoursPerDay}
                                 onChange={(e) => setHoursPerDay(e.target.value)}
@@ -456,9 +466,15 @@ export default function SchedulerPage() {
                     <section className="mt-12">
                         <div className="mb-3 flex items-center justify-between">
                             <h2 className="flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-[var(--color-text-primary)]">
-                                <CheckCircle2 className="h-5 w-5 text-[var(--color-success)]" /> Your study plan
+                                <CheckCircle2 className="h-5 w-5 text-[var(--color-success)]" />{" "}
+                                Your study plan
                             </h2>
-                            <Button variant="ghost" size="sm" leftIcon={<Trash2 className="h-4 w-4" />} onClick={clearSaved}>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                leftIcon={<Trash2 className="h-4 w-4" />}
+                                onClick={clearSaved}
+                            >
                                 Clear
                             </Button>
                         </div>
@@ -556,7 +572,9 @@ function CalendarView({
                                         </p>
                                     )}
                                 </div>
-                                <Badge variant={PRIORITY_VARIANT[b.priority] ?? "default"}>P{b.priority}</Badge>
+                                <Badge variant={PRIORITY_VARIANT[b.priority] ?? "default"}>
+                                    P{b.priority}
+                                </Badge>
                                 {editable && onRemove && (
                                     <button
                                         onClick={() => onRemove(b.id)}

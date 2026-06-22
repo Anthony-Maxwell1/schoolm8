@@ -54,7 +54,11 @@ interface Lite {
     courseName?: string;
 }
 
-const GRADES: { grade: Grade; label: string; variant: "danger" | "warning" | "info" | "success" }[] = [
+const GRADES: {
+    grade: Grade;
+    label: string;
+    variant: "danger" | "warning" | "info" | "success";
+}[] = [
     { grade: "again", label: "Again", variant: "danger" },
     { grade: "hard", label: "Hard", variant: "warning" },
     { grade: "good", label: "Good", variant: "info" },
@@ -135,7 +139,8 @@ export default function StudyPage() {
                     fetch("/api/lms/assignments", { headers: authHeaders }),
                     fetch("/api/lms/courses", { headers: authHeaders }),
                 ]);
-                if (aRes.ok) setAssignments(Object.values((await aRes.json()).assignments ?? {}) as Lite[]);
+                if (aRes.ok)
+                    setAssignments(Object.values((await aRes.json()).assignments ?? {}) as Lite[]);
                 if (cRes.ok) setCourses(Object.values((await cRes.json()).courses ?? {}) as Lite[]);
             } catch {
                 /* ignore */
@@ -303,7 +308,7 @@ export default function StudyPage() {
                 </p>
 
                 {/* Source picker */}
-                <Card className="mt-8">
+                <Card className="mt-8 p-4">
                     <div className="mb-3 flex flex-wrap gap-1">
                         {(["topic", "assignment", "course"] as SourceType[]).map((s) => (
                             <button
@@ -333,8 +338,16 @@ export default function StudyPage() {
                             value={assignmentId}
                             onChange={(e) => setAssignmentId(e.target.value)}
                             options={[
-                                { value: "", label: assignments.length ? "Choose an assignment…" : "No assignments — sync Canvas" },
-                                ...assignments.map((a) => ({ value: a.id, label: `${a.title ?? "Untitled"}${a.courseName ? ` · ${a.courseName}` : ""}` })),
+                                {
+                                    value: "",
+                                    label: assignments.length
+                                        ? "Choose an assignment…"
+                                        : "No assignments — sync Canvas",
+                                },
+                                ...assignments.map((a) => ({
+                                    value: a.id,
+                                    label: `${a.title ?? "Untitled"}${a.courseName ? ` · ${a.courseName}` : ""}`,
+                                })),
                             ]}
                         />
                     )}
@@ -343,8 +356,16 @@ export default function StudyPage() {
                             value={courseId}
                             onChange={(e) => setCourseId(e.target.value)}
                             options={[
-                                { value: "", label: courses.length ? "Choose a course…" : "No courses — sync Canvas" },
-                                ...courses.map((c) => ({ value: c.id, label: c.name ?? "Untitled" })),
+                                {
+                                    value: "",
+                                    label: courses.length
+                                        ? "Choose a course…"
+                                        : "No courses — sync Canvas",
+                                },
+                                ...courses.map((c) => ({
+                                    value: c.id,
+                                    label: c.name ?? "Untitled",
+                                })),
                             ]}
                         />
                     )}
@@ -357,9 +378,7 @@ export default function StudyPage() {
                             <Tab id="flashcards">Flashcards</Tab>
                             <Tab id="quiz">Quiz</Tab>
                             <Tab id="summary">Summary</Tab>
-                            <Tab id="review">
-                                Review{due.length ? ` (${due.length})` : ""}
-                            </Tab>
+                            <Tab id="review">Review{due.length ? ` (${due.length})` : ""}</Tab>
                         </TabList>
 
                         {/* Flashcards */}
@@ -412,7 +431,9 @@ export default function StudyPage() {
                                             rightIcon={<ChevronRight className="h-4 w-4" />}
                                             disabled={fcIndex >= cards.length - 1}
                                             onClick={() => {
-                                                setFcIndex((i) => Math.min(cards.length - 1, i + 1));
+                                                setFcIndex((i) =>
+                                                    Math.min(cards.length - 1, i + 1),
+                                                );
                                                 setFcFlipped(false);
                                             }}
                                         >
@@ -423,7 +444,11 @@ export default function StudyPage() {
                                         <Button
                                             variant="outline"
                                             loading={savingDeck}
-                                            leftIcon={!savingDeck ? <Save className="h-4 w-4" /> : undefined}
+                                            leftIcon={
+                                                !savingDeck ? (
+                                                    <Save className="h-4 w-4" />
+                                                ) : undefined
+                                            }
                                             onClick={saveDeck}
                                         >
                                             Save deck for review
@@ -452,7 +477,11 @@ export default function StudyPage() {
                                 <div className="mt-4 space-y-5">
                                     {quizSubmitted && quizScore.total > 0 && (
                                         <Alert
-                                            variant={quizScore.correct === quizScore.total ? "success" : "info"}
+                                            variant={
+                                                quizScore.correct === quizScore.total
+                                                    ? "success"
+                                                    : "info"
+                                            }
                                             title={`You scored ${quizScore.correct} / ${quizScore.total} on the multiple-choice questions`}
                                             description="Review the explanations below. Short-answer questions are for self-assessment."
                                         />
@@ -472,14 +501,21 @@ export default function StudyPage() {
                                                     <div className="space-y-1.5">
                                                         {q.options.map((opt) => {
                                                             const selected = picked === opt;
-                                                            const showCorrect = quizSubmitted && opt === q.answer;
-                                                            const showWrong = quizSubmitted && selected && opt !== q.answer;
+                                                            const showCorrect =
+                                                                quizSubmitted && opt === q.answer;
+                                                            const showWrong =
+                                                                quizSubmitted &&
+                                                                selected &&
+                                                                opt !== q.answer;
                                                             return (
                                                                 <button
                                                                     key={opt}
                                                                     disabled={quizSubmitted}
                                                                     onClick={() =>
-                                                                        setAnswers((prev) => ({ ...prev, [q.id]: opt }))
+                                                                        setAnswers((prev) => ({
+                                                                            ...prev,
+                                                                            [q.id]: opt,
+                                                                        }))
                                                                     }
                                                                     className={`flex w-full items-center gap-2 rounded-[var(--radius-md)] border px-3 py-2 text-left text-sm transition-colors ${
                                                                         showCorrect
@@ -491,8 +527,12 @@ export default function StudyPage() {
                                                                                 : "border-[var(--color-border-subtle)] hover:bg-[var(--color-muted)]"
                                                                     }`}
                                                                 >
-                                                                    {showCorrect && <Check className="h-4 w-4 text-[var(--color-success)]" />}
-                                                                    {showWrong && <X className="h-4 w-4 text-[var(--color-danger)]" />}
+                                                                    {showCorrect && (
+                                                                        <Check className="h-4 w-4 text-[var(--color-success)]" />
+                                                                    )}
+                                                                    {showWrong && (
+                                                                        <X className="h-4 w-4 text-[var(--color-danger)]" />
+                                                                    )}
                                                                     <span>{opt}</span>
                                                                 </button>
                                                             );
@@ -503,7 +543,10 @@ export default function StudyPage() {
                                                         value={picked ?? ""}
                                                         disabled={quizSubmitted}
                                                         onChange={(e) =>
-                                                            setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                                                            setAnswers((prev) => ({
+                                                                ...prev,
+                                                                [q.id]: e.target.value,
+                                                            }))
                                                         }
                                                         placeholder="Type your answer…"
                                                     />
@@ -512,19 +555,27 @@ export default function StudyPage() {
                                                     <div className="mt-3 rounded-[var(--radius-md)] bg-[var(--color-muted)] p-3 text-sm">
                                                         {q.type === "mcq" ? (
                                                             <p className="mb-1 font-medium">
-                                                                {isCorrect ? "Correct" : `Answer: ${q.answer}`}
+                                                                {isCorrect
+                                                                    ? "Correct"
+                                                                    : `Answer: ${q.answer}`}
                                                             </p>
                                                         ) : (
-                                                            <p className="mb-1 font-medium">Sample answer: {q.answer}</p>
+                                                            <p className="mb-1 font-medium">
+                                                                Sample answer: {q.answer}
+                                                            </p>
                                                         )}
-                                                        <p className="text-[var(--color-text-secondary)]">{q.explanation}</p>
+                                                        <p className="text-[var(--color-text-secondary)]">
+                                                            {q.explanation}
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
                                         );
                                     })}
                                     {!quizSubmitted ? (
-                                        <Button onClick={() => setQuizSubmitted(true)}>Submit answers</Button>
+                                        <Button onClick={() => setQuizSubmitted(true)}>
+                                            Submit answers
+                                        </Button>
                                     ) : (
                                         <Button
                                             variant="outline"
@@ -549,7 +600,9 @@ export default function StudyPage() {
                                 </p>
                                 <Button
                                     loading={generating}
-                                    leftIcon={!generating ? <Sparkles className="h-4 w-4" /> : undefined}
+                                    leftIcon={
+                                        !generating ? <Sparkles className="h-4 w-4" /> : undefined
+                                    }
                                     onClick={() => generate("summary")}
                                 >
                                     Generate summary
@@ -600,7 +653,9 @@ export default function StudyPage() {
                                             {reviewFlipped ? "Answer" : "Question"} · tap to flip
                                         </span>
                                         <span className="text-lg text-[var(--color-text-primary)]">
-                                            {reviewFlipped ? reviewCard.card.back : reviewCard.card.front}
+                                            {reviewFlipped
+                                                ? reviewCard.card.back
+                                                : reviewCard.card.front}
                                         </span>
                                     </button>
                                     {reviewFlipped ? (
@@ -651,7 +706,11 @@ export default function StudyPage() {
                                                         {d.cardCount} cards
                                                     </p>
                                                 </div>
-                                                {d.dueCount > 0 && <Badge variant="primary">{d.dueCount} due</Badge>}
+                                                {d.dueCount > 0 && (
+                                                    <Badge variant="primary">
+                                                        {d.dueCount} due
+                                                    </Badge>
+                                                )}
                                                 <button
                                                     onClick={() => deleteDeck(d.id)}
                                                     aria-label="Delete deck"

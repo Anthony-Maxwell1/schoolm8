@@ -74,7 +74,9 @@ export async function getDecryptedGeminiKey(uid: string): Promise<string | null>
     if (!ai.geminiKeyEnc) return null;
     try {
         return isEncrypted(ai.geminiKeyEnc) ? decryptSecret(ai.geminiKeyEnc) : ai.geminiKeyEnc; // tolerate any legacy plaintext, will be re-encrypted on next save
-    } catch {
+    } catch (err) {
+        console.error("Failed to decrypt Gemini key for user", uid);
+        console.error(err);
         return null;
     }
 }
