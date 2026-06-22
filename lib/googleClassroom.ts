@@ -101,3 +101,10 @@ export async function getStudentSubmissionId(
 
     return res.data.studentSubmissions[0].id;
 }
+
+export const classroomClient = {
+    uploadFileToDrive,
+    attachFileToAssignment,
+    submitAssignment,
+    getStudentSubmissionId,
+};

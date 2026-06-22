@@ -3,15 +3,23 @@
 import { useState, useEffect } from "react";
 import { Assignment, normaliseAssignment } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { ClassroomAssignment } from "@/app/api/googleclassroom/sync/route";
 import { LMSAssignment } from "@/app/api/canvas/sync/route";
 import { useAccessControl } from "@/lib/access/useAccessControl";
 import {
-    Card, CardBody, CardHeader, CardTitle,
-    Badge, Skeleton, Text, Divider, Alert,
+    Card,
+    CardBody,
+    CardHeader,
+    CardTitle,
+    Badge,
+    Skeleton,
+    Text,
+    Divider,
+    Alert,
 } from "@/components/ui/components";
 import { Clock, BookOpen, ArrowLeft, ExternalLink } from "lucide-react";
+import utils from "@/lib/utils";
 
 function getMaxRows(obj: Record<string, any[]>) {
     return Math.max(...Object.values(obj).map((arr) => arr.length));
@@ -35,12 +43,25 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
 
     useEffect(() => {
         if (loading || accessLoading || !allowed || !user || !token) return;
-        fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
-            .then((r) => r.json())
-            .then((res) => {
-                if (res.error === "NEXT_REDIRECT") { window.location.href = "/lms"; return; }
-                const found = (Object.values(res.assignments) as (ClassroomAssignment | LMSAssignment)[]).find((a) => a.id === id);
-                if (found) setData(normaliseAssignment(found));
+        // fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
+        //     .then((r) => r.json())
+        //     .then((res) => {
+        //         if (res.error === "NEXT_REDIRECT") { window.location.href = "/lms"; return; }
+        //         const found = (Object.values(res.assignments) as (ClassroomAssignment | LMSAssignment)[]).find((a) => a.id === id);
+        //         if (found) setData(normaliseAssignment(found));
+        //     })
+        //     .catch(console.error)
+        //     .finally(() => setFetching(false));
+        utils.firebase.schema.lms
+            .getAssignments(user.uid)
+            .then((d) => {
+                const found = Object.values(d).find((a) => a.id === id);
+                if (!found) {
+                    console.warn("Assignment not found, redirecting to /lms");
+                    redirect("/lms");
+                } else {
+                    setData(normaliseAssignment(found));
+                }
             })
             .catch(console.error)
             .finally(() => setFetching(false));
@@ -52,7 +73,6 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-10">
             <div className="mx-auto max-w-4xl space-y-6">
-
                 {/* Back link */}
                 <a
                     href={params.cameFrom ?? "/lms"}
@@ -77,7 +97,9 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Text variant="caption">{String(id)}</Text>
                                     {data?.source && (
-                                        <Badge variant="info">{SOURCE_LABEL[data.source] ?? data.source}</Badge>
+                                        <Badge variant="info">
+                                            {SOURCE_LABEL[data.source] ?? data.source}
+                                        </Badge>
                                     )}
                                 </div>
 
@@ -99,13 +121,23 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
                                     {data?.created && (
                                         <span className="flex items-center gap-1.5">
                                             <Clock className="h-3.5 w-3.5 text-[var(--color-text-tertiary)]" />
-                                            Created {new Date(data.created).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                                            Created{" "}
+                                            {new Date(data.created).toLocaleDateString("en-AU", {
+                                                day: "numeric",
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
                                         </span>
                                     )}
                                     {data?.dueAt && (
                                         <span className="flex items-center gap-1.5 font-medium text-[var(--color-danger)]">
                                             <Clock className="h-3.5 w-3.5" />
-                                            Due {new Date(data.dueAt).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                                            Due{" "}
+                                            {new Date(data.dueAt).toLocaleDateString("en-AU", {
+                                                day: "numeric",
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
                                         </span>
                                     )}
                                 </div>
@@ -146,7 +178,10 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
                                     <thead>
                                         <tr className="border-b border-[var(--color-border)] bg-[var(--color-muted)]">
                                             {headers.map((h) => (
-                                                <th key={h} className="px-4 py-3 text-left text-[11px] font-medium tracking-[0.08em] uppercase text-[var(--color-text-tertiary)]">
+                                                <th
+                                                    key={h}
+                                                    className="px-4 py-3 text-left text-[11px] font-medium tracking-[0.08em] uppercase text-[var(--color-text-tertiary)]"
+                                                >
                                                     {h}
                                                 </th>
                                             ))}
@@ -154,9 +189,15 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
                                     </thead>
                                     <tbody className="divide-y divide-[var(--color-border-subtle)]">
                                         {Array.from({ length: maxRows }).map((_, row) => (
-                                            <tr key={row} className="hover:bg-[var(--color-muted)] transition-colors">
+                                            <tr
+                                                key={row}
+                                                className="hover:bg-[var(--color-muted)] transition-colors"
+                                            >
                                                 {headers.map((h) => (
-                                                    <td key={h} className="px-4 py-3 text-[var(--color-text-primary)]">
+                                                    <td
+                                                        key={h}
+                                                        className="px-4 py-3 text-[var(--color-text-primary)]"
+                                                    >
                                                         {data.rubric![h][row] ?? ""}
                                                     </td>
                                                 ))}

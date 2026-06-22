@@ -1,7 +1,7 @@
 // lib/firebaseClient.ts
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { Firestore, getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -20,4 +20,4 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 // Firestore instance
-export const db = getFirestore(app);
+export const db: Firestore = getFirestore(app);

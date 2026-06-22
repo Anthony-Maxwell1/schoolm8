@@ -139,3 +139,9 @@ export async function disconnectCalendar(uid: string): Promise<void> {
         { merge: true },
     );
 }
+
+export const calendarClient = {
+    listBusyEvents,
+    createCalendarEvents,
+    disconnectCalendar,
+};

@@ -37,3 +37,8 @@ export function generateAuthUrl(category: ScopeCategory, state: string): string 
 export function getTokens(code: string) {
     return oauth2Client.getToken(code);
 }
+
+export const googleAuth = {
+    generateAuthUrl,
+    getTokens,
+};

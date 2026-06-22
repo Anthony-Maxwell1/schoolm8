@@ -11,7 +11,7 @@
  */
 
 import { DocumentData } from "firebase/firestore";
-import { db } from "./firebaseAdmin";
+import { db } from "./db";
 
 const isPlainObject = (value: unknown): value is Record<string, any> => {
     if (!value || typeof value !== "object") return false;
@@ -162,11 +162,7 @@ export const saveLMSAnnouncements = async (
  * only courses of that type are pruned (so e.g. a Canvas sync won't delete
  * Google Classroom courses).
  */
-export const pruneLMSCourses = async (
-    userId: string,
-    keepIds: string[],
-    sourceType?: string,
-) => {
+export const pruneLMSCourses = async (userId: string, keepIds: string[], sourceType?: string) => {
     const keep = new Set(keepIds);
     const snapshot = await getLMSCoursesRef(userId).get();
     const batch = db.batch();
@@ -215,7 +211,7 @@ export const getDueLMSAssignments = async (userId: string) => {
     snapshot.forEach((doc) => {
         const data = doc.data();
 
-        if (data.dueAt && new Date(data.dueAt).getTime() > now) {
+        if (data?.dueAt && new Date(data.dueAt).getTime() > now) {
             assignments.push({
                 id: doc.id,
                 ...data,
@@ -501,4 +497,52 @@ export const saveKnowledgeBase = async (userId: string, kbData: KnowledgeBase) =
 export const getKnowledgeBase = async (userId: string) => {
     const doc = await getKnowledgeBaseRef(userId).get();
     return doc.exists ? doc.data() : null;
+};
+
+export const schema = {
+    lms: {
+        getCoursesRef: getLMSCoursesRef,
+        getAssignmentsRef: getLMSAssignmentsRef,
+        getAnnouncementsRef: getLMSAnnouncementsRef,
+        saveCourse: saveLMSCourse,
+        saveAssignment: saveLMSAssignment,
+        saveAnnouncement: saveLMSAnnouncement,
+        saveCourses: saveLMSCourses,
+        saveAssignments: saveLMSAssignments,
+        saveAnnouncements: saveLMSAnnouncements,
+        pruneCourses: pruneLMSCourses,
+        getCourses: getLMSCourses,
+        getAssignments: getLMSAssignments,
+        getDueAssignments: getDueLMSAssignments,
+        markCompletedOverride: markCompletedOverride,
+        getAnnouncements: getLMSAnnouncements,
+    },
+    timetable: {
+        getConfigRef: getTimetableConfigRef,
+        getDaysRef: getTimetableDaysRef,
+        saveConfig: saveTimetableConfig,
+        saveDay: saveTimetableDay,
+        deleteThemesByUser,
+        deleteData,
+        getConfig: getTimetableConfig,
+        getDay: getTimetableDay,
+        getDays: getTimetableDays,
+        cleanupOldCache: cleanupOldTimetableCache,
+        deleteCache: deleteTimetableCache,
+    },
+    themes: {
+        getTheme: GetTheme,
+        getTopThemes,
+        filterThemes,
+        searchThemes,
+        postTheme,
+        updateThemeData,
+        getOwnerTheme,
+        deleteThemeData,
+    },
+    knowledgeBase: {
+        getRef: getKnowledgeBaseRef,
+        save: saveKnowledgeBase,
+        get: getKnowledgeBase,
+    },
 };

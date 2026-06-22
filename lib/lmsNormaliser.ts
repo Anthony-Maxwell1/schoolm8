@@ -112,3 +112,9 @@ export function normaliseAnnouncement(
         };
     }
 }
+
+export const lmsNormaliser = {
+    normaliseCourse,
+    normaliseAssignment,
+    normaliseAnnouncement,
+};

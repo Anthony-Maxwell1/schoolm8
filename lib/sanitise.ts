@@ -118,3 +118,9 @@ export function sanitizeNameStrict(input: string): string {
         .trim()
         .slice(0, 50);
 }
+
+export const sanitise = {
+    html: sanitizeUserHtml,
+    recursive: sanitizeHtmlRecursive,
+    nameStrict: sanitizeNameStrict,
+};

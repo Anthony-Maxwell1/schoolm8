@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ExternalLink } from "lucide-react";
 import { Text, Badge, Spinner, EmptyState, SearchInput, Button } from "@/components/ui/components";
 import { useAuth } from "@/context/authContext";
+import utils from "@/lib/utils";
 
 interface CourseDoc {
     id: string;
@@ -29,9 +30,14 @@ export default function LmsCoursesPage() {
     useEffect(() => {
         if (loading || !user || !token) return;
         setIsLoading(true);
-        fetch("/api/lms/courses", { headers: { Authorization: `Bearer ${token}` } })
-            .then((res) => res.json())
-            .then((data) => setCourses(Object.values(data.courses ?? {}) as CourseDoc[]))
+        // fetch("/api/lms/courses", { headers: { Authorization: `Bearer ${token}` } })
+        //     .then((res) => res.json())
+        //     .then((data) => setCourses(Object.values(data.courses ?? {}) as CourseDoc[]))
+        //     .catch(() => setCourses([]))
+        //     .finally(() => setIsLoading(false));
+        utils.firebase.schema.lms
+            .getCourses(user.uid)
+            .then((data) => setCourses(Object.values(data) as CourseDoc[]))
             .catch(() => setCourses([]))
             .finally(() => setIsLoading(false));
     }, [user, token, loading]);
@@ -134,7 +140,9 @@ export default function LmsCoursesPage() {
                             size="sm"
                             onClick={() => {
                                 if (!token) return;
-                                fetch("/api/canvas/sync", { headers: { Authorization: `Bearer ${token}` } })
+                                fetch("/api/canvas/sync", {
+                                    headers: { Authorization: `Bearer ${token}` },
+                                })
                                     .then(() => location.reload())
                                     .catch(() => {});
                             }}

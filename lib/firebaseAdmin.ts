@@ -1,4 +1,5 @@
 import admin from "firebase-admin";
+import { Firestore } from "firebase-admin/firestore";
 
 let app;
 
@@ -14,5 +15,5 @@ if (!admin.apps.length) {
     app = admin.app();
 }
 
-export const db = admin.firestore();
+export const db: Firestore = admin.firestore();
 export const auth = admin.auth();

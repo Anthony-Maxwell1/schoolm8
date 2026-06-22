@@ -21,3 +21,7 @@ export function parseICalData(icalData: string) {
         throw new Error("Invalid iCal data");
     }
 }
+
+export const ical = {
+    parse: parseICalData,
+};

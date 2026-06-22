@@ -4,6 +4,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 
+// authContext.tsx
+import { setAuthState } from "@/lib/authStore";
+
 interface AuthContextType {
     user: User | null;
     loading: boolean;
@@ -27,6 +30,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await firebaseSignOut(auth);
         // onAuthStateChanged will handle clearing user + token
     };
+
+    useEffect(() => {
+        setAuthState(token, loading);
+    }, [token, loading]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {

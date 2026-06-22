@@ -11,13 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { formatDistanceToNow, isPast, parseISO } from "date-fns";
-import {
-    ClipboardList,
-    ExternalLink,
-    Send,
-    Check,
-    AlertCircle,
-} from "lucide-react";
+import { ClipboardList, ExternalLink, Send, Check, AlertCircle } from "lucide-react";
 import {
     Text,
     Badge,
@@ -32,6 +26,7 @@ import {
     Alert,
 } from "@/components/ui/components";
 import { useAuth } from "@/context/authContext";
+import utils from "@/lib/utils";
 
 interface AssignmentDoc {
     id: string;
@@ -75,14 +70,20 @@ export default function TodoPage() {
         if (!token) return;
         setIsLoading(true);
         try {
-            const [aRes, cRes] = await Promise.all([
-                fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } }),
-                fetch("/api/lms/courses", { headers: { Authorization: `Bearer ${token}` } }),
+            // const [aRes, cRes] = await Promise.all([
+            //     fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } }),
+            //     fetch("/api/lms/courses", { headers: { Authorization: `Bearer ${token}` } }),
+            // ]);
+            // const aData = aRes.ok ? await aRes.json() : { assignments: {} };
+            // const cData = cRes.ok ? await cRes.json() : { courses: {} };
+            // setAssignments(Object.values(aData.assignments ?? {}) as AssignmentDoc[]);
+            // setActiveCourseIds(new Set(Object.keys(cData.courses ?? {})));
+            const [aData, cData] = await Promise.all([
+                utils.firebase.schema.lms.getAssignments(user!.uid),
+                utils.firebase.schema.lms.getCourses(user!.uid),
             ]);
-            const aData = aRes.ok ? await aRes.json() : { assignments: {} };
-            const cData = cRes.ok ? await cRes.json() : { courses: {} };
-            setAssignments(Object.values(aData.assignments ?? {}) as AssignmentDoc[]);
-            setActiveCourseIds(new Set(Object.keys(cData.courses ?? {})));
+            setAssignments(Object.values(aData) as AssignmentDoc[]);
+            setActiveCourseIds(new Set(Object.keys(cData)));
         } catch {
             toast.error("Could not load your assignments");
         } finally {
@@ -109,7 +110,9 @@ export default function TodoPage() {
         const now = Date.now();
         return assignments
             .filter((a) => activeCourseIds.size === 0 || activeCourseIds.has(a.courseId))
-            .filter((a) => !a.title?.toLowerCase || a.title.toLowerCase().includes(query.toLowerCase()))
+            .filter(
+                (a) => !a.title?.toLowerCase || a.title.toLowerCase().includes(query.toLowerCase()),
+            )
             .filter((a) => !courseFilter || a.courseId === courseFilter)
             .filter((a) => {
                 const done = isDone(a) || submittedIds.has(a.id);
@@ -175,7 +178,10 @@ export default function TodoPage() {
     const dueLabel = (a: AssignmentDoc) => {
         if (!a.dueAt) return { text: "No due date", overdue: false };
         const d = parseISO(a.dueAt);
-        return { text: `${isPast(d) ? "Was due" : "Due"} ${formatDistanceToNow(d, { addSuffix: true })}`, overdue: isPast(d) };
+        return {
+            text: `${isPast(d) ? "Was due" : "Due"} ${formatDistanceToNow(d, { addSuffix: true })}`,
+            overdue: isPast(d),
+        };
     };
 
     return (
@@ -274,7 +280,9 @@ export default function TodoPage() {
                                                         : "text-[var(--color-text-secondary)]"
                                                 }`}
                                             >
-                                                {due.overdue && <AlertCircle className="h-3.5 w-3.5" />}
+                                                {due.overdue && (
+                                                    <AlertCircle className="h-3.5 w-3.5" />
+                                                )}
                                                 {due.text}
                                             </span>
                                         )}
@@ -289,12 +297,18 @@ export default function TodoPage() {
                                                 </Button>
                                             )}
                                             {a.url && (
-                                                <a href={a.url} target="_blank" rel="noopener noreferrer">
+                                                <a
+                                                    href={a.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
                                                         iconOnly
-                                                        leftIcon={<ExternalLink className="h-4 w-4" />}
+                                                        leftIcon={
+                                                            <ExternalLink className="h-4 w-4" />
+                                                        }
                                                         aria-label="Open in Canvas"
                                                     />
                                                 </a>
@@ -316,10 +330,18 @@ export default function TodoPage() {
                 description={target?.title}
                 footer={
                     <div className="flex justify-end gap-2">
-                        <Button variant="ghost" onClick={() => setTarget(null)} disabled={submitting}>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setTarget(null)}
+                            disabled={submitting}
+                        >
                             Cancel
                         </Button>
-                        <Button onClick={doSubmit} loading={submitting} leftIcon={!submitting ? <Check className="h-4 w-4" /> : undefined}>
+                        <Button
+                            onClick={doSubmit}
+                            loading={submitting}
+                            leftIcon={!submitting ? <Check className="h-4 w-4" /> : undefined}
+                        >
                             Submit to Canvas
                         </Button>
                     </div>

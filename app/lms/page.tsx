@@ -3,22 +3,25 @@
 import { useCss } from "@/lib/css";
 import { useRef, useState, useEffect } from "react";
 import {
-    Assignment, Announcement, Course,
-    normaliseAnnouncement, normaliseAssignment, normaliseCourse,
+    Assignment,
+    Announcement,
+    Course,
+    normaliseAnnouncement,
+    normaliseAssignment,
+    normaliseCourse,
 } from "@/lib/lmsNormaliser";
 import { useAuth } from "@/context/authContext";
-import { ClassroomAnnouncement, ClassroomAssignment, ClassroomCourse } from "../api/googleclassroom/sync/route";
+import {
+    ClassroomAnnouncement,
+    ClassroomAssignment,
+    ClassroomCourse,
+} from "../api/googleclassroom/sync/route";
 import { CanvasCourse, LMSAnnouncement, LMSAssignment } from "../api/canvas/sync/route";
 import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import { useAccessControl } from "@/lib/access/useAccessControl";
 import { redirect } from "next/dist/client/components/navigation";
-import {
-    Spinner,
-    EmptyState,
-    Skeleton,
-    Text,
-    Badge,
-} from "@/components/ui/components";
+import { Spinner, EmptyState, Skeleton, Text, Badge } from "@/components/ui/components";
+import utils from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Card
@@ -36,7 +39,10 @@ function ItemCard({ item, onClick }: { item: any; onClick: () => void }) {
                     className="mb-3 h-28 w-full rounded-[var(--radius-md)] object-cover transition-transform duration-300 group-hover:scale-105"
                 />
             )}
-            <Text variant="h6" className="line-clamp-1 group-hover:text-[var(--color-primary)] transition-colors">
+            <Text
+                variant="h6"
+                className="line-clamp-1 group-hover:text-[var(--color-primary)] transition-colors"
+            >
                 {item.title || item.name}
             </Text>
             <Text variant="caption" className="mt-1 line-clamp-2">
@@ -44,12 +50,20 @@ function ItemCard({ item, onClick }: { item: any; onClick: () => void }) {
             </Text>
             {item.due && (
                 <Text variant="caption" className="mt-2 text-[var(--color-warning)]">
-                    Due {new Date(item.due).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                    Due{" "}
+                    {new Date(item.due).toLocaleDateString("en-AU", {
+                        day: "numeric",
+                        month: "short",
+                    })}
                 </Text>
             )}
             {item.created && (
                 <Text variant="caption" className="mt-2">
-                    Posted {new Date(item.created).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+                    Posted{" "}
+                    {new Date(item.created).toLocaleDateString("en-AU", {
+                        day: "numeric",
+                        month: "short",
+                    })}
                 </Text>
             )}
         </button>
@@ -64,7 +78,10 @@ function CarouselSkeleton() {
     return (
         <div className="flex gap-4 overflow-hidden px-1 pb-2">
             {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-52 w-72 shrink-0 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-4 space-y-3">
+                <div
+                    key={i}
+                    className="h-52 w-72 shrink-0 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-4 space-y-3"
+                >
                     <Skeleton height={112} className="rounded-[var(--radius-md)]" />
                     <Skeleton variant="text" width="70%" height={16} />
                     <Skeleton variant="text" width="90%" />
@@ -79,9 +96,15 @@ function CarouselSkeleton() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function CarouselSection({
-    title, data, redirectTemplate, loading,
+    title,
+    data,
+    redirectTemplate,
+    loading,
 }: {
-    title: string; data: any[]; redirectTemplate: string; loading: boolean;
+    title: string;
+    data: any[];
+    redirectTemplate: string;
+    loading: boolean;
 }) {
     const ref = useRef<HTMLDivElement>(null);
 
@@ -148,7 +171,10 @@ function CourseCard({ course, onClick }: { course: Course; onClick: () => void }
             />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70" />
             <div className="absolute bottom-0 left-0 right-0 p-4">
-                <Text variant="h6" className="text-white line-clamp-2 group-hover:text-[var(--color-apache-200)] transition-colors">
+                <Text
+                    variant="h6"
+                    className="text-white line-clamp-2 group-hover:text-[var(--color-apache-200)] transition-colors"
+                >
                     {course.name}
                 </Text>
             </div>
@@ -176,18 +202,22 @@ export default function LMSPage() {
         if (loading || accessLoading || !allowed || !user || !token) return;
 
         Promise.all([
-            fetch("/api/lms/announcements", { headers: { Authorization: `Bearer ${token}` } })
-                .then((r) => r.json())
-                .then((d) => setAnnouncements((Object.values(d.announcements) as (LMSAnnouncement | ClassroomAnnouncement)[]).map(normaliseAnnouncement))),
-            fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
-                .then((r) => r.json())
-                .then((d) => setAssignments((Object.values(d.assignments) as (LMSAssignment | ClassroomAssignment)[]).map(normaliseAssignment))),
-            fetch("/api/lms/courses", { headers: { Authorization: `Bearer ${token}` } })
-                .then((r) => r.json())
-                .then((d) => setCourses((Object.values(d.courses) as (ClassroomCourse | CanvasCourse)[]).map(normaliseCourse))),
-        ])
-            .catch((err) => console.error(err))
-            .finally(() => setDataLoading(false));
+            utils.firebase.schema.lms
+                .getAnnouncements(user.uid)
+                .then((d) => setAnnouncements(Object.values(d).map(normaliseAnnouncement))),
+            utils.firebase.schema.lms
+                .getAssignments(user.uid)
+                .then((d) => setAssignments(Object.values(d).map(normaliseAssignment))),
+            utils.firebase.schema.lms
+                .getCourses(user.uid)
+                .then((d) =>
+                    setCourses(
+                        (Object.values(d) as (ClassroomCourse | CanvasCourse)[]).map(
+                            normaliseCourse,
+                        ),
+                    ),
+                ),
+        ]).finally(() => setDataLoading(false));
     }, [user, token, loading, accessLoading, allowed]);
 
     if (loading || accessLoading) {
@@ -203,15 +233,20 @@ export default function LMSPage() {
 
     if (!allowed) return <div>Unauthorized</div>;
 
-    const isEmpty = !dataLoading && announcements.length === 0 && assignments.length === 0 && courses.length === 0;
+    const isEmpty =
+        !dataLoading &&
+        announcements.length === 0 &&
+        assignments.length === 0 &&
+        courses.length === 0;
 
     return (
         <div className="min-h-screen bg-[var(--color-surface)]">
             <div className="mx-auto max-w-7xl space-y-12 px-6 py-10">
-
                 {/* Header */}
                 <div>
-                    <Text variant="label" className="mb-2 block">Learning</Text>
+                    <Text variant="label" className="mb-2 block">
+                        Learning
+                    </Text>
                     <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] tracking-[-0.01em] font-normal text-[var(--color-text-primary)]">
                         Your <em>LMS</em>
                     </h1>
@@ -249,7 +284,11 @@ export default function LMSPage() {
                                 {dataLoading ? (
                                     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                                         {Array.from({ length: 4 }).map((_, i) => (
-                                            <Skeleton key={i} height={160} className="rounded-[var(--radius-xl)]" />
+                                            <Skeleton
+                                                key={i}
+                                                height={160}
+                                                className="rounded-[var(--radius-xl)]"
+                                            />
                                         ))}
                                     </div>
                                 ) : (
@@ -258,7 +297,11 @@ export default function LMSPage() {
                                             <CourseCard
                                                 key={i}
                                                 course={course}
-                                                onClick={() => redirect(`/lms/course/${course.id}?cameFrom=/lms`)}
+                                                onClick={() =>
+                                                    redirect(
+                                                        `/lms/course/${course.id}?cameFrom=/lms`,
+                                                    )
+                                                }
                                             />
                                         ))}
                                     </div>

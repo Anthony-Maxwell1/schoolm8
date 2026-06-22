@@ -11,13 +11,7 @@
  * Stored format (string):  v1:<iv_b64>:<tag_b64>:<ciphertext_b64>
  */
 
-import {
-    createCipheriv,
-    createDecipheriv,
-    randomBytes,
-    scryptSync,
-    timingSafeEqual,
-} from "crypto";
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 
 const VERSION = "v1";
 const ALGORITHM = "aes-256-gcm";
@@ -50,10 +44,7 @@ export function encryptSecret(plaintext: string): string {
     const iv = randomBytes(IV_BYTES);
     const cipher = createCipheriv(ALGORITHM, key, iv);
 
-    const ciphertext = Buffer.concat([
-        cipher.update(plaintext, "utf8"),
-        cipher.final(),
-    ]);
+    const ciphertext = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
     const tag = cipher.getAuthTag();
 
     return [
@@ -79,10 +70,7 @@ export function decryptSecret(token: string): string {
     const decipher = createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(tag);
 
-    const plaintext = Buffer.concat([
-        decipher.update(ciphertext),
-        decipher.final(),
-    ]);
+    const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
     return plaintext.toString("utf8");
 }
 
@@ -113,3 +101,11 @@ export function safeEqual(a: string, b: string): boolean {
     if (bufA.length !== bufB.length) return false;
     return timingSafeEqual(bufA, bufB);
 }
+
+export const crypto = {
+    encryptSecret,
+    decryptSecret,
+    isEncrypted,
+    maskSecret,
+    safeEqual,
+};

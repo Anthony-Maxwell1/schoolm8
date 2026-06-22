@@ -244,3 +244,12 @@ export async function standardiseWeek({
 
     throw new Error("Unknown timetable provider");
 }
+
+export const timetableNormaliser = {
+    normaliseEdumateDay,
+    normaliseEdumateWeek,
+    normaliseICalDay,
+    normaliseICalWeek,
+    standardiseDay,
+    standardiseWeek,
+};

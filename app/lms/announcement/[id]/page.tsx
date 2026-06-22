@@ -10,6 +10,7 @@ import { LMSAnnouncement } from "@/app/api/canvas/sync/route";
 import { ClassroomAnnouncement } from "@/app/api/googleclassroom/sync/route";
 import { navigate } from "next/dist/client/components/segment-cache/navigation";
 import { useAccessControl } from "@/lib/access/useAccessControl";
+import utils from "@/lib/utils";
 
 function getMaxRows(obj: Record<string, any[]>) {
     return Math.max(...Object.values(obj).map((arr) => arr.length));
@@ -29,18 +30,30 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     useEffect(() => {
         if (loading || accessLoading || !allowed || !user || !token) return;
 
-        fetch("/api/lms/announcements", { headers: { Authorization: `Bearer ${token}` } })
-            .then((res) => res.json())
-            .then((res) => {
-                if (res.error === "NEXT_REDIRECT") {
-                    console.warn("Redirect occurred — navigate manually");
-                    window.location.href = "/lms";
+        // fetch("/api/lms/announcements", { headers: { Authorization: `Bearer ${token}` } })
+        //     .then((res) => res.json())
+        //     .then((res) => {
+        //         if (res.error === "NEXT_REDIRECT") {
+        //             console.warn("Redirect occurred — navigate manually");
+        //             window.location.href = "/lms";
+        //         } else {
+        //             const announcementsArray = Object.values(res.announcements) as
+        //                 | LMSAnnouncement[]
+        //                 | ClassroomAnnouncement[];
+        //             const announcement = announcementsArray.find((a) => a.id === id);
+        //             setData(normaliseAnnouncement(announcement!));
+        //         }
+        //     })
+        //     .catch((err) => console.error(err));
+        utils.firebase.schema.lms
+            .getAnnouncements(user.uid)
+            .then((d) => {
+                const announcement = Object.values(d).find((a) => a.id === id);
+                if (!announcement) {
+                    console.warn("Announcement not found, redirecting to /lms");
+                    redirect("/lms");
                 } else {
-                    const announcementsArray = Object.values(res.announcements) as
-                        | LMSAnnouncement[]
-                        | ClassroomAnnouncement[];
-                    const announcement = announcementsArray.find((a) => a.id === id);
-                    setData(normaliseAnnouncement(announcement!));
+                    setData(normaliseAnnouncement(announcement));
                 }
             })
             .catch((err) => console.error(err));

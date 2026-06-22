@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import KnowledgeBaseEditor, {
-    KnowledgeBase,
-    KnowledgeBasePage,
-} from "@/components/KnowledgeBase";
+import KnowledgeBaseEditor, { KnowledgeBase, KnowledgeBasePage } from "@/components/KnowledgeBase";
 import { useAuth } from "@/context/authContext";
 import { useCss } from "@/lib/css";
+import fetch from "@/lib/fetch";
 
 const STORAGE_KEY = "schoolm8_knowledge_cache";
 
@@ -19,10 +17,7 @@ const defaultKnowledgeBase: KnowledgeBase = {
     pages: [],
 };
 
-function flattenPages(
-    pages: StoredPage[],
-    map = new Map<string, StoredPage>(),
-) {
+function flattenPages(pages: StoredPage[], map = new Map<string, StoredPage>()) {
     for (const page of pages) {
         map.set(page.id, page);
 
@@ -41,24 +36,14 @@ function touchPage(page: StoredPage): StoredPage {
     };
 }
 
-function mergeKnowledgeBases(
-    localKb: KnowledgeBase,
-    serverKb: KnowledgeBase,
-): KnowledgeBase {
-    const localMap = flattenPages(
-        localKb.pages as StoredPage[],
-    );
+function mergeKnowledgeBases(localKb: KnowledgeBase, serverKb: KnowledgeBase): KnowledgeBase {
+    const localMap = flattenPages(localKb.pages as StoredPage[]);
 
-    const serverMap = flattenPages(
-        serverKb.pages as StoredPage[],
-    );
+    const serverMap = flattenPages(serverKb.pages as StoredPage[]);
 
     const mergedMap = new Map<string, StoredPage>();
 
-    const allIds = new Set([
-        ...localMap.keys(),
-        ...serverMap.keys(),
-    ]);
+    const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
 
     for (const id of allIds) {
         const local = localMap.get(id);
@@ -74,27 +59,15 @@ function mergeKnowledgeBases(
             continue;
         }
 
-        mergedMap.set(
-            id,
-            (local.updatedAt ?? 0) >=
-                (server.updatedAt ?? 0)
-                ? local
-                : server,
-        );
+        mergedMap.set(id, (local.updatedAt ?? 0) >= (server.updatedAt ?? 0) ? local : server);
     }
 
     const seen = new Set<string>();
 
-    const mergeTree = (
-        localPages: StoredPage[],
-        serverPages: StoredPage[],
-    ): StoredPage[] => {
+    const mergeTree = (localPages: StoredPage[], serverPages: StoredPage[]): StoredPage[] => {
         const result: StoredPage[] = [];
 
-        const ids = new Set([
-            ...localPages.map((p) => p.id),
-            ...serverPages.map((p) => p.id),
-        ]);
+        const ids = new Set([...localPages.map((p) => p.id), ...serverPages.map((p) => p.id)]);
 
         for (const id of ids) {
             const page = mergedMap.get(id);
@@ -103,19 +76,15 @@ function mergeKnowledgeBases(
 
             seen.add(id);
 
-            const local =
-                localMap.get(id);
+            const local = localMap.get(id);
 
-            const server =
-                serverMap.get(id);
+            const server = serverMap.get(id);
 
             result.push({
                 ...page,
                 children: mergeTree(
-                    (local?.children ??
-                        []) as StoredPage[],
-                    (server?.children ??
-                        []) as StoredPage[],
+                    (local?.children ?? []) as StoredPage[],
+                    (server?.children ?? []) as StoredPage[],
                 ),
             });
         }
@@ -124,124 +93,68 @@ function mergeKnowledgeBases(
     };
 
     return {
-        pages: mergeTree(
-            localKb.pages as StoredPage[],
-            serverKb.pages as StoredPage[],
-        ),
+        pages: mergeTree(localKb.pages as StoredPage[], serverKb.pages as StoredPage[]),
     };
 }
 
 export default function KnowledgeBaseApp() {
-    const [knowledgeBase, setKnowledgeBase] =
-        useState<KnowledgeBase>(defaultKnowledgeBase);
+    const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBase>(defaultKnowledgeBase);
 
-    const statusBarRef =
-        useRef<HTMLParagraphElement>(null);
+    const statusBarRef = useRef<HTMLParagraphElement>(null);
 
-    const { loading: authLoading, token } =
-        useAuth();
+    const { loading: authLoading, token } = useAuth();
 
     const { css } = useCss();
     const style = css.app.knowledgeBase;
 
-    const hasLoadedServer =
-        useRef(false);
+    const hasLoadedServer = useRef(false);
 
     useEffect(() => {
         try {
-            const cached =
-                localStorage.getItem(
-                    STORAGE_KEY,
-                );
+            const cached = localStorage.getItem(STORAGE_KEY);
 
             if (cached) {
-                setKnowledgeBase(
-                    JSON.parse(cached),
-                );
+                setKnowledgeBase(JSON.parse(cached));
             }
         } catch (err) {
-            console.error(
-                "Failed reading cache",
-                err,
-            );
+            console.error("Failed reading cache", err);
             if (statusBarRef.current) {
-                statusBarRef.current.textContent =
-                    "Failed to read cache.";
+                statusBarRef.current.textContent = "Failed to read cache.";
             }
         }
     }, []);
 
     useEffect(() => {
-        if (
-            authLoading ||
-            !token ||
-            hasLoadedServer.current
-        )
-            return;
+        if (authLoading || !token || hasLoadedServer.current) return;
 
         hasLoadedServer.current = true;
 
         (async () => {
             try {
                 if (statusBarRef.current) {
-                    statusBarRef.current.textContent =
-                        "Syncing...";
+                    statusBarRef.current.textContent = "Syncing...";
                 }
-                const cachedRaw =
-                    localStorage.getItem(
-                        STORAGE_KEY,
-                    );
+                const cachedRaw = localStorage.getItem(STORAGE_KEY);
 
-                const cachedKb =
-                    cachedRaw
-                        ? JSON.parse(
-                            cachedRaw,
-                        )
-                        : defaultKnowledgeBase;
+                const cachedKb = cachedRaw ? JSON.parse(cachedRaw) : defaultKnowledgeBase;
 
-                const res = await fetch(
-                    "/api/knowledge/get",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    },
-                );
+                const res = await fetch("/api/knowledge/get");
 
-                const json =
-                    await res.json();
+                const json = await res.json();
 
-                const serverKb =
-                    json?.data ??
-                    defaultKnowledgeBase;
+                const serverKb = json?.data ?? defaultKnowledgeBase;
 
-                const merged =
-                    mergeKnowledgeBases(
-                        cachedKb,
-                        serverKb,
-                    );
+                const merged = mergeKnowledgeBases(cachedKb, serverKb);
 
-                setKnowledgeBase(
-                    merged,
-                );
+                setKnowledgeBase(merged);
 
-                localStorage.setItem(
-                    STORAGE_KEY,
-                    JSON.stringify(
-                        merged,
-                    ),
-                );
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
                 if (statusBarRef.current) {
-                    statusBarRef.current.textContent =
-                        "Knowledge base loaded.";
+                    statusBarRef.current.textContent = "Knowledge base loaded.";
                 }
                 try {
                     await fetch("/api/knowledge/set", {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
                         body: JSON.stringify({
                             content: merged,
                         }),
@@ -249,70 +162,45 @@ export default function KnowledgeBaseApp() {
                 } catch (err) {
                     console.error("Server save failed", err);
                     if (statusBarRef.current) {
-                        statusBarRef.current.textContent =
-                            "Failed to sync with server.";
+                        statusBarRef.current.textContent = "Failed to sync with server.";
                     }
                 }
             } catch (err) {
-                console.error(
-                    "Server load failed",
-                    err,
-                );
+                console.error("Server load failed", err);
                 if (statusBarRef.current) {
-                    statusBarRef.current.textContent =
-                        "Failed to load from server.";
+                    statusBarRef.current.textContent = "Failed to load from server.";
                 }
             }
         })();
     }, [token, authLoading]);
 
-    const updateKnowledgeBase =
-        async (
-            kb: KnowledgeBase,
-        ) => {
-            setKnowledgeBase(kb);
+    const updateKnowledgeBase = async (kb: KnowledgeBase) => {
+        setKnowledgeBase(kb);
 
-            try {
-                localStorage.setItem(
-                    STORAGE_KEY,
-                    JSON.stringify(kb),
-                );
-            } catch (err) {
-                console.error(
-                    "Cache write failed",
-                    err,
-                );
-            }
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(kb));
+        } catch (err) {
+            console.error("Cache write failed", err);
+        }
 
-            fetch(
-                "/api/knowledge/set",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        content: kb,
-                    }),
-                },
-            ).catch((err) => {
-                console.error(
-                    "Server save failed",
-                    err,
-                );
-            });
-        };
+        fetch("/api/knowledge/set", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                content: kb,
+            }),
+        }).catch((err) => {
+            console.error("Server save failed", err);
+        });
+    };
 
     return (
         <KnowledgeBaseEditor
-            knowledgeBase={
-                knowledgeBase
-            }
-            setKnowledgeBase={
-                updateKnowledgeBase
-            }
+            knowledgeBase={knowledgeBase}
+            setKnowledgeBase={updateKnowledgeBase}
             statusBarRef={statusBarRef}
         />
     );
