@@ -91,7 +91,9 @@ function ThemeCard({
                             <div className="text-xs uppercase tracking-[0.35em] text-white/60">
                                 No preview
                             </div>
-                            <div className="mt-1.5 text-base font-medium capitalize">{themeKey}</div>
+                            <div className="mt-1.5 text-base font-medium capitalize">
+                                {themeKey}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -117,7 +119,9 @@ function ThemeCard({
 
                 {active && (
                     <div className="absolute right-2 top-2">
-                        <Badge variant="success" pill>Active</Badge>
+                        <Badge variant="success" pill>
+                            Active
+                        </Badge>
                     </div>
                 )}
             </div>
@@ -129,7 +133,10 @@ function ThemeCard({
                         <button
                             type="button"
                             className="rounded-[var(--radius-sm)] bg-slate-800 px-2 py-1 text-xs text-white transition hover:bg-slate-700"
-                            onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDuplicate();
+                            }}
                         >
                             Duplicate
                         </button>
@@ -138,7 +145,10 @@ function ThemeCard({
                         <button
                             type="button"
                             className="rounded-[var(--radius-sm)] bg-[var(--color-danger)] px-2 py-1 text-xs text-white transition hover:opacity-90"
-                            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete();
+                            }}
                         >
                             Delete
                         </button>
@@ -156,7 +166,9 @@ function CreateThemeCard({ label, onClick }: { label: string; onClick: () => voi
             onClick={onClick}
             className="group relative overflow-hidden rounded-[var(--radius-xl)] border border-dashed border-[var(--color-border)] bg-[var(--color-muted)] text-left shadow-[var(--shadow-sm)] transition-[transform,shadow] duration-[var(--duration-base)] hover:-translate-y-0.5 hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface-raised)] hover:shadow-[var(--shadow-md)] min-h-[120px] flex flex-col items-start justify-end p-4"
         >
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--color-text-tertiary)]">Create</div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--color-text-tertiary)]">
+                Create
+            </div>
             <div className="mt-1 text-sm font-medium text-[var(--color-text-primary)]">{label}</div>
         </button>
     );
@@ -207,18 +219,27 @@ export default function AppearanceSettings() {
     const [editorMode, setEditorMode] = useState("dashboard");
 
     const {
-        css, setCss, resetCss,
-        themes: websiteThemes, tileThemes,
-        currentTheme: currentWebsiteTheme, currentTileTheme,
-        setTheme: setWebsiteTheme, setTileTheme,
-        addTheme: addWebsiteTheme, addTileTheme,
-        removeTheme: removeWebsiteTheme, removeTileTheme,
+        css,
+        setCss,
+        resetCss,
+        themes: websiteThemes,
+        tileThemes,
+        currentTheme: currentWebsiteTheme,
+        currentTileTheme,
+        setTheme: setWebsiteTheme,
+        setTileTheme,
+        addTheme: addWebsiteTheme,
+        addTileTheme,
+        removeTheme: removeWebsiteTheme,
+        removeTileTheme,
         resetCssDefaultThemes,
     } = useCss();
 
     const {
-        themes: dashboardThemes, setThemes: setDashboardThemes,
-        currentTheme: currentDashboardTheme, setTheme: setDashboardTheme,
+        themes: dashboardThemes,
+        setThemes: setDashboardThemes,
+        currentTheme: currentDashboardTheme,
+        setTheme: setDashboardTheme,
     } = useTheme();
 
     const [defaultCode] = useState(`{
@@ -229,7 +250,9 @@ export default function AppearanceSettings() {
     const [error, setError] = useState<string | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [view, setView] = useState<EditorView | null>(null);
-    const [pendingSelection, setPendingSelection] = useState<{ start: number; end: number } | null>(null);
+    const [pendingSelection, setPendingSelection] = useState<{ start: number; end: number } | null>(
+        null,
+    );
 
     useEffect(() => {
         if (mode !== "code" || !pendingSelection || !view) return;
@@ -249,7 +272,7 @@ export default function AppearanceSettings() {
                     plugins: [prettierPluginBabel, prettierPluginEstree],
                 });
                 setCode(formatted);
-            } catch { }
+            } catch {}
         }
         formatCode();
     }, []);
@@ -258,32 +281,53 @@ export default function AppearanceSettings() {
     const DataPanel = ({ path }: { path: string[] }) => {
         let node: any = css;
         for (const segment of path) {
-            if (!node[segment]) { node = null; break; }
+            if (!node[segment]) {
+                node = null;
+                break;
+            }
             node = node[segment];
         }
-        if (!node) return <div className="text-[var(--color-text-tertiary)] text-sm p-4">Node not found</div>;
+        if (!node)
+            return (
+                <div className="text-[var(--color-text-tertiary)] text-sm p-4">Node not found</div>
+            );
 
-        let styles = (node["ROOT-STYLE"] || "").trim().split(" ").map((s: string) => s.trim()).filter(Boolean);
+        let styles = (node["ROOT-STYLE"] || "")
+            .trim()
+            .split(" ")
+            .map((s: string) => s.trim())
+            .filter(Boolean);
         const conditionals: Record<string, string[]> = {
-            "Sidebar Collapsed": (node["sidebarCollapsed-style"] || "").trim().split(" ").filter(Boolean),
-            "Sidebar Expanded": (node["sidebarExpanded-style"] || "").trim().split(" ").filter(Boolean),
-            "Active": (node["active-style"] || "").trim().split(" ").filter(Boolean),
-            "Inactive": (node["inactive-style"] || "").trim().split(" ").filter(Boolean),
-            "Collapsed": (node["collapsed-style"] || "").trim().split(" ").filter(Boolean),
-            "Expanded": (node["expanded-style"] || "").trim().split(" ").filter(Boolean),
+            "Sidebar Collapsed": (node["sidebarCollapsed-style"] || "")
+                .trim()
+                .split(" ")
+                .filter(Boolean),
+            "Sidebar Expanded": (node["sidebarExpanded-style"] || "")
+                .trim()
+                .split(" ")
+                .filter(Boolean),
+            Active: (node["active-style"] || "").trim().split(" ").filter(Boolean),
+            Inactive: (node["inactive-style"] || "").trim().split(" ").filter(Boolean),
+            Collapsed: (node["collapsed-style"] || "").trim().split(" ").filter(Boolean),
+            Expanded: (node["expanded-style"] || "").trim().split(" ").filter(Boolean),
         };
 
         return (
             <div className="flex-none w-96 overflow-y-auto p-5 h-[420px]">
-                <TailwindEditor classes={styles} updateClasses={() => { }} />
+                <TailwindEditor classes={styles} updateClasses={() => {}} />
                 {Object.entries(conditionals).map(([key, value]) => (
-                    <details key={key} className="group mb-2 w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-muted)]">
+                    <details
+                        key={key}
+                        className="group mb-2 w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-muted)]"
+                    >
                         <summary className="flex list-none cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-[var(--color-text-primary)] marker:hidden">
                             <span className="truncate">{key}</span>
-                            <span className="text-xs text-[var(--color-text-tertiary)] transition-transform duration-200 group-open:rotate-180">▼</span>
+                            <span className="text-xs text-[var(--color-text-tertiary)] transition-transform duration-200 group-open:rotate-180">
+                                ▼
+                            </span>
                         </summary>
                         <div className="border-t border-[var(--color-border-subtle)] p-2.5">
-                            <TailwindEditor classes={value} updateClasses={() => { }} />
+                            <TailwindEditor classes={value} updateClasses={() => {}} />
                         </div>
                     </details>
                 ))}
@@ -305,10 +349,16 @@ export default function AppearanceSettings() {
     const ThemeDataPanel = ({ path }: { path: string[] }) => {
         let node: any = dashboardThemes[currentDashboardTheme];
         for (const segment of path) {
-            if (!node[segment]) { node = null; break; }
+            if (!node[segment]) {
+                node = null;
+                break;
+            }
             node = node[segment];
         }
-        if (!node) return <div className="text-[var(--color-text-tertiary)] text-sm p-4">Node not found</div>;
+        if (!node)
+            return (
+                <div className="text-[var(--color-text-tertiary)] text-sm p-4">Node not found</div>
+            );
 
         if (typeof node === "string" && (node.trim()[0] === "<" || node === " ")) {
             return (
@@ -317,7 +367,11 @@ export default function AppearanceSettings() {
                     <button
                         className="mt-3 rounded-full bg-[var(--color-primary)] px-3 py-1 text-xs text-white transition hover:opacity-90"
                         onClick={() => {
-                            const range = getJsonPathRange(code, ["themes", currentDashboardTheme, ...path]);
+                            const range = getJsonPathRange(code, [
+                                "themes",
+                                currentDashboardTheme,
+                                ...path,
+                            ]);
                             if (!range) return;
                             setPendingSelection(range);
                             setMode("code");
@@ -336,7 +390,11 @@ export default function AppearanceSettings() {
                 <button
                     className="mt-3 rounded-full bg-[var(--color-primary)] px-3 py-1 text-xs text-white transition hover:opacity-90"
                     onClick={() => {
-                        const range = getJsonPathRange(code, ["themes", currentDashboardTheme, ...path]);
+                        const range = getJsonPathRange(code, [
+                            "themes",
+                            currentDashboardTheme,
+                            ...path,
+                        ]);
                         if (!range) return;
                         setPendingSelection(range);
                         setMode("code");
@@ -351,37 +409,59 @@ export default function AppearanceSettings() {
     const TileDataPanel = ({ path }: { path: string[] }) => {
         let node: any = css.components.tiles;
         for (const segment of path) {
-            if (!node[segment]) { node = null; break; }
+            if (!node[segment]) {
+                node = null;
+                break;
+            }
             node = node[segment];
         }
-        if (!node) return <div className="text-[var(--color-text-tertiary)] text-sm p-4">Node not found</div>;
+        if (!node)
+            return (
+                <div className="text-[var(--color-text-tertiary)] text-sm p-4">Node not found</div>
+            );
 
         const styles = (node["ROOT-STYLE"] || "").trim().split(" ").filter(Boolean);
         const conditionals: Record<string, string[]> = {
-            "Sidebar Collapsed": (node["sidebarCollapsed-style"] || "").trim().split(" ").filter(Boolean),
-            "Sidebar Expanded": (node["sidebarExpanded-style"] || "").trim().split(" ").filter(Boolean),
-            "Active": (node["active-style"] || "").trim().split(" ").filter(Boolean),
-            "Inactive": (node["inactive-style"] || "").trim().split(" ").filter(Boolean),
+            "Sidebar Collapsed": (node["sidebarCollapsed-style"] || "")
+                .trim()
+                .split(" ")
+                .filter(Boolean),
+            "Sidebar Expanded": (node["sidebarExpanded-style"] || "")
+                .trim()
+                .split(" ")
+                .filter(Boolean),
+            Active: (node["active-style"] || "").trim().split(" ").filter(Boolean),
+            Inactive: (node["inactive-style"] || "").trim().split(" ").filter(Boolean),
         };
 
         return (
             <div className="flex-none w-96 overflow-y-auto p-5 h-[420px]">
-                <TailwindEditor classes={styles} updateClasses={() => { }} />
+                <TailwindEditor classes={styles} updateClasses={() => {}} />
                 {Object.entries(conditionals).map(([key, value]) => (
-                    <details key={key} className="group mb-2 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-muted)]">
+                    <details
+                        key={key}
+                        className="group mb-2 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-muted)]"
+                    >
                         <summary className="flex list-none cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-[var(--color-text-primary)] marker:hidden">
                             <span>{key}</span>
-                            <span className="text-xs text-[var(--color-text-tertiary)] group-open:rotate-180 transition-transform">▼</span>
+                            <span className="text-xs text-[var(--color-text-tertiary)] group-open:rotate-180 transition-transform">
+                                ▼
+                            </span>
                         </summary>
                         <div className="border-t border-[var(--color-border-subtle)] p-2.5">
-                            <TailwindEditor classes={value} updateClasses={() => { }} />
+                            <TailwindEditor classes={value} updateClasses={() => {}} />
                         </div>
                     </details>
                 ))}
                 <button
                     className="mt-3 rounded-full bg-[var(--color-primary)] px-3 py-1 text-xs text-white transition hover:opacity-90"
                     onClick={() => {
-                        const range = getJsonPathRange(code, ["websiteStyle", "components", "tiles", ...path]);
+                        const range = getJsonPathRange(code, [
+                            "websiteStyle",
+                            "components",
+                            "tiles",
+                            ...path,
+                        ]);
                         if (!range) return;
                         setPendingSelection(range);
                         setMode("code");
@@ -398,17 +478,22 @@ export default function AppearanceSettings() {
         Object.entries(cssObj)
             .filter(([, value]) => typeof value === "object")
             .map(([key, value]) => ({
-                name: key, id: key,
-                hasData: Object.values(value as Record<string, any>).some(c => c === null || typeof c !== "object"),
+                name: key,
+                id: key,
+                hasData: Object.values(value as Record<string, any>).some(
+                    (c) => c === null || typeof c !== "object",
+                ),
                 children: formatNodesRecursive(value),
             }));
 
     const formatNodesRecursiveTheme = (themeObj: Record<string, any>): Node[] =>
         Object.entries(themeObj).map(([key, value]) => {
-            if (typeof value !== "object") return { name: key, id: key, hasData: true, children: [] };
+            if (typeof value !== "object")
+                return { name: key, id: key, hasData: true, children: [] };
             return {
-                name: key, id: key,
-                hasData: Object.values(value).some(c => c === null || typeof c !== "object"),
+                name: key,
+                id: key,
+                hasData: Object.values(value).some((c) => c === null || typeof c !== "object"),
                 children: formatNodesRecursiveTheme(value),
             };
         });
@@ -417,28 +502,43 @@ export default function AppearanceSettings() {
         Object.entries(css)
             .filter(([key, value]) => key !== "components" && typeof value === "object")
             .map(([key, value]) => ({
-                name: key, id: key,
-                hasData: Object.values(value as Record<string, any>).some(c => c === null || typeof c !== "object"),
+                name: key,
+                id: key,
+                hasData: Object.values(value as Record<string, any>).some(
+                    (c) => c === null || typeof c !== "object",
+                ),
                 children: formatNodesRecursive(value as Record<string, any>),
             }));
 
     const formatNodesTheme = () => {
-        const nodes: Node[] = Object.entries(dashboardThemes[currentDashboardTheme])
-            .map(([key, value]) => {
-                if (typeof value !== "object") return { name: key, id: key, hasData: true, children: [] };
+        const nodes: Node[] = Object.entries(dashboardThemes[currentDashboardTheme]).map(
+            ([key, value]) => {
+                if (typeof value !== "object")
+                    return { name: key, id: key, hasData: true, children: [] };
                 return {
-                    name: key, id: key,
+                    name: key,
+                    id: key,
                     hasData: Object.values(value as any).some(() => false),
                     children: formatNodesRecursiveTheme(value as any),
                 };
-            });
-        if (!nodes.find(n => n.id === "TopBar")) {
+            },
+        );
+        if (!nodes.find((n) => n.id === "TopBar")) {
             nodes.push({ name: "TopBar", id: "TopBar", hasData: true, children: [] });
-            setDashboardThemes({ ...dashboardThemes, [currentDashboardTheme]: { ...dashboardThemes[currentDashboardTheme], TopBar: " " } });
+            setDashboardThemes({
+                ...dashboardThemes,
+                [currentDashboardTheme]: { ...dashboardThemes[currentDashboardTheme], TopBar: " " },
+            });
         }
-        if (!nodes.find(n => n.id === "extraHtml")) {
+        if (!nodes.find((n) => n.id === "extraHtml")) {
             nodes.push({ name: "ExtraHtml", id: "extraHtml", hasData: true, children: [] });
-            setDashboardThemes({ ...dashboardThemes, [currentDashboardTheme]: { ...dashboardThemes[currentDashboardTheme], extraHtml: " " } });
+            setDashboardThemes({
+                ...dashboardThemes,
+                [currentDashboardTheme]: {
+                    ...dashboardThemes[currentDashboardTheme],
+                    extraHtml: " ",
+                },
+            });
         }
         return nodes;
     };
@@ -447,8 +547,11 @@ export default function AppearanceSettings() {
         Object.entries(css.components.tiles || {})
             .filter(([, value]) => typeof value === "object")
             .map(([key, value]) => ({
-                name: key, id: key,
-                hasData: Object.values(value as Record<string, any>).some(c => c === null || typeof c !== "object"),
+                name: key,
+                id: key,
+                hasData: Object.values(value as Record<string, any>).some(
+                    (c) => c === null || typeof c !== "object",
+                ),
                 children: formatNodesRecursive(value as Record<string, any>),
             }));
 
@@ -475,14 +578,17 @@ export default function AppearanceSettings() {
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
             <div className="mx-auto max-w-5xl">
-
                 {/* ── Header ── */}
-                <Text variant="label" className="mb-2 block">Settings</Text>
+                <Text variant="label" className="mb-2 block">
+                    Settings
+                </Text>
                 <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] tracking-[-0.01em] font-normal text-[var(--color-text-primary)]">
                     Appearance
                 </h1>
                 <p className="mt-3 text-lg leading-[1.7] text-[var(--color-text-secondary)]">
-                    Choose themes, tweak styles visually, or go <em className="italic text-[var(--color-text-tertiary)]">deep into the code</em>.
+                    Choose themes, tweak styles visually, or go{" "}
+                    <em className="italic text-[var(--color-text-tertiary)]">deep into the code</em>
+                    .
                 </p>
 
                 <div className="my-10 h-px w-full bg-[var(--color-border-subtle)]" />
@@ -536,9 +642,11 @@ export default function AppearanceSettings() {
                     {(mode === "code" || mode === "editor" || mode === "themes") && (
                         <Link
                             href={
-                                mode === "code" ? "/docs/developers/customization#code-editor"
-                                    : mode === "editor" ? "/docs/users/customization#visual-editor"
-                                        : "/docs/developers/customization#ugc"
+                                mode === "code"
+                                    ? "/docs/developers/customization#code-editor"
+                                    : mode === "editor"
+                                      ? "/docs/users/customization#visual-editor"
+                                      : "/docs/developers/customization#ugc"
                             }
                             className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-info)]/80 px-3 py-1.5 text-sm text-white transition hover:bg-[var(--color-info)]"
                         >
@@ -546,6 +654,23 @@ export default function AppearanceSettings() {
                             Docs
                         </Link>
                     )}
+                    <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => {
+                            if (
+                                !confirm(
+                                    "Are you sure? This will erase all theme data, as well as downloaded UGC, and custom themes.",
+                                )
+                            )
+                                return;
+                            window.localStorage.removeItem("app-css");
+                            window.localStorage.removeItem("app-current-theme");
+                            window.localStorage.removeItem("app-themes");
+                        }}
+                    >
+                        Reset All
+                    </Button>
                 </div>
 
                 {/* ════════════════════════════════
@@ -553,7 +678,6 @@ export default function AppearanceSettings() {
                     ════════════════════════════════ */}
                 {mode === "themes" && (
                     <div className="space-y-12">
-
                         {/* Dashboard themes */}
                         <div>
                             <SectionHeading
@@ -601,7 +725,10 @@ export default function AppearanceSettings() {
                                         type="website"
                                         onActivate={() => setWebsiteTheme(key)}
                                         onDuplicate={() => {
-                                            const name = prompt("Name for copied theme:", `${key}-copy`);
+                                            const name = prompt(
+                                                "Name for copied theme:",
+                                                `${key}-copy`,
+                                            );
                                             if (name) addWebsiteTheme(name, websiteThemes[key]);
                                         }}
                                         onDelete={() => removeWebsiteTheme(key)}
@@ -638,7 +765,10 @@ export default function AppearanceSettings() {
                                         type="tile"
                                         onActivate={() => setTileTheme(key)}
                                         onDuplicate={() => {
-                                            const name = prompt("Name for copied tile theme:", `${key}-copy`);
+                                            const name = prompt(
+                                                "Name for copied tile theme:",
+                                                `${key}-copy`,
+                                            );
                                             if (name) addTileTheme(name, tileThemes[key]);
                                         }}
                                         onDelete={() => removeTileTheme(key)}
@@ -668,11 +798,7 @@ export default function AppearanceSettings() {
                 {mode === "editor" && (
                     <div>
                         <div className="mb-4 flex items-center gap-3">
-                            <Button
-                                size="sm"
-                                variant="success"
-                                onClick={handleSave}
-                            >
+                            <Button size="sm" variant="success" onClick={handleSave}>
                                 Save changes
                             </Button>
                             {saveSuccess && (
@@ -680,8 +806,8 @@ export default function AppearanceSettings() {
                             )}
                         </div>
 
-                        {editorMode === "dashboard" && (
-                            currentDashboardTheme === "custom" ? (
+                        {editorMode === "dashboard" &&
+                            (currentDashboardTheme === "custom" ? (
                                 <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] overflow-hidden">
                                     <JSONNavigator
                                         nodes={formatNodesTheme()}
@@ -692,15 +818,21 @@ export default function AppearanceSettings() {
                             ) : (
                                 <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-muted)] p-6 space-y-3">
                                     <p className="text-[var(--color-text-secondary)]">
-                                        You're on the <span className="font-medium text-[var(--color-text-primary)]">{currentDashboardTheme}</span> theme.
-                                        The visual editor only works on a custom theme.
+                                        You're on the{" "}
+                                        <span className="font-medium text-[var(--color-text-primary)]">
+                                            {currentDashboardTheme}
+                                        </span>{" "}
+                                        theme. The visual editor only works on a custom theme.
                                     </p>
                                     <div className="flex gap-2">
                                         <Button
                                             size="sm"
                                             variant="outline"
                                             onClick={() => {
-                                                setDashboardThemes({ ...dashboardThemes, custom: dashboardThemes[currentDashboardTheme] });
+                                                setDashboardThemes({
+                                                    ...dashboardThemes,
+                                                    custom: dashboardThemes[currentDashboardTheme],
+                                                });
                                                 setDashboardTheme("custom");
                                             }}
                                         >
@@ -714,10 +846,11 @@ export default function AppearanceSettings() {
                                             Switch to existing custom
                                         </Button>
                                     </div>
-                                    <p className="text-xs text-[var(--color-text-tertiary)]">Forking will overwrite your existing custom theme.</p>
+                                    <p className="text-xs text-[var(--color-text-tertiary)]">
+                                        Forking will overwrite your existing custom theme.
+                                    </p>
                                 </div>
-                            )
-                        )}
+                            ))}
 
                         {editorMode === "website" && (
                             <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] overflow-hidden">

@@ -158,6 +158,13 @@ const DEFAULT_ITEMS: NavigationItem[] = [
                 visible: true,
             },
             {
+                id: "dashboard",
+                label: "Dashboard",
+                href: "/settings/dashboard",
+                icon: "LayoutGrid",
+                visible: true,
+            },
+            {
                 id: "advanced",
                 label: "Advanced",
                 href: "/settings/advanced",

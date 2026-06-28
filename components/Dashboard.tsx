@@ -36,6 +36,25 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     const [editorOpen, setEditorOpen] = useState(false);
     const [editorTile, setEditorTile] = useState<string | null>(null);
 
+    const [bg, setBg] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const bg_ = window.localStorage.getItem("app-dashboard-bg");
+
+        if (bg_ === "") {
+            setBg(null);
+        } else if (bg_) {
+            setBg(bg_);
+        } else {
+            const defaultBg = "/images/backgrounds/builtin/0001.png";
+
+            setBg(defaultBg);
+            window.localStorage.setItem("app-dashboard-bg", defaultBg);
+        }
+    }, []);
+
     useEffect(() => {
         // if (loading) return;
 
@@ -166,7 +185,12 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
     };
 
     return (
-        <div ref={containerRef} className={style["ROOT-STYLE"]}>
+        <div
+            ref={containerRef}
+            className={style["ROOT-STYLE"]}
+            style={bg ? { backgroundImage: `url(${bg})` } : undefined}
+        >
+            {" "}
             {editable && editorOpen && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
                     <div className="rounded bg-white p-4 shadow">
@@ -234,9 +258,7 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                     ))}
                 </div>
             )}
-
             {/* PANELS */}
-
             {currentPage.panels.map((panel) => {
                 const def = findRegistry(panel.registryId, PanelRegistry);
                 if (!def?.component) return null;
@@ -280,7 +302,6 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                     </div>
                 );
             })}
-
             {/* TILES */}
             <div style={dashboardContentStyle}>
                 {currentPage.tiles.map((tile) => {

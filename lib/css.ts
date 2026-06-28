@@ -133,8 +133,7 @@ const defaultCss: any = {
                 "sidebarExpanded-style": "w-64",
                 "sidebarHidden-style": "-translate-x-full",
                 branding: {
-                    "ROOT-STYLE":
-                        "p-4 flex items-center justify-between gap-2 items-center",
+                    "ROOT-STYLE": "p-4 flex items-center justify-between gap-2 items-center",
                     logotext: {
                         "ROOT-STYLE": "text-[var(--color-on-secondary)]",
                         CONTENT: "schoolm8",
@@ -158,7 +157,8 @@ const defaultCss: any = {
                         "ROOT-STYLE": "flex items-center px-3 py-2 rounded-lg transition-all",
                         "active-style":
                             "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
-                        "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
+                        "inactive-style":
+                            "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                         "sidebarCollapsed-style": "",
                         "sidebarExpanded-style": "gap-3",
                         icon: {
@@ -186,7 +186,8 @@ const defaultCss: any = {
                                 "flex items-center px-3 py-2 rounded-lg transition-all cursor-pointer",
                             "active-style":
                                 "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
-                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
+                            "inactive-style":
+                                "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "",
                             "sidebarExpanded-style": "gap-3",
                             icon: {
@@ -203,7 +204,8 @@ const defaultCss: any = {
                         "ROOT-STYLE": "flex items-center px-3 py-2 rounded-lg transition-all",
                         "active-style":
                             "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
-                        "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
+                        "inactive-style":
+                            "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                         "sidebarCollapsed-style": "",
                         "sidebarExpanded-style": "gap-3",
                         icon: {
@@ -229,8 +231,10 @@ const defaultCss: any = {
                         inner: {
                             "ROOT-STYLE":
                                 "flex w-full items-center rounded-lg px-3 py-2.5 transition-all relative",
-                            "active-style": "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
-                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
+                            "active-style":
+                                "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                            "inactive-style":
+                                "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "justify-center",
                             "sidebarExpanded-style": "justify-start gap-2",
 
@@ -253,8 +257,10 @@ const defaultCss: any = {
                         inner: {
                             "ROOT-STYLE":
                                 "inline-flex items-center justify-center rounded-lg p-2.5 transition-all relative",
-                            "active-style": "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
-                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
+                            "active-style":
+                                "bg-[var(--color-primary)]/20 border-l-2 border-l-[var(--color-on-primary)] text-[var(--color-on-primary)]",
+                            "inactive-style":
+                                "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "",
                             "sidebarExpanded-style": "",
 
@@ -278,7 +284,8 @@ const defaultCss: any = {
                             "ROOT-STYLE":
                                 "inline-flex items-center justify-center rounded-lg p-2.5 transition-all relative cursor-pointer",
                             "active-style": "bg-emerald-500/20 text-white",
-                            "inactive-style": "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
+                            "inactive-style":
+                                "text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-[var(--color-secondary)]",
                             "sidebarCollapsed-style": "",
                             "sidebarExpanded-style": "",
 
@@ -305,8 +312,7 @@ const defaultCss: any = {
         },
         Dashboard: {
             main: {
-                "ROOT-STYLE":
-                    "relative w-full h-full overflow-hidden bg-[url('/images/backgrounds/builtin/0001.png')] bg-cover",
+                "ROOT-STYLE": "relative w-full h-full overflow-hidden bg-cover",
                 empty: {
                     "ROOT-STYLE":
                         "h-screen flex items-center justify-center bg-linear-to-b from-neutral-50 to-neutral-100 dark:from-neutral-950 dark:to-neutral-900",
@@ -1612,7 +1618,7 @@ function saveStore(store: CssThemeStore) {
 
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(normalised));
-    } catch { }
+    } catch {}
 }
 
 // ✅ MAIN HOOK (reactive)
