@@ -1,5 +1,23 @@
 import { db, auth } from "@/lib/firebaseAdmin";
 
+const ENDPOINT_TO_SCOPE = {
+    "api/auth/google/*": ["api/auth/google/*"],
+    apiAccessLevel1: [
+        "api/files/*",
+        "api/chat/*",
+        "api/auth/google/*",
+        "api/auth/onedrive/*",
+        "api/canvas/*",
+    ],
+    apiAccessLevel0: ["api/auth/init/*", "api/auth/universalState/*"],
+    "api/auth/onedrive/*": ["api/auth/onedrive/*"],
+    "api/auth/universalState/*": ["api/auth/universalState/*"],
+    "api/canvas/*": ["api/canvas/*"],
+    "api/chat/*": ["api/chat/*"],
+    UGCAccessPermitted: ["api/chat/*"],
+    "api/files/*": ["api/files/*"],
+};
+
 export const serverAccessControl = async (uid: string, page: string) => {
     if (!uid || !page) {
         return {

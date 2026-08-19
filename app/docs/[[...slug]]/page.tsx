@@ -29,12 +29,12 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
                         <div className="mt-6 border-t pt-4 text-sm text-fd-muted-foreground flex flex-row">
                             <p className="my-auto">schoolm8 docs</p>
                             <div className="ml-auto flex flex-wrap items-center gap-2">
-                                <Link
+                                <a
                                     href="/"
                                     className="inline-flex items-center rounded-md border border-fd-border bg-fd-muted/40 px-3 py-1.5 font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
                                 >
                                     Home
-                                </Link>
+                                </a>
                                 <a
                                     href="https://github.com/Anthony-Maxwell1/schoolm8"
                                     target="_blank"

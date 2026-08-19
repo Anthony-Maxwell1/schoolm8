@@ -30,7 +30,6 @@ import {
     Tab,
     TabPanel,
 } from "@/components/ui/components";
-import Switcher from "@/components/Switcher";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers (unchanged from original)
