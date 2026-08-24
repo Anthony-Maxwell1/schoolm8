@@ -8,14 +8,22 @@ const ENDPOINT_TO_SCOPE = {
         "api/auth/google/*",
         "api/auth/onedrive/*",
         "api/canvas/*",
+        "api/googleclassroom/*",
+        "api/knowledge/*"
     ],
-    apiAccessLevel0: ["api/auth/init/*", "api/auth/universalState/*"],
+    apiAccessLevel0: ["api/schedule/*", "api/projects/*", "api/notes/*", "api/auth/init/*", "api/auth/universalState/*", "api/lms/*"],
     "api/auth/onedrive/*": ["api/auth/onedrive/*"],
     "api/auth/universalState/*": ["api/auth/universalState/*"],
     "api/canvas/*": ["api/canvas/*"],
+    "api/googleclassroom/*": ["api/googleclassroom/*"],
     "api/chat/*": ["api/chat/*"],
-    UGCAccessPermitted: ["api/chat/*"],
+    UGCAccessPermitted: ["api/chat/*", "api/knowledge/*"],
     "api/files/*": ["api/files/*"],
+    "api/knowledge/*": ["api/knowledge/*"],
+    "api/lms/*": ["api/lms/*"],
+    "api/notes/*": ["api/notes/*"],
+    "api/projects/*": ["api/projects/*"],
+    "api/schedule/*": ["api/schedule/*"],
 };
 
 export const serverAccessControl = async (uid: string, page: string) => {
