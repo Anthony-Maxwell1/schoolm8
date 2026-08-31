@@ -1,25 +1,11 @@
 // app/api/tasks/todo/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
 
+import { getUid } from "@/lib/access/auth";
 export async function GET(req: NextRequest) {
     try {
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
-        }
-
-        const idToken = authHeader.split(" ")[1];
-        const decoded = await auth.verifyIdToken(idToken);
-        const uid = decoded.uid;
-        const result = await assertAccess(uid, ["api/tasks/*", "apiAccessLevel0"]);
-
-        if (result.status !== 200) {
-            return new Response(JSON.stringify({ error: result.body!.error }), {
-                status: result.status,
-            });
-        }
+        const uid = getUid(req);
 
         const userRef = db.collection("users").doc(uid);
         const doc = await userRef.get();

@@ -1,9 +1,9 @@
 // POST /api/files/create
 
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
 
+import { getUid } from "@/lib/access/auth";
 export const maxDuration = 300; // 5 minutes
 export const dynamic = "force-dynamic";
 
@@ -23,22 +23,7 @@ export async function POST(req: Request) {
         }
 
         // Auth
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
-        }
-
-        const idToken = authHeader.split(" ")[1];
-        const decoded = await auth.verifyIdToken(idToken);
-        const uid = decoded.uid;
-
-        const accessResult = await assertAccess(uid, ["api/files/*", "apiAccessLevel1"]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const uid = getUid(req);
 
         const userRef = db.collection("users").doc(uid);
         const doc = await userRef.get();

@@ -1,29 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 import { v4 as uuidv4, v4 } from "uuid";
-import { assertAccess } from "@/lib/access/serverAccessControl";
 
+import { getUid } from "@/lib/access/auth";
 export async function POST(req: Request) {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer "))
-        return NextResponse.json(
-            { error: "Missing or invalid Authorization header" },
-            { status: 401 },
-        );
-
-    const idToken = authHeader.split(" ")[1];
-    const decodedToken = await auth.verifyIdToken(idToken);
-    const userId = decodedToken.uid;
-    const accessResult = await assertAccess(userId, [
-        "api/auth/universalState/*",
-        "apiAccessLevel0",
-    ]);
-
-    if (accessResult.status !== 200) {
-        return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-            status: accessResult.status,
-        });
-    }
+    const userId = getUid(req);
 
     const userRef = db.collection("users").doc(userId);
     const doc = await userRef.get();

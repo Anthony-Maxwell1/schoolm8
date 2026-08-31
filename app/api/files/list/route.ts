@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
+import { getUid } from "@/lib/access/auth";
 
 export async function GET(req: Request) {
     try {
@@ -9,24 +9,8 @@ export async function GET(req: Request) {
         if (!path) {
             return NextResponse.json({ error: "Missing path query parameter" }, { status: 400 });
         }
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            throw new Error("Missing Authorization header");
-        }
 
-        const idToken = authHeader.split(" ")[1];
-        if (!idToken) throw new Error("Missing authentication token");
-
-        const decoded = await auth.verifyIdToken(idToken);
-        const userId = decoded.uid;
-
-        const accessResult = await assertAccess(userId, ["api/files/*", "apiAccessLevel1"]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const userId = getUid(req);
 
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();

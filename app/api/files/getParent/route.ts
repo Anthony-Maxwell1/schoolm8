@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
 
+import { getUid } from "@/lib/access/auth";
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
@@ -10,21 +10,7 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Missing itemId query parameter" }, { status: 400 });
         }
 
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
-        }
-
-        const idToken = authHeader.split(" ")[1];
-        const decoded = await auth.verifyIdToken(idToken);
-        const uid = decoded.uid;
-        const accessResult = await assertAccess(uid, ["api/files/*", "apiAccessLevel1"]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const uid = getUid(req);
 
         const userRef = db.collection("users").doc(uid);
         const doc = await userRef.get();

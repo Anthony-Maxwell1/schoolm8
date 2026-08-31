@@ -1,19 +1,21 @@
 /**
  * lib/ai/auth.ts
  *
- * Shared Firebase ID-token verification for the AI API routes. Mirrors the
- * pattern used across the existing Canvas/LMS routes but returns the uid (or a
- * ready-to-send error response) so each handler stays small.
+ * Shared auth accessor for the AI/Calendar API routes. Token verification,
+ * session cookies, OAuth-token scope checks, and Server Access Control all
+ * happen once in `middleware.ts` before the request reaches this route.
+ * This just reads back the uid middleware attached (or returns a 401 in the
+ * — practically unreachable — case that it's missing).
  */
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/firebaseAdmin";
+import { getUidOrNull } from "@/lib/access/auth";
 
 export type AuthOutcome = { uid: string } | { error: NextResponse };
 
 export async function authenticate(req: Request): Promise<AuthOutcome> {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const uid = getUidOrNull(req);
+    if (!uid) {
         return {
             error: NextResponse.json(
                 { error: "Missing or invalid Authorization header" },
@@ -21,16 +23,7 @@ export async function authenticate(req: Request): Promise<AuthOutcome> {
             ),
         };
     }
-
-    try {
-        const idToken = authHeader.split(" ")[1];
-        const decoded = await auth.verifyIdToken(idToken);
-        return { uid: decoded.uid };
-    } catch {
-        return {
-            error: NextResponse.json({ error: "Invalid or expired session" }, { status: 401 }),
-        };
-    }
+    return { uid };
 }
 
 export function isAuthError(outcome: AuthOutcome): outcome is { error: NextResponse } {

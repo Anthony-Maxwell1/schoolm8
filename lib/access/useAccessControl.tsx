@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Client-side UX hint only. `middleware.ts` now enforces page access control
+ * server-side (reading from the same "PageAC" Firestore table) before a
+ * protected page is ever served, so this hook can no longer be bypassed by
+ * skipping it client-side -- it just lets the page show a redirect/skeleton
+ * instantly instead of waiting on a round trip.
+ */
+
 import { useEffect, useState } from "react";
 import { doc, getDoc, getDocs, collection, query, limit, getFirestore } from "firebase/firestore";
 import { useAccessControlContext } from "@/context/AccessControlContext";
@@ -36,10 +44,10 @@ export const useAccessControl = (page: string) => {
         const checkAccess = async () => {
             const db = getFirestore();
 
-            const bannedRef = doc(db, "UAC", page, "banned", user.uid);
-            const allowedRef = doc(db, "UAC", page, "allowed", user.uid);
+            const bannedRef = doc(db, "PageAC", page, "banned", user.uid);
+            const allowedRef = doc(db, "PageAC", page, "allowed", user.uid);
 
-            const allowedCollectionRef = collection(db, "UAC", page, "allowed");
+            const allowedCollectionRef = collection(db, "PageAC", page, "allowed");
 
             const [bannedSnap, allowedSnap, allowedCollectionSnap] = await Promise.all([
                 getDoc(bannedRef),

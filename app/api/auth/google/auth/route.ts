@@ -1,7 +1,7 @@
 import { generateAuthUrl, ScopeCategory } from "@/lib/googleClient";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { getUid } from "@/lib/access/auth";
 
 export async function GET(req: Request) {
     const url = new URL(req.url);
@@ -9,16 +9,13 @@ export async function GET(req: Request) {
     if (!state) {
         return new Response("State is required", { status: 400 });
     }
-    const userId = state.split(".")[0];
-    if (!userId) {
+    // Server Access Control for api/auth/google/* already ran in middleware
+    // against the session-cookie-verified uid below. We still cross-check
+    // it against the uid embedded in `state` so a signed-in user can't
+    // redeem a state minted for someone else.
+    const userId = getUid(req);
+    if (state.split(".")[0] !== userId) {
         return new Response("Invalid state", { status: 400 });
-    }
-    const accessResult = await assertAccess(userId, ["api/auth/google/*", "apiAccessLevel1"]);
-
-    if (accessResult.status !== 200) {
-        return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-            status: accessResult.status,
-        });
     }
 
     const userRef = db.collection("users").doc(userId);

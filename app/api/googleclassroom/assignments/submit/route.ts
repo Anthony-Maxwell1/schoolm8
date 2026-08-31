@@ -1,28 +1,13 @@
 // /pages/api/classroom/submit.ts
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import { db, auth } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 import { getStudentSubmissionId, submitAssignment } from "@/lib/googleClassroom";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { getUid } from "@/lib/access/auth";
 
 export async function POST(req: Request) {
     try {
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader?.startsWith("Bearer "))
-            return NextResponse.json({ error: "Missing Authorization" }, { status: 401 });
-
-        const idToken = authHeader.split(" ")[1];
-        const decodedToken = await auth.verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-
-        const accessResult = await assertAccess(userId, [
-            "api/googleclassroom/*",
-            "apiAccessLevel1",
-        ]);
-
-        if (accessResult.status !== 200) {
-            return NextResponse.json({ error: accessResult.body!.error }, { status: accessResult.status });
-        }
+        const userId = getUid(req);
 
         const userDoc = await db.collection("users").doc(userId).get();
         if (!userDoc.exists) throw new Error("User not found");
