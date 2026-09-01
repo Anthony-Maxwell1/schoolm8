@@ -7,7 +7,6 @@ import { ToastContainer, toast } from "react-toastify";
 import { TaskManager } from "@/components/TaskManager";
 import { Navigation } from "@/components/Navigation";
 import { NavigationProvider } from "@/context/navigationContext";
-import { AccessControlProvider } from "@/context/AccessControlContext";
 
 export const metadata = {
     title: "schoolm8",
@@ -36,13 +35,11 @@ https://github.com/Anthony-Maxwell1/schoolm8
                     <LayoutProvider>
                         <ThemeProvider>
                             <AuthProvider>
-                                <AccessControlProvider>
-                                    <TaskManager />
-                                    <ToastContainer position="top-right" />
-                                    <ClientAuthGuard>
-                                        <Navigation>{children}</Navigation>
-                                    </ClientAuthGuard>
-                                </AccessControlProvider>
+                                <TaskManager />
+                                <ToastContainer position="top-right" />
+                                <ClientAuthGuard>
+                                    <Navigation>{children}</Navigation>
+                                </ClientAuthGuard>
                             </AuthProvider>
                         </ThemeProvider>
                     </LayoutProvider>

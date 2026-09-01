@@ -6,11 +6,9 @@ import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Calendar, CheckCircle, Circle } from "lucide-react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 
 export default function Assignments() {
-    const { loading: accessLoading, allowed } = useAccessControl("assignments");
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [assignments, setAssignments] = useState<any[]>([]);
@@ -23,7 +21,7 @@ export default function Assignments() {
     const style = css.app.assignments.page;
 
     useEffect(() => {
-        if (authLoading || accessLoading) return;
+        if (authLoading) return;
 
         if (!user) {
             router.push("/signin");
@@ -58,7 +56,7 @@ export default function Assignments() {
         return true;
     });
 
-    if (authLoading || accessLoading) {
+    if (authLoading) {
         return (
             <div className={style.loading["ROOT-STYLE"]}>
                 <div className="flex flex-col items-center gap-4">

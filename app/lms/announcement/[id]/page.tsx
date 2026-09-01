@@ -9,7 +9,6 @@ import { redirect, useParams } from "next/navigation";
 import { LMSAnnouncement } from "@/app/api/canvas/sync/route";
 import { ClassroomAnnouncement } from "@/app/api/googleclassroom/sync/route";
 import { navigate } from "next/dist/client/components/segment-cache/navigation";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import utils from "@/lib/utils";
 
 function getMaxRows(obj: Record<string, any[]>) {
@@ -18,7 +17,6 @@ function getMaxRows(obj: Record<string, any[]>) {
 
 export default function AssignmentPage({ params }: { params: { id: string; cameFrom?: string } }) {
     const { id } = useParams();
-    const { allowed, loading: accessLoading } = useAccessControl("lms/announcement/[id]");
     const { user, token, loading } = useAuth();
 
     const { css } = useCss();
@@ -28,7 +26,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     const [data, setData] = useState<Announcement | null>(null);
 
     useEffect(() => {
-        if (loading || accessLoading || !allowed || !user || !token) return;
+        if (loading || !allowed || !user || !token) return;
 
         // fetch("/api/lms/announcements", { headers: { Authorization: `Bearer ${token}` } })
         //     .then((res) => res.json())
@@ -59,7 +57,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
             .catch((err) => console.error(err));
     }, [loading, user, token, id, accessLoading, allowed]); // <== run only when these change
 
-    if (loading || accessLoading) {
+    if (loading) {
         return <div className="min-h-screen" />;
     }
 

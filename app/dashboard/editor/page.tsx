@@ -4,10 +4,20 @@ import { useLayout } from "@/context/layoutContext";
 import { TileRegistry, PanelRegistry, RegistryNode } from "@/lib/tiles";
 import { Dashboard } from "@/components/Dashboard";
 import { useState, useRef, useEffect } from "react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 import { Menu } from "lucide-react";
-import { Button, TextInput, Card, CardBody, Alert, Modal, Tabs, TabList, Tab, TabPanel } from "@/components/ui/components";
+import {
+    Button,
+    TextInput,
+    Card,
+    CardBody,
+    Alert,
+    Modal,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanel,
+} from "@/components/ui/components";
 import { useRouter } from "next/navigation";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,7 +96,6 @@ export const RegistryBrowser = ({
 
 export default function EditorPage() {
     const router = useRouter();
-    const { allowed, loading: accessLoading } = useAccessControl("dashboard/editor");
     const {
         currentPage,
         gridSize,
@@ -196,8 +205,8 @@ export default function EditorPage() {
     }, [draggingNode, dragType, gridSize]);
 
     // ── Early returns (after all hooks) ──────────────────────────────────
-    if (accessLoading) return null;
-    if (!allowed) return <div>Unauthorized</div>;
+    // if (accessLoading) return null;
+    // if (!allowed) return <div>Unauthorized</div>;
     if (!mounted) return null;
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -445,7 +454,8 @@ export default function EditorPage() {
                             setOpenSection={setOpenSection}
                         />
                     </TabPanel>
-                </Tabs>,
+                </Tabs>
+                ,
             </aside>
 
             {/* ── Drag preview ── */}

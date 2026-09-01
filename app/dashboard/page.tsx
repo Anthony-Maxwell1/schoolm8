@@ -3,14 +3,12 @@
 import { Dashboard } from "@/components/Dashboard";
 import { useLayout } from "@/context/layoutContext";
 import { useEffect, useState } from "react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 import { Button, EmptyState } from "@/components/ui/components";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/ui/icon";
 
 export default function DashboardPage() {
-    const { allowed, loading: accessLoading } = useAccessControl("dashboard");
     const { currentPage, pages, setCurrentPage } = useLayout();
     const { css } = useCss();
     const style = css.app.dashboard.page;
@@ -29,8 +27,8 @@ export default function DashboardPage() {
         }
     }, [currentPage, pages, setCurrentPage]);
 
-    if (accessLoading) return null;
-    if (!allowed) return <div>Unauthorized</div>;
+    // if (accessLoading) return null;
+    // if (!allowed) return <div>Unauthorized</div>;
 
     // 3️⃣ prevent hydration mismatch by not rendering until mounted
     if (!mounted) return null;

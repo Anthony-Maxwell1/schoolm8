@@ -1,17 +1,5 @@
 import { db, auth } from "@/lib/firebaseAdmin";
 
-/**
- * Maps every API endpoint pattern to the "scope" identifiers whose
- * ban/allow lists gate it. A leaf entry (e.g. "api/user/*") always lists
- * itself; the various apiAccessLevel-N and UGCAccessPermitted "groups"
- * bundle several leaves together so a single ban/allow decision can be
- * made for a whole tier at once.
- *
- * This is also the source of truth `getRequiredScopesForApiPath` uses to
- * figure out, purely from a request path, which scopes `middleware.ts` must
- * check -- so this table now doubles as the OAuth "requestable scopes" list
- * (see lib/oauth/scopes.ts).
- */
 export const ENDPOINT_TO_SCOPE = {
     "api/auth/google/*": ["api/auth/google/*"],
     apiAccessLevel1: [

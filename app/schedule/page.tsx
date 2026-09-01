@@ -6,10 +6,8 @@ import { useEffect, useState } from "react";
 import { db } from "@/lib/firebaseClient";
 import { getDoc, doc } from "firebase/firestore";
 import { Calendar, Plus, Trash2 } from "lucide-react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 
 export default function Schedule() {
-    const { allowed, loading: accessLoading } = useAccessControl("schedule");
     const { user, token, loading } = useAuth();
     const router = useRouter();
     const [schedules, setSchedules] = useState<any>({});
@@ -51,7 +49,7 @@ export default function Schedule() {
     };
 
     useEffect(() => {
-        if (loading || accessLoading || !allowed) return;
+        if (loading || !allowed) return;
 
         if (!user) {
             router.push("/signin");
@@ -61,7 +59,7 @@ export default function Schedule() {
         fetchSchedule();
     }, [user, loading, router, accessLoading, allowed]);
 
-    if (loading || accessLoading) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="flex flex-col items-center gap-4">

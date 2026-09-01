@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/authContext";
 import { db } from "@/lib/firebaseClient";
 import { collection, doc, getDoc } from "firebase/firestore";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import {
     Button,
     Card,
@@ -24,7 +23,6 @@ import {
 import { useRouter } from "next/dist/client/components/navigation";
 
 export default function CreateNotePage() {
-    const { allowed, loading: accessLoading } = useAccessControl("notes/create");
     const { user, token } = useAuth();
     const router = useRouter();
 
@@ -115,11 +113,7 @@ export default function CreateNotePage() {
                 <CardBody>
                     <Form onSubmit={saveNote}>
                         <FormSection title="Note details">
-                            <TextInput
-                                ref={titleRef}
-                                label="Title"
-                                placeholder="Untitled Note"
-                            />
+                            <TextInput ref={titleRef} label="Title" placeholder="Untitled Note" />
                             <Textarea
                                 ref={contentRef}
                                 label="Content"
@@ -179,23 +173,24 @@ export default function CreateNotePage() {
                                     {/* Selected project chips */}
                                     {selectedProjects.some(Boolean) && (
                                         <div className="flex flex-wrap gap-1.5 pt-1">
-                                            {selectedProjects
-                                                .filter(Boolean)
-                                                .map((id) => {
-                                                    const project = projects.find(([, pId]) => pId === id);
-                                                    return project ? (
-                                                        <Chip
-                                                            key={id}
-                                                            selected
-                                                            onRemove={() => {
-                                                                const idx = selectedProjects.indexOf(id);
-                                                                handleRemoveProject(idx);
-                                                            }}
-                                                        >
-                                                            {project[0]}
-                                                        </Chip>
-                                                    ) : null;
-                                                })}
+                                            {selectedProjects.filter(Boolean).map((id) => {
+                                                const project = projects.find(
+                                                    ([, pId]) => pId === id,
+                                                );
+                                                return project ? (
+                                                    <Chip
+                                                        key={id}
+                                                        selected
+                                                        onRemove={() => {
+                                                            const idx =
+                                                                selectedProjects.indexOf(id);
+                                                            handleRemoveProject(idx);
+                                                        }}
+                                                    >
+                                                        {project[0]}
+                                                    </Chip>
+                                                ) : null;
+                                            })}
                                         </div>
                                     )}
 

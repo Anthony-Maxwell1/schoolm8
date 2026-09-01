@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/context/authContext";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import {
     Button,
     TextInput,
@@ -64,7 +63,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function TestPage() {
-    const { allowed, loading: accessLoading } = useAccessControl("test");
     const { token } = useAuth();
 
     // modal / drawer state
@@ -81,8 +79,8 @@ export default function TestPage() {
     // toggle
     const [toggled, setToggled] = useState(false);
 
-    if (accessLoading) return null;
-    if (!allowed) return <div>Unauthorized</div>;
+    // if (accessLoading) return null;
+    // if (!allowed) return <div>Unauthorized</div>;
 
     const tableData = [
         { name: "Alice Chen", role: "Engineer", status: "active", score: 94 },

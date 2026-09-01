@@ -6,7 +6,6 @@ import { useAuth } from "@/context/authContext";
 import { redirect, useParams } from "next/navigation";
 import { ClassroomAssignment } from "@/app/api/googleclassroom/sync/route";
 import { LMSAssignment } from "@/app/api/canvas/sync/route";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import {
     Card,
     CardBody,
@@ -33,7 +32,6 @@ const SOURCE_LABEL: Record<string, string> = {
 
 export default function AssignmentPage({ params }: { params: { id: string; cameFrom: string } }) {
     const { id } = useParams();
-    const { allowed, loading: accessLoading } = useAccessControl("lms/assignment/[id]");
     const { user, token, loading } = useAuth();
     const [data, setData] = useState<Assignment | null>(null);
     const [fetching, setFetching] = useState(true);
@@ -42,7 +40,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     const maxRows = data?.rubric ? getMaxRows(data.rubric) : 0;
 
     useEffect(() => {
-        if (loading || accessLoading || !allowed || !user || !token) return;
+        if (loading || !allowed || !user || !token) return;
         // fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
         //     .then((r) => r.json())
         //     .then((res) => {
@@ -67,7 +65,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
             .finally(() => setFetching(false));
     }, [loading, user, token, id, accessLoading, allowed]);
 
-    if (loading || accessLoading) return <div className="min-h-screen" />;
+    if (loading) return <div className="min-h-screen" />;
     if (!allowed) return <div>Unauthorized</div>;
 
     return (

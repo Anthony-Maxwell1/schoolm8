@@ -18,7 +18,6 @@ import {
 } from "../api/googleclassroom/sync/route";
 import { CanvasCourse, LMSAnnouncement, LMSAssignment } from "../api/canvas/sync/route";
 import { ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { redirect } from "next/dist/client/components/navigation";
 import { Spinner, EmptyState, Skeleton, Text, Badge } from "@/components/ui/components";
 import utils from "@/lib/utils";
@@ -187,7 +186,6 @@ function CourseCard({ course, onClick }: { course: Course; onClick: () => void }
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function LMSPage() {
-    const { allowed, loading: accessLoading } = useAccessControl("lms");
     const announcementRef = useRef<HTMLDivElement>(null);
     const assignmentRef = useRef<HTMLDivElement>(null);
 
@@ -199,7 +197,7 @@ export default function LMSPage() {
     const { user, token, loading } = useAuth();
 
     useEffect(() => {
-        if (loading || accessLoading || !allowed || !user || !token) return;
+        if (loading || !allowed || !user || !token) return;
 
         Promise.all([
             utils.firebase.schema.lms
@@ -220,7 +218,7 @@ export default function LMSPage() {
         ]).finally(() => setDataLoading(false));
     }, [user, token, loading, accessLoading, allowed]);
 
-    if (loading || accessLoading) {
+    if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface)]">
                 <div className="flex flex-col items-center gap-4">

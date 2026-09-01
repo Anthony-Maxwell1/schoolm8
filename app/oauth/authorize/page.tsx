@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import apiFetch from "@/lib/fetch";
 import {
     Alert,
@@ -26,7 +25,6 @@ type ClientInfo = {
 };
 
 function AuthorizeInner() {
-    const { allowed, loading: accessLoading } = useAccessControl("oauth/authorize");
     const params = useSearchParams();
 
     const clientId = params.get("client_id") ?? "";
@@ -34,7 +32,8 @@ function AuthorizeInner() {
     const scope = params.get("scope") ?? "";
     const state = params.get("state") ?? "";
     const codeChallenge = params.get("code_challenge") ?? undefined;
-    const codeChallengeMethod = (params.get("code_challenge_method") as "S256" | "plain") || undefined;
+    const codeChallengeMethod =
+        (params.get("code_challenge_method") as "S256" | "plain") || undefined;
 
     const [client, setClient] = useState<ClientInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -53,7 +52,11 @@ function AuthorizeInner() {
                 setClient(data);
                 setSelected(Object.fromEntries(data.scopes.map((s) => [s.id, true])));
             })
-            .catch(() => setError("This app isn't recognized, or its redirect URL doesn't match its registration."));
+            .catch(() =>
+                setError(
+                    "This app isn't recognized, or its redirect URL doesn't match its registration.",
+                ),
+            );
     }, [clientId, redirectUri, scope]);
 
     const respond = async (deny: boolean) => {
@@ -108,7 +111,9 @@ function AuthorizeInner() {
                             </Text>
                             <div className="space-y-2">
                                 {client.scopes.length === 0 && (
-                                    <Text variant="body">This app isn&apos;t requesting any permissions.</Text>
+                                    <Text variant="body">
+                                        This app isn&apos;t requesting any permissions.
+                                    </Text>
                                 )}
                                 {client.scopes.map((s) => (
                                     <Checkbox
@@ -116,7 +121,10 @@ function AuthorizeInner() {
                                         label={s.description}
                                         checked={!!selected[s.id]}
                                         onChange={(e) =>
-                                            setSelected((prev) => ({ ...prev, [s.id]: e.target.checked }))
+                                            setSelected((prev) => ({
+                                                ...prev,
+                                                [s.id]: e.target.checked,
+                                            }))
                                         }
                                     />
                                 ))}
@@ -130,7 +138,11 @@ function AuthorizeInner() {
                         <Button variant="ghost" disabled={submitting} onClick={() => respond(true)}>
                             Deny
                         </Button>
-                        <Button variant="primary" disabled={submitting} onClick={() => respond(false)}>
+                        <Button
+                            variant="primary"
+                            disabled={submitting}
+                            onClick={() => respond(false)}
+                        >
                             Allow
                         </Button>
                     </CardFooter>

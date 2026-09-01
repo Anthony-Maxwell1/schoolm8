@@ -1,10 +1,6 @@
 "use client";
 
-import { useAccessControl } from "@/lib/access/useAccessControl";
-
 export default function AdminPage() {
-    const { allowed, loading } = useAccessControl("admin");
-
     if (loading) {
         return <div>Loading...</div>;
     }

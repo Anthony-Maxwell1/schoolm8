@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ArrowRight, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 
 export default function CoursesPage() {
@@ -18,11 +17,10 @@ export default function CoursesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-    const { allowed, loading: accessLoading } = useAccessControl("courses");
     const { css } = useCss();
     const style = css.app.courses.page;
 
-    if (loading || accessLoading) {
+    if (loading) {
         return (
             <div className={style.loading["ROOT-STYLE"]}>
                 <div className="flex flex-col items-center gap-4">

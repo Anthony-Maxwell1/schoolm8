@@ -4,6 +4,8 @@
     "private": true,
     "scripts": {
         "dev": "next dev --turbo",
+        "dev-infisical": "infisical run -- next dev --turbo",
+        "dev-infisical-webpack": "infisical run -- next dev --webpack",
         "dev-webpack": "next dev --webpack",
         "build": "next build",
         "start": "next start",

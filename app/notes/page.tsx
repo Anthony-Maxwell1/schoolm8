@@ -5,7 +5,6 @@ import { useAuth } from "@/context/authContext";
 import { doc, getDoc, updateDoc, deleteField } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import {
     Button,
     Card,
@@ -61,7 +60,6 @@ function NoteCardSkeleton() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function NotesPage() {
-    const { allowed, loading: accessLoading } = useAccessControl("notes");
     const { user, token, loading } = useAuth();
     const router = useRouter();
 
@@ -83,7 +81,7 @@ export default function NotesPage() {
 
     // ── Fetch notes + projects ────────────────────────────────────────────
     useEffect(() => {
-        if (loading || accessLoading || !allowed || !user) return;
+        if (loading || !allowed || !user) return;
 
         const fetchData = async () => {
             setFetching(true);
@@ -97,9 +95,9 @@ export default function NotesPage() {
                 setNotes(
                     rawNotes
                         ? Object.entries(rawNotes).map(([id, n]: [string, any]) => ({
-                            id,
-                            ...n,
-                        }))
+                              id,
+                              ...n,
+                          }))
                         : [],
                 );
 
@@ -136,7 +134,7 @@ export default function NotesPage() {
     }, [editingNote]);
 
     // ── Guards ────────────────────────────────────────────────────────────
-    if (loading || accessLoading) {
+    if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface)]">
                 <div className="flex flex-col items-center gap-4">
@@ -183,9 +181,7 @@ export default function NotesPage() {
 
             // Optimistic update
             setNotes((prev) =>
-                prev.map((n) =>
-                    n.id === editingNote.id ? { ...n, ...updated } : n,
-                ),
+                prev.map((n) => (n.id === editingNote.id ? { ...n, ...updated } : n)),
             );
             closeEditor();
         } catch (err) {
@@ -227,7 +223,6 @@ export default function NotesPage() {
     // ── Render ────────────────────────────────────────────────────────────
     return (
         <div className="mx-auto max-w-7xl px-6 py-10">
-
             {/* ── Header ── */}
             <div className="flex items-center justify-between">
                 <Text variant="h2">Your Notes</Text>
@@ -254,19 +249,13 @@ export default function NotesPage() {
                     title="No notes yet"
                     description="Create your first note to get started."
                     actions={
-                        <Button onClick={() => router.push("/notes/create")}>
-                            Create note
-                        </Button>
+                        <Button onClick={() => router.push("/notes/create")}>Create note</Button>
                     }
                 />
             ) : (
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {notes.map((note) => (
-                        <Card
-                            key={note.id}
-                            variant="hoverable"
-                            onClick={() => openEditor(note)}
-                        >
+                        <Card key={note.id} variant="hoverable" onClick={() => openEditor(note)}>
                             <CardHeader>
                                 <CardTitle>{note.title || "Untitled Note"}</CardTitle>
                             </CardHeader>
