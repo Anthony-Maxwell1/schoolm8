@@ -1,16 +1,3 @@
-/**
- * lib/oauth/store.ts
- *
- * Firestore-backed persistence for the "Sign in with schoolm8" OAuth
- * provider used by third-party apps.
- *
- * Collections:
- *   oauthClients/{clientId}         - registered third-party apps
- *   oauthCodes/{code}               - one-time authorization codes (~60s TTL)
- *   oauthGrants/{clientId}__{uid}   - which scopes a user has approved for a client
- *   oauthRefreshTokens/{tokenHash}  - long-lived refresh tokens (hashed at rest)
- */
-
 import { randomBytes, randomUUID, createHash } from "crypto";
 import { db } from "@/lib/firebaseAdmin";
 
@@ -27,36 +14,63 @@ function hashToken(token: string): string {
 
 export type OAuthClient = {
     clientId: string;
+    appId?: string;
     name: string;
     redirectUris: string[];
     scopes: string[]; // the maximum set of scopes this app is allowed to ever request
-    secretHash: string;
     ownerUid: string;
     logoUrl?: string;
     createdAt: FirebaseFirestore.Timestamp | Date;
+    authMethod: "client_secret" | "private_key_jwt";
+    secretHash?: string; // only for authMethod === "client_secret"
+    publicKey?: string; // PEM, only for authMethod === "private_key_jwt"
 };
 
-export async function registerOAuthClient(params: {
+type RegisterClientCommonParams = {
+    appId?: string;
     name: string;
     redirectUris: string[];
     scopes: string[];
     ownerUid: string;
     logoUrl?: string;
-}): Promise<{ clientId: string; clientSecret: string }> {
-    const clientId = randomBytes(16).toString("hex");
-    const clientSecret = randomBytes(32).toString("base64url");
+};
 
-    const client: OAuthClient = {
+type RegisterClientParams =
+    | (RegisterClientCommonParams & { authMethod: "client_secret" })
+    | (RegisterClientCommonParams & { authMethod: "private_key_jwt"; publicKey: string });
+
+// Overloads so callers get a precisely-typed return value based on authMethod,
+// without needing an `as` cast at the call site.
+export async function registerOAuthClient(
+    params: RegisterClientCommonParams & { authMethod: "client_secret" },
+): Promise<{ clientId: string; clientSecret: string }>;
+export async function registerOAuthClient(
+    params: RegisterClientCommonParams & { authMethod: "private_key_jwt"; publicKey: string },
+): Promise<{ clientId: string }>;
+export async function registerOAuthClient(
+    params: RegisterClientParams,
+): Promise<{ clientId: string; clientSecret?: string }> {
+    const clientId = randomBytes(16).toString("hex");
+    let base = {
         clientId,
+        appId: params.appId,
         name: params.name,
         redirectUris: params.redirectUris,
         scopes: params.scopes,
-        secretHash: hashToken(clientSecret),
         ownerUid: params.ownerUid,
-        logoUrl: params.logoUrl,
         createdAt: new Date(),
+        logoUrl: params.logoUrl,
     };
+    if (base.logoUrl == undefined || base.logoUrl == null) delete base.logoUrl;
+    
+    if (params.authMethod === "private_key_jwt") {
+        const client: OAuthClient = { ...base, authMethod: "private_key_jwt", publicKey: params.publicKey };
+        await db.collection("oauthClients").doc(clientId).set(client);
+        return { clientId };
+    }
 
+    const clientSecret = randomBytes(32).toString("base64url");
+    const client: OAuthClient = { ...base, authMethod: "client_secret", secretHash: hashToken(clientSecret) };
     await db.collection("oauthClients").doc(clientId).set(client);
     return { clientId, clientSecret };
 }
@@ -67,7 +81,7 @@ export async function getOAuthClient(clientId: string): Promise<OAuthClient | nu
 }
 
 export function verifyClientSecret(client: OAuthClient, secret: string): boolean {
-    return client.secretHash === hashToken(secret);
+    return !!client.secretHash && client.secretHash === hashToken(secret);
 }
 
 export function isRedirectUriAllowed(client: OAuthClient, redirectUri: string): boolean {
@@ -218,4 +232,31 @@ export async function rotateRefreshToken(
 
 export async function newTokenId(): Promise<string> {
     return randomUUID();
+}
+
+export async function listOAuthClients(ownerUid: string, appId?: string): Promise<OAuthClient[]> {
+    const snap = await db.collection("oauthClients").where("ownerUid", "==", ownerUid).get();
+    return snap.docs
+        .map((doc) => doc.data() as OAuthClient)
+        .filter((client) => !appId || client.appId === appId);
+}
+
+export async function rotateOAuthClientSecret(
+    clientId: string,
+    ownerUid: string,
+): Promise<{ client: OAuthClient; clientSecret: string } | null> {
+    const client = await getOAuthClient(clientId);
+    if (!client || client.ownerUid !== ownerUid || client.authMethod !== "client_secret") {
+        return null;
+    }
+    const clientSecret = randomBytes(32).toString("base64url");
+    await db.collection("oauthClients").doc(clientId).update({ secretHash: hashToken(clientSecret) });
+    return { client: { ...client, secretHash: undefined }, clientSecret };
+}
+
+export async function deleteOAuthClient(clientId: string, ownerUid: string): Promise<boolean> {
+    const client = await getOAuthClient(clientId);
+    if (!client || client.ownerUid !== ownerUid) return false;
+    await db.collection("oauthClients").doc(clientId).delete();
+    return true;
 }

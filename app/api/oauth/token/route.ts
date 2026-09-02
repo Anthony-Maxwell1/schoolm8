@@ -1,16 +1,3 @@
-/**
- * app/api/oauth/token/route.ts
- *
- * This endpoint is listed in middleware.ts's PUBLIC_PREFIXES: it is called
- * server-to-server by the third-party app itself, which has no schoolm8
- * user credential (Firebase ID token / session cookie) to present. It
- * authenticates the caller via `client_id` + `client_secret` in the body
- * instead, exactly like a standard OAuth2 token endpoint.
- *
- * Supported grant types:
- *   authorization_code  { code, redirect_uri, code_verifier? }
- *   refresh_token       { refresh_token }
- */
 
 import { createHash, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,8 +10,15 @@ import {
     newTokenId,
 } from "@/lib/oauth/store";
 import { signOAuthAccessToken } from "@/lib/oauth/jwt";
+import { verifyClientAssertion, ClientAssertionError } from "@/lib/oauth/clientAssertion";
 
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 60; // 1 hour
+const CLIENT_ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+
+// This MUST be the exact, canonical URL clients sign into `aud` -- not
+// derived from request headers (Host is client-controlled). Set it once
+// via env so it can't silently drift between environments.
+const TOKEN_ENDPOINT_URL = process.env.OAUTH_TOKEN_ENDPOINT_URL ?? "https://schoolm8.app/api/oauth/token";
 
 function pkceMatches(verifier: string, challenge: string, method: "S256" | "plain" = "S256"): boolean {
     const computed =
@@ -54,13 +48,38 @@ export async function POST(req: NextRequest) {
 
     const clientId = body.client_id;
     const clientSecret = body.client_secret;
-    if (!clientId || !clientSecret) {
+    const clientAssertion = body.client_assertion;
+
+    if (!clientId || (!clientSecret && !clientAssertion)) {
         return NextResponse.json({ error: "invalid_client" }, { status: 401 });
     }
 
     const client = await getOAuthClient(clientId);
-    if (!client || !verifyClientSecret(client, clientSecret)) {
+    if (!client) {
         return NextResponse.json({ error: "invalid_client" }, { status: 401 });
+    }
+
+    if (client.authMethod === "private_key_jwt") {
+        if (!clientAssertion) {
+            return NextResponse.json({ error: "invalid_client" }, { status: 401 });
+        }
+        if (body.client_assertion_type && body.client_assertion_type !== CLIENT_ASSERTION_TYPE) {
+            return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+        }
+        try {
+            await verifyClientAssertion(client, clientAssertion, TOKEN_ENDPOINT_URL);
+        } catch (err) {
+            const description =
+                err instanceof ClientAssertionError ? err.message : "assertion verification failed";
+            return NextResponse.json(
+                { error: "invalid_client", error_description: description },
+                { status: 401 },
+            );
+        }
+    } else {
+        if (!clientSecret || !verifyClientSecret(client, clientSecret)) {
+            return NextResponse.json({ error: "invalid_client" }, { status: 401 });
+        }
     }
 
     if (body.grant_type === "authorization_code") {

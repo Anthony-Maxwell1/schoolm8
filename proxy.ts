@@ -86,6 +86,9 @@ export async function proxy(req: NextRequest) {
     const { uid, oauth } = credential;
 
     if (isApi) {
+        if (oauth && pathname.startsWith("/api/developers")) {
+            return jsonError(403, "Developer management is not available to third-party apps");
+        }
         const requiredScopes = getRequiredScopesForApiPath(pathname);
 
         if (requiredScopes.length > 0) {

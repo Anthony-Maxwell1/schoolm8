@@ -1,19 +1,3 @@
-/**
- * lib/oauth/scopes.ts
- *
- * The scopes a third-party app can request are exactly the API "leaf"
- * endpoint patterns from ENDPOINT_TO_SCOPE (e.g. "api/notes/*",
- * "api/timetable/*") -- the same identifiers Server Access Control already
- * uses. A granted scope of "api/notes/*" means the resulting access token
- * is allowed to call any api/notes/* endpoint, subject to the same
- * ban/allow-list checks a normal signed-in session would face.
- *
- * A handful of endpoint groups are intentionally never offered to
- * third-party apps (account-level things like api/user/* and api/auth/*)
- * because they're either how the user manages schoolm8 itself or are
- * internal to the first-party client.
- */
-
 import { ENDPOINT_TO_SCOPE } from "@/lib/access/serverAccessControl";
 
 const NOT_GRANTABLE_TO_THIRD_PARTIES = new Set<string>([

@@ -1,19 +1,3 @@
-/**
- * lib/oauth/jwt.ts
- *
- * A minimal, dependency-free HS256 JWT signer/verifier used only for
- * schoolm8's own OAuth *access tokens* (the ones we hand to third-party
- * apps). This is deliberately NOT used for Firebase ID tokens or session
- * cookies -- those are verified with `firebase-admin` in middleware.ts,
- * which knows how to validate Google's RS256 signatures. Keeping our own
- * tokens HS256 + home-grown lets `middleware.ts` tell the two apart at a
- * glance (see `looksLikeOAuthAccessToken`) without an extra network round
- * trip.
- *
- * Token shape (once decoded): { sub: uid, cid: clientId, scope: "a b c",
- * jti, iat, exp, iss: "schoolm8" }
- */
-
 import { createHmac, timingSafeEqual } from "crypto";
 
 const ISSUER = "schoolm8";
@@ -26,7 +10,7 @@ function base64url(input: Buffer | string): string {
         .replace(/=+$/, "");
 }
 
-function base64urlDecode(input: string): Buffer {
+export function base64urlDecode(input: string): Buffer {
     const padded = input
         .replace(/-/g, "+")
         .replace(/_/g, "/")

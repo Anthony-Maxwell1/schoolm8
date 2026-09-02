@@ -280,10 +280,6 @@ export default function Onboarding() {
         return <div className="min-h-screen" />;
     }
 
-    if (!allowed) {
-        return <div>Unauthorized</div>;
-    }
-
     return (
         <div
             className="relative h-screen bg-cover bg-center"
