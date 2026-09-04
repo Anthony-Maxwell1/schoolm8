@@ -14,19 +14,19 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    console.log(`
-          _                 _            ___  
- ___  ___| |__   ___   ___ | |_ __ ___  ( _ ) 
-/ __|/ __| '_ \\ / _ \\ / _ \\| | '_ \` _ \\ / _ \\
-\\__ \\ (__| | | | (_) | (_) | | | | | | | (_) |
-|___/\\___|_| |_|\\___/ \\___/|_|_| |_| |_|\\___/ 
+//     console.log(`
+//           _                 _            ___  
+//  ___  ___| |__   ___   ___ | |_ __ ___  ( _ ) 
+// / __|/ __| '_ \\ / _ \\ / _ \\| | '_ \` _ \\ / _ \\
+// \\__ \\ (__| | | | (_) | (_) | | | | | | | (_) |
+// |___/\\___|_| |_|\\___/ \\___/|_|_| |_| |_|\\___/ 
 
-SchoolM8 is fully open source! 🎉
-Tinker, explore, and contribute directly — no deobfuscation needed.
+// SchoolM8 is fully open source! 🎉
+// Tinker, explore, and contribute directly — no deobfuscation needed.
 
-Check it out on GitHub: 
-https://github.com/Anthony-Maxwell1/schoolm8
-`);
+// Check it out on GitHub: 
+// https://github.com/Anthony-Maxwell1/schoolm8
+// `);
 
     return (
         <html lang="en">

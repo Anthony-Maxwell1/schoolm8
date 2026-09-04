@@ -43,7 +43,7 @@ export default function Assignments() {
         };
 
         fetchAssignments();
-    }, [user, authLoading, accessLoading, router]);
+    }, [user, authLoading, router]);
 
     const subjects = Array.from(new Set(assignments.map((a) => a.courseName)));
 
@@ -65,11 +65,6 @@ export default function Assignments() {
                 </div>
             </div>
         );
-    }
-
-    if (!allowed) {
-        router.replace("/unauthorized");
-        return null;
     }
 
     return (

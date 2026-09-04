@@ -567,9 +567,6 @@ export default function AppearanceSettings() {
         }
     };
 
-    if (accessLoading) return <div className="min-h-screen" />;
-    if (!allowed) return <div>Unauthorized</div>;
-
     // ── Render ────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">

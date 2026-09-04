@@ -40,7 +40,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     const maxRows = data?.rubric ? getMaxRows(data.rubric) : 0;
 
     useEffect(() => {
-        if (loading || !allowed || !user || !token) return;
+        if (loading || !user || !token) return;
         // fetch("/api/lms/assignments", { headers: { Authorization: `Bearer ${token}` } })
         //     .then((r) => r.json())
         //     .then((res) => {
@@ -63,10 +63,9 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
             })
             .catch(console.error)
             .finally(() => setFetching(false));
-    }, [loading, user, token, id, accessLoading, allowed]);
+    }, [loading, user, token, id]);
 
     if (loading) return <div className="min-h-screen" />;
-    if (!allowed) return <div>Unauthorized</div>;
 
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-10">

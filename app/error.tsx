@@ -12,11 +12,6 @@ export default function ErrorPage() {
                 >
                     Go Home
                 </a>
-
-                <p className="text-gray-400 mt-4 text-sm">
-                    Note that this page isn't customizable. This is to avoid error loops from
-                    loading the resource causing the error. Thanks for your understanding.
-                </p>
             </div>
         </div>
     );

@@ -4,6 +4,7 @@ import { assertAccess, getRequiredScopesForApiPath } from "@/lib/access/serverAc
 import { pageAccessControl, normalizePageKey } from "@/lib/access/pageAccessControl";
 import { looksLikeOAuthAccessToken, verifyOAuthAccessToken } from "@/lib/oauth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/access/sessionCookie";
+import { cached } from "@/lib/cache";
 
 const excludeRegex = /^\/(_next\/static|_next\/image|.*\..*)/;
 
@@ -44,7 +45,11 @@ async function resolveCredential(req: NextRequest): Promise<Credential | null> {
 
         const sessionCookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
         if (sessionCookie) {
-            const decoded = await auth.verifySessionCookie(sessionCookie, true);
+            // Revocation checks require a network request and make every dev request wait on Firebase.
+            const decoded = await auth.verifySessionCookie(
+                sessionCookie,
+                process.env.NODE_ENV === "production",
+            );
             return { uid: decoded.uid, oauth: null };
         }
     } catch {
@@ -62,8 +67,6 @@ export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     if (excludeRegex.test(pathname)) {
-        // Return a next response that tells Next.js to continue normal routing
-        // without proxying (if called from a middleware context)
         return NextResponse.next();
     }
 
@@ -86,9 +89,6 @@ export async function proxy(req: NextRequest) {
     const { uid, oauth } = credential;
 
     if (isApi) {
-        if (oauth && pathname.startsWith("/api/developers")) {
-            return jsonError(403, "Developer management is not available to third-party apps");
-        }
         const requiredScopes = getRequiredScopesForApiPath(pathname);
 
         if (requiredScopes.length > 0) {

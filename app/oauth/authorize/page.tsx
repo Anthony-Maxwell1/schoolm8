@@ -86,8 +86,6 @@ function AuthorizeInner() {
         }
     };
 
-    if (accessLoading) return <SpinnerFullPage label="Loading…" />;
-    if (!allowed) return null;
 
     return (
         <div className="mx-auto flex min-h-screen max-w-md items-center justify-center px-4">

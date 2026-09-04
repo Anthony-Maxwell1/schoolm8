@@ -49,7 +49,7 @@ export default function Schedule() {
     };
 
     useEffect(() => {
-        if (loading || !allowed) return;
+        if (loading) return;
 
         if (!user) {
             router.push("/signin");
@@ -57,7 +57,7 @@ export default function Schedule() {
         }
 
         fetchSchedule();
-    }, [user, loading, router, accessLoading, allowed]);
+    }, [user, loading, router]);
 
     if (loading) {
         return (
@@ -68,10 +68,6 @@ export default function Schedule() {
                 </div>
             </div>
         );
-    }
-
-    if (!allowed) {
-        return <div>Unauthorized</div>;
     }
 
     const createElement = async () => {

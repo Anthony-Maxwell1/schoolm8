@@ -54,12 +54,8 @@ export default function CreateNotePage() {
     };
 
     useEffect(() => {
-        if (accessLoading || !allowed) return;
         fetchProjects();
-    }, [user, accessLoading, allowed]);
-
-    if (accessLoading) return <div className="min-h-screen" />;
-    if (!allowed) return <div>Unauthorized</div>;
+    }, [user]);
 
     // ── Project list helpers ──────────────────────────────────────────────
     const handleAddProject = () => {

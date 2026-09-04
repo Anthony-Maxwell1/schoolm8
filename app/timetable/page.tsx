@@ -204,7 +204,7 @@ export default function TimetablePage() {
     const style = css.app.timetable.page;
 
     useEffect(() => {
-        if (loading || !allowed || !user || !token) return;
+        if (loading || !user || !token) return;
 
         setIsLoading(true);
         setError(null);
@@ -232,7 +232,7 @@ export default function TimetablePage() {
             })
             .then(() => console.log("Fetched timetable data:", timetableData)) // Debug log to check fetched data
             .finally(() => setIsLoading(false));
-    }, [user, token, loading, selectedDate, accessLoading, allowed]);
+    }, [user, token, loading, selectedDate]);
 
     // ── Access guards ─────────────────────────────────────────────────────
     if (loading) {
@@ -245,8 +245,6 @@ export default function TimetablePage() {
             </div>
         );
     }
-
-    if (!allowed) return <div>Unauthorized</div>;
 
     // ── Derived data ──────────────────────────────────────────────────────
     const getAllEvents = (): (StandardEvent & { date: string })[] =>

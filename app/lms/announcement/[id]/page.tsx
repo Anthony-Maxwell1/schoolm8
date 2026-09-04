@@ -26,7 +26,7 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
     const [data, setData] = useState<Announcement | null>(null);
 
     useEffect(() => {
-        if (loading || !allowed || !user || !token) return;
+        if (loading || !user || !token) return;
 
         // fetch("/api/lms/announcements", { headers: { Authorization: `Bearer ${token}` } })
         //     .then((res) => res.json())
@@ -55,14 +55,10 @@ export default function AssignmentPage({ params }: { params: { id: string; cameF
                 }
             })
             .catch((err) => console.error(err));
-    }, [loading, user, token, id, accessLoading, allowed]); // <== run only when these change
+    }, [loading, user, token, id]); // <== run only when these change
 
     if (loading) {
         return <div className="min-h-screen" />;
-    }
-
-    if (!allowed) {
-        return <div>Unauthorized</div>;
     }
 
     return (

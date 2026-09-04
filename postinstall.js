@@ -1,7 +1,7 @@
-import fse from "fs-extra";
-import path from "path";
-const topDir = import.meta.dirname;
-fse.removeSync("public/tinymce");
-fse.copySync(path.join(topDir, "node_modules", "tinymce"), path.join(topDir, "public", "tinymce"), {
-    overwrite: true,
-});
+// import fse from "fs-extra";
+// import path from "path";
+// const topDir = import.meta.dirname;
+// fse.removeSync("public/tinymce");
+// fse.copySync(path.join(topDir, "node_modules", "tinymce"), path.join(topDir, "public", "tinymce"), {
+//     overwrite: true,
+// });

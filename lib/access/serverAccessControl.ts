@@ -1,4 +1,5 @@
 import { db, auth } from "@/lib/firebaseAdmin";
+import { cached } from "@/lib/cache";
 
 export const ENDPOINT_TO_SCOPE = {
     "api/auth/google/*": ["api/auth/google/*"],
@@ -24,11 +25,11 @@ export const ENDPOINT_TO_SCOPE = {
         "api/timetable/*",
         "api/user/*",
     ],
-    "api/user/*": ["api/user/*"],
+    // "api/user/*": ["api/user/*"],
     "api/timetable/*": ["api/timetable/*"],
     "api/tasks/*": ["api/tasks/*"],
-    "api/auth/onedrive/*": ["api/auth/onedrive/*"],
-    "api/auth/universalState/*": ["api/auth/universalState/*"],
+    // "api/auth/onedrive/*": ["api/auth/onedrive/*"],
+    // "api/auth/universalState/*": ["api/auth/universalState/*"],
     "api/canvas/*": ["api/canvas/*"],
     "api/googleclassroom/*": ["api/googleclassroom/*"],
     "api/chat/*": ["api/chat/*"],
@@ -43,22 +44,10 @@ export const ENDPOINT_TO_SCOPE = {
     "api/themes/*": ["api/themes/*"],
 } satisfies Record<string, string[]>;
 
-/** The leaf (single-endpoint) patterns, e.g. "api/user/*", "api/chat/*". */
 const LEAF_PATTERNS = Object.keys(ENDPOINT_TO_SCOPE).filter(
     (key) => key.startsWith("api/") && key.endsWith("/*"),
 );
 
-/**
- * Given a request pathname (with or without a leading slash, with or
- * without a leading "/api"), returns the full list of scope identifiers
- * that must all pass Server Access Control for the request to be allowed --
- * exactly what each route used to pass to `assertAccess` by hand.
- *
- * Returns `[]` for endpoints not present in ENDPOINT_TO_SCOPE at all (e.g.
- * `api/ai/*`, `api/calendar/*`, `api/oauth/*`) -- those are only gated by
- * authentication, not by a ban/allow list, matching their pre-middleware
- * behaviour.
- */
 export function getRequiredScopesForApiPath(pathname: string): string[] {
     const normalized = pathname.replace(/^\/+/, ""); // "api/user/get"
 
@@ -79,12 +68,6 @@ export function getRequiredScopesForApiPath(pathname: string): string[] {
     return [leaf, ...groups];
 }
 
-/**
- * The generic ban/allow-list check, parameterised over which Firestore
- * "table" (top-level collection) to read from. `serverAccessControl` below
- * uses table "UAC" for API scopes; `pageAccessControl` uses a separate
- * "PageAC" table for whole-page access control, per the same rules.
- */
 export const checkAccessList = async (table: string, uid: string, key: string) => {
     if (!uid || !key) {
         return {
@@ -93,7 +76,13 @@ export const checkAccessList = async (table: string, uid: string, key: string) =
         };
     }
 
-    if (!(await auth.getUser(uid)).emailVerified) {
+    const emailVerified = (
+        await cached(uid + "-EMAILVERIFIED", async () => ({
+            verified: (await auth.getUser(uid)).emailVerified,
+        }))
+    ).verified;
+
+    if (!emailVerified) {
         return {
             status: 403,
             body: { error: "Please verify your email before accessing this page" },
@@ -105,13 +94,24 @@ export const checkAccessList = async (table: string, uid: string, key: string) =
     const allowedRef = db.doc(`${table}/${normalizedKey}/allowed/${uid}`);
     const allowedCollectionRef = db.collection(`${table}/${normalizedKey}/allowed`).limit(1);
 
-    const [bannedSnap, allowedSnap, allowedCollectionSnap] = await Promise.all([
-        bannedRef.get(),
-        allowedRef.get(),
-        allowedCollectionRef.get(),
+    const [bannedResult, allowedResult, allowedCollectionResult] = await Promise.all([
+        cached(bannedRef.path, async () => ({ data: await bannedRef.get() })) as Promise<{
+            data: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+        }>,
+        cached(allowedRef.path, async () => ({ data: await allowedRef.get() })) as Promise<{
+            data: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+        }>,
+        cached(`${table}/${normalizedKey}/allowed`, async () => ({
+            data: await allowedCollectionRef.get(),
+        })) as Promise<{
+            data: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>;
+        }>,
     ]);
 
-    // 🚨 Ban always wins
+    const bannedSnap = bannedResult.data;
+    const allowedSnap = allowedResult.data;
+    const allowedCollectionSnap = allowedCollectionResult.data;
+
     if (bannedSnap.exists) {
         return {
             status: 401,
@@ -121,12 +121,10 @@ export const checkAccessList = async (table: string, uid: string, key: string) =
 
     const allowlistExists = !allowedCollectionSnap.empty;
 
-    // ✅ No allowlist → open access
     if (!allowlistExists) {
         return { status: 200 };
     }
 
-    // ✅ Otherwise must be explicitly allowed
     if (!allowedSnap.exists) {
         return {
             status: 401,

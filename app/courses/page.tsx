@@ -30,12 +30,6 @@ export default function CoursesPage() {
             </div>
         );
     }
-
-    if (!allowed) {
-        router.replace("/unauthorized");
-        return null;
-    }
-
     useEffect(() => {
         if (loading || !user || !token) return;
 

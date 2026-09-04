@@ -197,7 +197,7 @@ export default function LMSPage() {
     const { user, token, loading } = useAuth();
 
     useEffect(() => {
-        if (loading || !allowed || !user || !token) return;
+        if (loading || !user || !token) return;
 
         Promise.all([
             utils.firebase.schema.lms
@@ -216,7 +216,7 @@ export default function LMSPage() {
                     ),
                 ),
         ]).finally(() => setDataLoading(false));
-    }, [user, token, loading, accessLoading, allowed]);
+    }, [user, token, loading]);
 
     if (loading) {
         return (
@@ -229,7 +229,6 @@ export default function LMSPage() {
         );
     }
 
-    if (!allowed) return <div>Unauthorized</div>;
 
     const isEmpty =
         !dataLoading &&

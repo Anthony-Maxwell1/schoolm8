@@ -81,7 +81,7 @@ export default function NotesPage() {
 
     // ── Fetch notes + projects ────────────────────────────────────────────
     useEffect(() => {
-        if (loading || !allowed || !user) return;
+        if (loading  || !user) return;
 
         const fetchData = async () => {
             setFetching(true);
@@ -119,7 +119,7 @@ export default function NotesPage() {
         };
 
         fetchData();
-    }, [user, loading, accessLoading, allowed]);
+    }, [user, loading]);
 
     // ── Sync editor state when a note is selected ─────────────────────────
     useEffect(() => {
@@ -144,8 +144,6 @@ export default function NotesPage() {
             </div>
         );
     }
-
-    if (!allowed) return <div>Unauthorized</div>;
 
     // ── Helpers ───────────────────────────────────────────────────────────
     const openEditor = (note: Note) => {

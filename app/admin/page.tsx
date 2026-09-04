@@ -1,13 +1,6 @@
 "use client";
 
 export default function AdminPage() {
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (!allowed) {
-        return <div>Unauthorized</div>;
-    }
 
     return (
         <div>
