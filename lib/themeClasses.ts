@@ -4,7 +4,12 @@ import { useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 
-export type ClassKey = "Tile" | "TileOuter" | "TileOuterNoTopBar";
+export type ClassKey =
+    | "Tile"
+    | "TileOuter"
+    | "TileOuterNoTopBar"
+    | "TileOuterHoverEffects"
+    | "TileOuterShadow";
 
 export type Theme = {
     classes: Record<ClassKey, string>;
@@ -25,6 +30,8 @@ export const defaultThemes: ThemeMap = {
         classes: {
             TileOuter: tw("p-6"),
             TileOuterNoTopBar: tw("p-6"),
+            TileOuterHoverEffects: tw(""),
+            TileOuterShadow: tw(""),
             Tile: tw(
                 "h-full w-full bg-white rounded-2xl border border-neutral-200 shadow-sm flex flex-col overflow-hidden p-5",
             ),
@@ -33,12 +40,17 @@ export const defaultThemes: ThemeMap = {
     },
     retro: {
         classes: {
+            TileOuterHoverEffects: tw(`
+        hover:shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
+      `),
+            TileOuterShadow: tw(`
+        shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
+      `),
             TileOuter: tw(`
         relative pt-6.5 overflow-visible
         bg-[#c0c0c0]
         border-t-2 border-l-2 border-[#dfdfdf]
         border-b-2 border-r-2 border-b-[#808080] border-r-[#808080]
-        shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
         group
       `),
             TileOuterNoTopBar: tw(`
@@ -46,7 +58,6 @@ export const defaultThemes: ThemeMap = {
         bg-[#c0c0c0]
         border-t-2 border-l-2 border-[#dfdfdf]
         border-b-2 border-r-2 border-b-[#808080] border-r-[#808080]
-        shadow-[inset_1px_1px_0_0_#ffffff,inset_-1px_-1px_0_0_#000000]
         group
       `),
             Tile: tw(`
@@ -95,19 +106,22 @@ export const defaultThemes: ThemeMap = {
             TileOuter: tw(`
         relative pt-7 rounded-lg overflow-hidden p-2
         bg-gray-300
-        shadow-[0_0_10px_rgba(0,0,0,0.3),0_4px_6px_-1px_rgba(0,0,0,0.5)]
-        hover:shadow-[0_0_18px_rgba(0,0,0,0.45),0_10px_16px_-2px_rgba(0,0,0,0.6)]
         transition-all duration-200 isolate
+      `),
+            TileOuterHoverEffects: tw(`
+        hover:shadow-[0_0_18px_rgba(0,0,0,0.45),0_10px_16px_-2px_rgba(0,0,0,0.6)]
+        hover:w-[100.4%] hover:h-[100.4%] hover:-translate-[0.2%]
+      `),
+            TileOuterShadow: tw(`
+        shadow-[0_0_10px_rgba(0,0,0,0.3),0_4px_6px_-1px_rgba(0,0,0,0.5)]
       `),
             TileOuterNoTopBar: tw(`
         relative rounded-lg overflow-hidden p-2
         bg-gray-300
-        shadow-[0_0_10px_rgba(0,0,0,0.3),0_4px_6px_-1px_rgba(0,0,0,0.5)]
-        hover:shadow-[0_0_18px_rgba(0,0,0,0.45),0_10px_16px_-2px_rgba(0,0,0,0.6)]
         transition-all duration-200 isolate
       `),
             Tile: tw(
-                "relative z-20 h-full w-full bg-white flex flex-col overflow-hidden p-5 shadow-md rounded-sm hover:w-[100.4%] hover:h-[100.4%] hover:-translate-[0.2%] transition-all duration-200",
+                "relative z-20 h-full w-full bg-white flex flex-col overflow-hidden p-5 shadow-md rounded-sm transition-all duration-200",
             ),
         },
         extraHtml: `
@@ -156,6 +170,8 @@ export const defaultThemes: ThemeMap = {
     },
     os: {
         classes: {
+            TileOuterHoverEffects: tw(""),
+            TileOuterShadow: tw(""),
             TileOuter: tw("relative pl-6 pr-6"),
             TileOuterNoTopBar: tw("relative pl-6 pr-6"),
             Tile: tw(`
@@ -205,10 +221,10 @@ export const defaultThemes: ThemeMap = {
     },
     glass: {
         classes: {
-            TileOuter: tw("relative pl-6 pr-6 hover:scale-[1.02] transition-all duration-300"),
-            TileOuterNoTopBar: tw(
-                "relative pl-6 pr-6 hover:scale-[1.02] transition-all duration-300",
-            ),
+            TileOuter: tw("relative pl-6 pr-6 transition-all duration-300"),
+            TileOuterHoverEffects: tw("hover:scale-[1.02]"),
+            TileOuterShadow: tw(""),
+            TileOuterNoTopBar: tw("relative pl-6 pr-6 transition-all duration-300"),
 
             Tile: tw(`
         h-full w-full rounded-b-[20px]
@@ -271,6 +287,8 @@ export const defaultThemes: ThemeMap = {
     },
     blur: {
         classes: {
+            TileOuterHoverEffects: tw(""),
+            TileOuterShadow: tw(""),
             TileOuter: tw("relative pl-6 pr-6"),
             TileOuterNoTopBar: tw("relative pl-6 pr-6"),
             Tile: tw(`
@@ -326,6 +344,8 @@ export const defaultThemes: ThemeMap = {
     },
     custom: {
         classes: {
+            TileOuterHoverEffects: tw(""),
+            TileOuterShadow: tw(""),
             TileOuter: "",
             Tile: "",
             TileOuterNoTopBar: "",
