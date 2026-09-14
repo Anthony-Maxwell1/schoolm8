@@ -13,7 +13,6 @@ import {
     MapPin,
     Users,
 } from "lucide-react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { useCss } from "@/lib/css";
 import {
     Button,
@@ -189,7 +188,6 @@ function TimetableSkeleton({ viewMode }: { viewMode: "grid" | "list" }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function TimetablePage() {
-    const { allowed, loading: accessLoading } = useAccessControl("timetable");
     const { user, token, loading } = useAuth();
 
     const [timetableData, setTimetableData] = useState<StandardTimetable[]>([]);
@@ -206,7 +204,7 @@ export default function TimetablePage() {
     const style = css.app.timetable.page;
 
     useEffect(() => {
-        if (loading || accessLoading || !allowed || !user || !token) return;
+        if (loading || !user || !token) return;
 
         setIsLoading(true);
         setError(null);
@@ -234,10 +232,10 @@ export default function TimetablePage() {
             })
             .then(() => console.log("Fetched timetable data:", timetableData)) // Debug log to check fetched data
             .finally(() => setIsLoading(false));
-    }, [user, token, loading, selectedDate, accessLoading, allowed]);
+    }, [user, token, loading, selectedDate]);
 
     // ── Access guards ─────────────────────────────────────────────────────
-    if (loading || accessLoading) {
+    if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-[var(--color-surface)]">
                 <div className="flex flex-col items-center gap-4">
@@ -247,8 +245,6 @@ export default function TimetablePage() {
             </div>
         );
     }
-
-    if (!allowed) return <div>Unauthorized</div>;
 
     // ── Derived data ──────────────────────────────────────────────────────
     const getAllEvents = (): (StandardEvent & { date: string })[] =>

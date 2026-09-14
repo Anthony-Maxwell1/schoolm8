@@ -1,9 +1,9 @@
 // app/api/classroom/sync/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 import { google, classroom_v1 } from "googleapis";
 import { htmlToText } from "html-to-text";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { getUid } from "@/lib/access/auth";
 import {
     saveLMSAssignments,
     saveLMSAnnouncements,
@@ -87,28 +87,7 @@ function sanitizeHTML(input?: string): string {
 
 export async function GET(req: NextRequest) {
     try {
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer "))
-            return NextResponse.json(
-                { error: "Missing or invalid Authorization header" },
-                { status: 401 },
-            );
-
-        const idToken = authHeader.split(" ")[1];
-
-        const decodedToken = await auth.verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-
-        const accessResult = await assertAccess(userId, [
-            "api/googleclassroom/*",
-            "apiAccessLevel1",
-        ]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const userId = getUid(req);
 
         const { assignments, announcements, courses } = await syncClassroomForUser(userId);
 
@@ -136,11 +115,7 @@ export async function GET(req: NextRequest) {
         const executionId = req.nextUrl.searchParams.get("taskId");
         if (executionId) {
             try {
-                const authHeader = req.headers.get("Authorization")!;
-
-                const idToken = authHeader.split(" ")[1];
-                const decodedToken = await auth.verifyIdToken(idToken);
-                const userId = decodedToken.uid;
+                const userId = getUid(req);
                 const userRef = db.collection("users").doc(userId);
                 await userRef.update({
                     [`executions.${executionId}.status`]: "failed",

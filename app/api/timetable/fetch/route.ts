@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 import { parseICalData } from "@/lib/ical";
 import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
 
@@ -10,8 +10,8 @@ import {
     saveTimetableDay,
     getTimetableDay,
 } from "@/lib/firebaseSchema";
-import { assertAccess } from "@/lib/access/serverAccessControl";
 
+import { getUid } from "@/lib/access/auth";
 // ======================================================
 // CONFIG
 // ======================================================
@@ -72,36 +72,7 @@ export async function GET(req: NextRequest) {
         console.log("[GET] Request started");
 
         // ---------- AUTH ----------
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            console.log("[GET] Missing Authorization header");
-            return NextResponse.json(
-                { error: "Missing or invalid Authorization header" },
-                { status: 401 },
-            );
-        }
-
-        const idToken = authHeader.split(" ")[1];
-        const decodedToken = await auth.verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-        const result = await assertAccess(userId, ["api/timetable/*", "apiAccessLevel0"]);
-
-        if (result.status !== 200) {
-            const executionId = req.nextUrl.searchParams.get("taskId");
-            if (executionId) {
-                try {
-                    const userRef = db.collection("users").doc(userId);
-                    await userRef.update({
-                        [`executions.${executionId}.status`]: "failed",
-                    });
-                } catch (updateErr) {
-                    console.error("Failed to update task status:", updateErr);
-                }
-            }
-            return new Response(JSON.stringify({ error: result.body!.error }), {
-                status: result.status,
-            });
-        }
+        const userId = getUid(req);
         console.log("[GET] User authenticated:", userId);
 
         // Get timetable config from new structure
@@ -423,11 +394,7 @@ export async function GET(req: NextRequest) {
         const executionId = req.nextUrl.searchParams.get("taskId");
         if (executionId) {
             try {
-                const authHeader = req.headers.get("Authorization")!;
-
-                const idToken = authHeader.split(" ")[1];
-                const decodedToken = await auth.verifyIdToken(idToken);
-                const userId = decodedToken.uid;
+                const userId = getUid(req);
                 const userRef = db.collection("users").doc(userId);
                 await userRef.update({
                     [`executions.${executionId}.status`]: "failed",

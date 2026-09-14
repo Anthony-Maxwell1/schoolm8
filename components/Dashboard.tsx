@@ -205,6 +205,14 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                         <label htmlFor="topBar" className="font-semibold">
                             Top Bar
                         </label>
+                        <input type="checkbox" id="hovereffects" className="mr-3" />
+                        <label htmlFor="hovereffects" className="font-semibold">
+                            Hover Effects
+                        </label>
+                        <input type="checkbox" id="shadow" className="mr-3" />
+                        <label htmlFor="shadow" className="font-semibold">
+                            Shadow
+                        </label>
                         <br></br>
                         {/* Tile editing form goes here */}
                         <button
@@ -217,12 +225,22 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                                     document.getElementById("topBar") as HTMLInputElement
                                 ).checked;
 
+                                const hovereffects = (
+                                    document.getElementById("hovereffects") as HTMLInputElement
+                                ).checked;
+
+                                const shadow = (
+                                    document.getElementById("shadow") as HTMLInputElement
+                                ).checked;
+
                                 const tile = currentPage.tiles.find((t) => t.id === editorTile);
                                 if (!tile) return; // ⚠️ guard against undefined
 
                                 const newSpecialEffects = [
                                     movable ? "movable" : "",
                                     topBar ? "topBar" : "",
+                                    hovereffects ? "hovereffects" : "",
+                                    shadow ? "shadow" : "",
                                 ].filter(Boolean);
                                 updateTile({
                                     id: tile.id,
@@ -329,7 +347,15 @@ export const Dashboard = ({ editable = false }: { editable?: boolean }) => {
                             className={
                                 (tile.specialEffects?.includes("topBar")
                                     ? classes?.TileOuter
-                                    : classes?.TileOuterNoTopBar) + " relative group"
+                                    : classes?.TileOuterNoTopBar) +
+                                " relative group " +
+                                (tile.specialEffects?.includes("hovereffects")
+                                    ? classes?.TileOuterHoverEffects || ""
+                                    : "") +
+                                " " +
+                                (tile.specialEffects?.includes("shadow")
+                                    ? classes?.TileOuterShadow || ""
+                                    : "")
                             }
                         >
                             {/* delete */}

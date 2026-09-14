@@ -56,3 +56,6 @@ DONOTCOMMIT
 .source
 # Sentry Config File
 .env.sentry-build-plugin
+
+# infisical
+.infisical.json

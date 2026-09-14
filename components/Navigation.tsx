@@ -147,7 +147,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
     if (
         pathname.startsWith("/docs") ||
         pathname.startsWith("/onboarding") ||
-        pathname.startsWith("/auth")
+        pathname.startsWith("/auth") || 
+        pathname.startsWith("/developers")
     ) {
         return <>{children}</>;
     }

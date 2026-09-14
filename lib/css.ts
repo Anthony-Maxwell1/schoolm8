@@ -476,7 +476,7 @@ const defaultCss: any = {
         dashboard: {
             page: {
                 main: {
-                    "ROOT-STYLE": "h-screen flex",
+                    "ROOT-STYLE": "h-screen flex p-1",
                     content: {
                         "ROOT-STYLE": "flex-1",
                     },

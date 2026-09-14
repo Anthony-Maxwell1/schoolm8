@@ -1,26 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
 
+import { getUid } from "@/lib/access/auth";
 export async function POST(req: Request) {
     try {
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer "))
-            return NextResponse.json(
-                { error: "Missing or invalid Authorization header" },
-                { status: 401 },
-            );
-
-        const idToken = authHeader.split(" ")[1];
-        const decodedToken = await auth.verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-        const accessResult = await assertAccess(userId, ["api/canvas/*", "apiAccessLevel1"]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const userId = getUid(req);
 
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();

@@ -7,7 +7,6 @@ import { ToastContainer, toast } from "react-toastify";
 import { TaskManager } from "@/components/TaskManager";
 import { Navigation } from "@/components/Navigation";
 import { NavigationProvider } from "@/context/navigationContext";
-import { AccessControlProvider } from "@/context/AccessControlContext";
 
 export const metadata = {
     title: "schoolm8",
@@ -15,19 +14,19 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    console.log(`
-          _                 _            ___  
- ___  ___| |__   ___   ___ | |_ __ ___  ( _ ) 
-/ __|/ __| '_ \\ / _ \\ / _ \\| | '_ \` _ \\ / _ \\
-\\__ \\ (__| | | | (_) | (_) | | | | | | | (_) |
-|___/\\___|_| |_|\\___/ \\___/|_|_| |_| |_|\\___/ 
+//     console.log(`
+//           _                 _            ___  
+//  ___  ___| |__   ___   ___ | |_ __ ___  ( _ ) 
+// / __|/ __| '_ \\ / _ \\ / _ \\| | '_ \` _ \\ / _ \\
+// \\__ \\ (__| | | | (_) | (_) | | | | | | | (_) |
+// |___/\\___|_| |_|\\___/ \\___/|_|_| |_| |_|\\___/ 
 
-SchoolM8 is fully open source! 🎉
-Tinker, explore, and contribute directly — no deobfuscation needed.
+// SchoolM8 is fully open source! 🎉
+// Tinker, explore, and contribute directly — no deobfuscation needed.
 
-Check it out on GitHub: 
-https://github.com/Anthony-Maxwell1/schoolm8
-`);
+// Check it out on GitHub: 
+// https://github.com/Anthony-Maxwell1/schoolm8
+// `);
 
     return (
         <html lang="en">
@@ -36,13 +35,11 @@ https://github.com/Anthony-Maxwell1/schoolm8
                     <LayoutProvider>
                         <ThemeProvider>
                             <AuthProvider>
-                                <AccessControlProvider>
-                                    <TaskManager />
-                                    <ToastContainer position="top-right" />
-                                    <ClientAuthGuard>
-                                        <Navigation>{children}</Navigation>
-                                    </ClientAuthGuard>
-                                </AccessControlProvider>
+                                <TaskManager />
+                                <ToastContainer position="top-right" />
+                                <ClientAuthGuard>
+                                    <Navigation>{children}</Navigation>
+                                </ClientAuthGuard>
                             </AuthProvider>
                         </ThemeProvider>
                     </LayoutProvider>

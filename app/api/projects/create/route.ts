@@ -1,30 +1,12 @@
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 import { v4 as uuidv4 } from "uuid";
-import { assertAccess } from "@/lib/access/serverAccessControl";
 
+import { getUid } from "@/lib/access/auth";
 export async function GET(req: Request) {
     try {
         // ---------- AUTH CHECK ----------
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
-        }
-
-        const idToken = authHeader.split(" ")[1];
-        const decoded = await auth.verifyIdToken(idToken);
-        const authedUserId = decoded.uid;
-
-        const accessResult = await assertAccess(authedUserId, [
-            "api/projects/*",
-            "apiAccessLevel0",
-        ]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const authedUserId = getUid(req);
 
         // ---------- QUERY PARAMS ----------
         const url = new URL(req.url);

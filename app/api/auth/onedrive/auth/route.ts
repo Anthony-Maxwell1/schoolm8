@@ -1,5 +1,5 @@
 import { db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { getUid } from "@/lib/access/auth";
 
 export async function GET(req: Request) {
     const url = new URL(req.url);
@@ -7,16 +7,9 @@ export async function GET(req: Request) {
     if (!state) {
         return new Response("State is required", { status: 400 });
     }
-    const userId = state.split(".")[0];
-    if (!userId) {
+    const userId = getUid(req);
+    if (state.split(".")[0] !== userId) {
         return new Response("Invalid state", { status: 400 });
-    }
-    const accessResult = await assertAccess(userId, ["api/auth/onedrive/*", "apiAccessLevel1"]);
-
-    if (accessResult.status !== 200) {
-        return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-            status: accessResult.status,
-        });
     }
 
     const userRef = db.collection("users").doc(userId);

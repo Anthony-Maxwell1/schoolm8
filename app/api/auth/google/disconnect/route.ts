@@ -1,22 +1,14 @@
 import { db } from "@/lib/firebaseAdmin";
 import admin from "firebase-admin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { getUid } from "@/lib/access/auth";
 export async function GET(req: Request) {
     const url = new URL(req.url);
     const state = url.searchParams.get("state");
 
     if (!state) return new Response("State is required", { status: 400 });
 
-    const userId = state.split(".")[0];
-    if (!userId) return new Response("Invalid state", { status: 400 });
-
-    const accessResult = await assertAccess(userId, ["api/auth/google/*", "apiAccessLevel1"]);
-
-    if (accessResult.status !== 200) {
-        return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-            status: accessResult.status,
-        });
-    }
+    const userId = getUid(req);
+    if (state.split(".")[0] !== userId) return new Response("Invalid state", { status: 400 });
 
     try {
         await db

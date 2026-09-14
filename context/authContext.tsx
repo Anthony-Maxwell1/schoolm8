@@ -28,6 +28,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const signOut = async () => {
         await firebaseSignOut(auth);
+        try {
+            await fetch("/api/auth/session", { method: "DELETE" });
+        } catch (err) {
+            console.error("Failed to clear session cookie:", err);
+        }
         // onAuthStateChanged will handle clearing user + token
     };
 
@@ -41,6 +46,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             if (firebaseUser) {
                 const idToken = await firebaseUser.getIdToken();
                 setToken(idToken);
+                // Middleware protects page navigations with a session cookie
+                // (it can't see the client-side Firebase ID token), so keep
+                // one alive for as long as the user is signed in.
+                try {
+                    await fetch("/api/auth/session", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ idToken }),
+                    });
+                } catch (err) {
+                    console.error("Failed to establish session cookie:", err);
+                }
             } else {
                 setToken(null);
             }

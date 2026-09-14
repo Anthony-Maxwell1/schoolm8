@@ -18,7 +18,6 @@ import { atomone } from "@uiw/codemirror-theme-atomone";
 import { html } from "@codemirror/lang-html";
 import Image from "next/image";
 import { Book } from "lucide-react";
-import { useAccessControl } from "@/lib/access/useAccessControl";
 import { builtin } from "@/lib/themeClasses";
 import {
     Button,
@@ -211,8 +210,6 @@ function SectionHeading({ title, description }: { title: string; description: st
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function AppearanceSettings() {
-    const { allowed, loading: accessLoading } = useAccessControl("settings/appearance");
-
     // Mode tabs: themes | editor | code
     const [mode, setMode] = useState("themes");
     const [editorMode, setEditorMode] = useState("dashboard");
@@ -569,9 +566,6 @@ export default function AppearanceSettings() {
             setError(err.message || "Invalid JSON");
         }
     };
-
-    if (accessLoading) return <div className="min-h-screen" />;
-    if (!allowed) return <div>Unauthorized</div>;
 
     // ── Render ────────────────────────────────────────────────────────────
     return (

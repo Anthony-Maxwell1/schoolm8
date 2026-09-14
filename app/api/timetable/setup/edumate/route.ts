@@ -1,28 +1,12 @@
 import { NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
+import { db } from "@/lib/firebaseAdmin";
 import { ObtainAuthCredentials, FetchTimetableDay } from "@/lib/edumateClient";
 import { saveTimetableConfig } from "@/lib/firebaseSchema";
-import { assertAccess } from "@/lib/access/serverAccessControl";
 
+import { getUid } from "@/lib/access/auth";
 export async function POST(req: Request) {
     try {
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer "))
-            return NextResponse.json(
-                { error: "Missing or invalid Authorization header" },
-                { status: 401 },
-            );
-
-        const idToken = authHeader.split(" ")[1];
-        const decodedToken = await auth.verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-        const result = await assertAccess(userId, ["api/timetable/*", "apiAccessLevel0"]);
-
-        if (result.status !== 200) {
-            return new Response(JSON.stringify({ error: result.body!.error }), {
-                status: result.status,
-            });
-        }
+        const userId = getUid(req);
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();
         if (!doc.exists) throw new Error("User not found");

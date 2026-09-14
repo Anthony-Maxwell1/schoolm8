@@ -1,30 +1,14 @@
 // app/api/schedule/updateStatus/route.ts
 import { NextResponse } from "next/server";
-import { db, auth } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
+import { getUid } from "@/lib/access/auth";
 
 export async function POST(req: Request) {
     try {
         const { scheduleId, elementId, updates } = await req.json();
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
-        }
-
-        const idToken = authHeader.split(" ")[1];
-        if (!idToken) throw new Error("Missing authentication token");
         if (!scheduleId || !elementId) throw new Error("Missing scheduleId or elementId");
 
-        const decoded = await auth.verifyIdToken(idToken);
-        const userId = decoded.uid;
-
-        const accessResult = await assertAccess(userId, ["api/schedule/*", "apiAccessLevel0"]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const userId = getUid(req);
 
         const userRef = db.collection("users").doc(userId);
         const doc = await userRef.get();

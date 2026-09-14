@@ -1,28 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth, db } from "@/lib/firebaseAdmin";
-import { assertAccess } from "@/lib/access/serverAccessControl";
+import { db } from "@/lib/firebaseAdmin";
 
+import { getUid } from "@/lib/access/auth";
 export async function DELETE(req: Request) {
     try {
         // ---------- AUTHENTICATION ----------
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader?.startsWith("Bearer ")) {
-            return NextResponse.json({ error: "Missing Authorization header" }, { status: 401 });
-        }
-
-        const idToken = authHeader.split(" ")[1];
-
-        // Verify Firebase token
-        const decoded = await auth.verifyIdToken(idToken);
-        const authedUserId = decoded.uid;
-
-        const accessResult = await assertAccess(authedUserId, ["api/notes/*", "apiAccessLevel0"]);
-
-        if (accessResult.status !== 200) {
-            return new Response(JSON.stringify({ error: accessResult.body!.error }), {
-                status: accessResult.status,
-            });
-        }
+        const authedUserId = getUid(req);
 
         // ---------- QUERY PARAMS ----------
         const url = new URL(req.url);
