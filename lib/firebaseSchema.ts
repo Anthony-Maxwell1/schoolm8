@@ -10,8 +10,9 @@
  * timetable/{userId}/days/{date}
  */
 
-import { DocumentData } from "firebase/firestore";
+import { DocumentData, arrayUnion } from "firebase/firestore";
 import { db } from "./db";
+import { v4 as uuidv4 } from "uuid";
 
 const isPlainObject = (value: unknown): value is Record<string, any> => {
     if (!value || typeof value !== "object") return false;
@@ -499,6 +500,89 @@ export const getKnowledgeBase = async (userId: string) => {
     return doc.exists ? doc.data() : null;
 };
 
+export const getClassesRef = (userId: string) => db.collection("classes").doc(userId);
+
+export const getClassRef = (userId: string, classId: string) =>
+    getClassesRef(userId).collection("userClasses").doc(classId);
+
+export const getClasses = async (userId: string) => {
+    const classes = await getClassesRef(userId).get();
+    return classes.exists ? classes.data() : null;
+};
+
+export const addToClass = async (userId: string, classId: string, type: string, data: any) => {
+    const classRef = getClassRef(userId, classId);
+    await classRef.set(
+        {
+            attached: {
+                [type]: arrayUnion(data),
+            },
+        },
+        { merge: true },
+    );
+};
+
+export const removeFromClass = async (
+    userId: string,
+    classId: string,
+    type: string,
+    idx: number,
+) => {
+    const classRef = getClassRef(userId, classId);
+    const classDoc = await classRef.get();
+    if (!classDoc.exists) return;
+
+    const classData = classDoc.data();
+    if (!classData || !classData.attached || !Array.isArray(classData.attached[type])) return;
+
+    const updatedArray = [...classData.attached[type]];
+    updatedArray.splice(idx, 1);
+
+    await classRef.update({
+        attached: {
+            [type]: updatedArray,
+        },
+    });
+};
+
+export const updateInClass = async (
+    userId: string,
+    classId: string,
+    type: string,
+    idx: any,
+    newData: any,
+) => {
+    const classRef = getClassRef(userId, classId);
+    removeFromClass(userId, classId, type, idx);
+    await classRef.update({
+        attached: {
+            [type]: arrayUnion(newData),
+        },
+    });
+};
+
+export const createClass = async (userId: string, name: string) => {
+    const classRef = getClassRef(userId, uuidv4());
+    const classData = { name, attached: {} };
+    await classRef.set(classData, { merge: true });
+};
+
+export const updateClassDetails = async (userId: string, classId: string, newName: string) => {
+    const classRef = getClassRef(userId, classId);
+    await classRef.update({ name: newName });
+};
+
+export const deleteClass = async (userId: string, classId: string) => {
+    const classRef = getClassRef(userId, classId);
+    await classRef.delete();
+};
+
+export const getClass = async (userId: string, classId: string) => {
+    const classRef = getClassRef(userId, classId);
+    const classDoc = await classRef.get();
+    return classDoc.exists ? classDoc.data() : null;
+};
+
 export const schema = {
     lms: {
         getCoursesRef: getLMSCoursesRef,
@@ -544,5 +628,17 @@ export const schema = {
         getRef: getKnowledgeBaseRef,
         save: saveKnowledgeBase,
         get: getKnowledgeBase,
+    },
+    classes: {
+        getRef: getClassesRef,
+        getClassRef: getClassRef,
+        getClasses,
+        addToClass,
+        removeFromClass,
+        updateInClass,
+        createClass,
+        updateClassDetails,
+        deleteClass,
+        getClass,
     },
 };

@@ -6,31 +6,22 @@ import { getUid } from "@/lib/access/auth";
 export async function GET(req: Request) {
     try {
         // ---------- AUTH CHECK ----------
-        const authedUserId = getUid(req);
+        const uid = getUid(req);
 
         // ---------- QUERY PARAMS ----------
         const url = new URL(req.url);
-        const userId = url.searchParams.get("userId");
         const assignments = url.searchParams.getAll("assignment") || [];
+        const classes = url.searchParams.getAll("class") || [];
         const title = url.searchParams.get("title");
         const description = url.searchParams.get("description") || "";
         const due = url.searchParams.get("due") || null;
-
-        if (!userId) {
-            return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-        }
 
         if (!title) {
             return NextResponse.json({ error: "Missing title" }, { status: 400 });
         }
 
-        // ---------- PERMISSION CHECK ----------
-        if (userId !== authedUserId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
-
         // ---------- CREATE PROJECT ----------
-        const userRef = db.collection("users").doc(userId);
+        const userRef = db.collection("users").doc(uid);
         const docSnap = await userRef.get();
         if (!docSnap.exists) throw new Error("User not found");
 
@@ -45,6 +36,7 @@ export async function GET(req: Request) {
             updated: now,
             files: [],
             notes: [],
+            classes: classes,
         };
 
         await userRef.update({

@@ -1,0 +1,510 @@
+{
+    "info": {
+        "_postman_id": "oauth-testing-collection",
+        "name": "SchoolM8 OAuth 2.0 Testing",
+        "description": "Complete OAuth 2.0 testing collection with PKCE and Private Key JWT support",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Utilities",
+            "item": [
+                {
+                    "name": "Generate Code Verifier & Challenge",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "// Generate PKCE code verifier and challenge",
+                                    "const crypto = require('crypto');",
+                                    "",
+                                    "// Generate verifier (43-128 chars, unreserved characters)",
+                                    "const verifier = crypto.randomBytes(32).toString('base64url');",
+                                    "",
+                                    "// Generate challenge (SHA256 of verifier)",
+                                    "const challenge = crypto.createHash('sha256')",
+                                    "    .update(verifier)",
+                                    "    .digest('base64url');",
+                                    "",
+                                    "// Store in environment",
+                                    "pm.environment.set('code_verifier', verifier);",
+                                    "pm.environment.set('code_challenge', challenge);",
+                                    "",
+                                    "// Display in test results",
+                                    "pm.test('PKCE Parameters Generated', function () {",
+                                    "    pm.expect(verifier).to.have.lengthOf.above(42);",
+                                    "    pm.expect(challenge).to.have.lengthOf.above(40);",
+                                    "});",
+                                    "",
+                                    "console.log('Code Verifier:', verifier);",
+                                    "console.log('Code Challenge:', challenge);",
+                                    "console.log('Method: S256');",
+                                    "console.log('');",
+                                    "console.log('Use challenge in authorization URL:');",
+                                    "console.log(`https://schoolm8.app/oauth/authorize?`,",
+                                    "    `client_id={{oauth_client_id}}&`,",
+                                    "    `redirect_uri={{redirect_uri}}&`,",
+                                    "    `scope={{scope}}&`,",
+                                    "    `code_challenge=${challenge}&`,",
+                                    "    `code_challenge_method=S256&`,",
+                                    "    `state=random_state`);",
+                                    "console.log('');",
+                                    "console.log('Authorization code received (via browser redirect):');",
+                                    "console.log('Set: pm.environment.set(\"authorization_code\", \"code_value_here\");');"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "https://httpbin.org/anything",
+                            "protocol": "https",
+                            "host": ["httpbin", "org"],
+                            "path": ["anything"]
+                        }
+                    }
+                },
+                {
+                    "name": "Set Authorization Code (Manual)",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Run this AFTER you get authorization code from browser",
+                                    "// Replace YOUR_CODE_HERE with the actual code from redirect",
+                                    "",
+                                    "// Example: if redirected to http://localhost:3000/callback?code=abc123&state=xyz",
+                                    "// Run: pm.environment.set('authorization_code', 'abc123');",
+                                    "",
+                                    "console.log('Authorization Code set via manual script');",
+                                    "console.log('Navigate to Authorization URL first');",
+                                    "console.log('Get code from redirect URL');",
+                                    "console.log('Then set: pm.environment.set(\"authorization_code\", \"code_value\");')"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "https://httpbin.org/anything",
+                            "protocol": "https",
+                            "host": ["httpbin", "org"],
+                            "path": ["anything"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. OAuth Token Exchange",
+            "item": [
+                {
+                    "name": "Get Access Token (Private Key JWT)",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Pre-Request Script: Generate client_assertion JWT",
+                                    "const crypto = require('crypto');",
+                                    "",
+                                    "// Get environment variables",
+                                    "const privateKey = pm.environment.get('oauth_private_key');",
+                                    "const clientId = pm.environment.get('oauth_client_id');",
+                                    "const tokenEndpoint = pm.environment.get('oauth_token_endpoint');",
+                                    "",
+                                    "// Validation",
+                                    "if (!privateKey) {",
+                                    "    throw new Error('Missing oauth_private_key in environment');",
+                                    "}",
+                                    "if (!clientId) {",
+                                    "    throw new Error('Missing oauth_client_id in environment');",
+                                    "}",
+                                    "if (!tokenEndpoint) {",
+                                    "    throw new Error('Missing oauth_token_endpoint in environment');",
+                                    "}",
+                                    "",
+                                    "// Build JWT Header",
+                                    "const header = {",
+                                    "    alg: 'RS256',",
+                                    "    typ: 'JWT'",
+                                    "};",
+                                    "",
+                                    "// Build JWT Payload",
+                                    "const now = Math.floor(Date.now() / 1000);",
+                                    "const payload = {",
+                                    "    iss: clientId,           // Issuer",
+                                    "    sub: clientId,           // Subject",
+                                    "    aud: tokenEndpoint,      // Audience",
+                                    "    exp: now + 300,          // Expires in 5 minutes",
+                                    "    iat: now,                // Issued at",
+                                    "    jti: crypto.randomBytes(16).toString('hex')  // Unique JWT ID",
+                                    "};",
+                                    "",
+                                    "// Helper: Base64URL encode",
+                                    "function base64urlEncode(obj) {",
+                                    "    return Buffer.from(JSON.stringify(obj))",
+                                    "        .toString('base64')",
+                                    "        .replace(/\\+/g, '-')",
+                                    "        .replace(/\\//g, '_')",
+                                    "        .replace(/=/g, '');",
+                                    "}",
+                                    "",
+                                    "// Encode header and payload",
+                                    "const headerEncoded = base64urlEncode(header);",
+                                    "const payloadEncoded = base64urlEncode(payload);",
+                                    "",
+                                    "// Create signature",
+                                    "const message = headerEncoded + '.' + payloadEncoded;",
+                                    "const signature = crypto.createSign('RSA-SHA256')",
+                                    "    .update(message)",
+                                    "    .sign(privateKey, 'base64')",
+                                    "    .replace(/\\+/g, '-')",
+                                    "    .replace(/\\//g, '_')",
+                                    "    .replace(/=/g, '');",
+                                    "",
+                                    "// Combine into final JWT",
+                                    "const clientAssertion = message + '.' + signature;",
+                                    "",
+                                    "// Store for use in request",
+                                    "pm.environment.set('client_assertion', clientAssertion);",
+                                    "",
+                                    "console.log('✓ Generated client_assertion');",
+                                    "console.log('  Assertion (first 50 chars):', clientAssertion.substring(0, 50) + '...');",
+                                    "console.log('  Expires in:', now + 300 - Date.now() / 1000, 'seconds');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has access_token', function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('access_token');",
+                                    "    pm.expect(jsonData).to.have.property('token_type');",
+                                    "    pm.expect(jsonData.token_type).to.equal('Bearer');",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.environment.set('access_token', jsonData.access_token);",
+                                    "    pm.environment.set('refresh_token', jsonData.refresh_token);",
+                                    "    ",
+                                    "    console.log('✓ Access token obtained');",
+                                    "    console.log('  Token (first 50 chars):', jsonData.access_token.substring(0, 50) + '...');",
+                                    "    console.log('  Expires in:', jsonData.expires_in, 'seconds');",
+                                    "    console.log('  Scopes:', jsonData.scope);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "authorization_code"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{oauth_client_id}}"
+                                },
+                                {
+                                    "key": "client_assertion",
+                                    "value": "{{client_assertion}}"
+                                },
+                                {
+                                    "key": "client_assertion_type",
+                                    "value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                },
+                                {
+                                    "key": "code",
+                                    "value": "{{authorization_code}}"
+                                },
+                                {
+                                    "key": "redirect_uri",
+                                    "value": "{{redirect_uri}}"
+                                },
+                                {
+                                    "key": "code_verifier",
+                                    "value": "{{code_verifier}}"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{oauth_token_endpoint}}",
+                            "host": ["{{oauth_token_endpoint}}"]
+                        }
+                    }
+                },
+                {
+                    "name": "Refresh Access Token",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Generate new client_assertion for refresh request",
+                                    "const crypto = require('crypto');",
+                                    "",
+                                    "const privateKey = pm.environment.get('oauth_private_key');",
+                                    "const clientId = pm.environment.get('oauth_client_id');",
+                                    "const tokenEndpoint = pm.environment.get('oauth_token_endpoint');",
+                                    "",
+                                    "const header = { alg: 'RS256', typ: 'JWT' };",
+                                    "const now = Math.floor(Date.now() / 1000);",
+                                    "const payload = {",
+                                    "    iss: clientId,",
+                                    "    sub: clientId,",
+                                    "    aud: tokenEndpoint,",
+                                    "    exp: now + 300,",
+                                    "    iat: now,",
+                                    "    jti: crypto.randomBytes(16).toString('hex')",
+                                    "};",
+                                    "",
+                                    "function base64urlEncode(obj) {",
+                                    "    return Buffer.from(JSON.stringify(obj))",
+                                    "        .toString('base64')",
+                                    "        .replace(/\\+/g, '-')",
+                                    "        .replace(/\\//g, '_')",
+                                    "        .replace(/=/g, '');",
+                                    "}",
+                                    "",
+                                    "const headerEncoded = base64urlEncode(header);",
+                                    "const payloadEncoded = base64urlEncode(payload);",
+                                    "const message = headerEncoded + '.' + payloadEncoded;",
+                                    "const signature = crypto.createSign('RSA-SHA256')",
+                                    "    .update(message)",
+                                    "    .sign(privateKey, 'base64')",
+                                    "    .replace(/\\+/g, '-')",
+                                    "    .replace(/\\//g, '_')",
+                                    "    .replace(/=/g, '');",
+                                    "",
+                                    "const clientAssertion = message + '.' + signature;",
+                                    "pm.environment.set('client_assertion', clientAssertion);",
+                                    "console.log('✓ Generated new client_assertion for refresh');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.environment.set('access_token', jsonData.access_token);",
+                                    "    pm.environment.set('refresh_token', jsonData.refresh_token);",
+                                    "    console.log('✓ New access token obtained via refresh');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "grant_type",
+                                    "value": "refresh_token"
+                                },
+                                {
+                                    "key": "client_id",
+                                    "value": "{{oauth_client_id}}"
+                                },
+                                {
+                                    "key": "client_assertion",
+                                    "value": "{{client_assertion}}"
+                                },
+                                {
+                                    "key": "client_assertion_type",
+                                    "value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                },
+                                {
+                                    "key": "refresh_token",
+                                    "value": "{{refresh_token}}"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{oauth_token_endpoint}}",
+                            "host": ["{{oauth_token_endpoint}}"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. Sample API Requests",
+            "item": [
+                {
+                    "name": "Get Tasks",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{api_endpoint}}/api/tasks",
+                            "host": ["{{api_endpoint}}"],
+                            "path": ["api", "tasks"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Notes",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{api_endpoint}}/api/notes",
+                            "host": ["{{api_endpoint}}"],
+                            "path": ["api", "notes"]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Files",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{api_endpoint}}/api/files",
+                            "host": ["{{api_endpoint}}"],
+                            "path": ["api", "files"]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "api_endpoint",
+            "value": "https://schoolm8.app",
+            "type": "string"
+        },
+        {
+            "key": "oauth_client_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "oauth_token_endpoint",
+            "value": "https://schoolm8.app/api/oauth/token",
+            "type": "string"
+        },
+        {
+            "key": "oauth_private_key",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "redirect_uri",
+            "value": "http://localhost:3000/callback",
+            "type": "string"
+        },
+        {
+            "key": "scope",
+            "value": "api/tasks/* api/notes/* api/files/*",
+            "type": "string"
+        },
+        {
+            "key": "code_verifier",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "code_challenge",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "authorization_code",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "client_assertion",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
