@@ -583,6 +583,75 @@ export const getClass = async (userId: string, classId: string) => {
     return classDoc.exists ? classDoc.data() : null;
 };
 
+// AI tools
+export const getAIRef = (userId: string) => db.collection("ai").doc(userId);
+
+export const getAIConfig = (userId: string) =>
+    getAIRef(userId)
+        .get()
+        .then((doc) => (doc.exists ? doc.data()!["config"] : null));
+
+export const saveAIConfig = (userId: string, config: any) =>
+    getAIRef(userId).set({ config }, { merge: true });
+
+export const getAIAgentsRef = (userId: string) => getAIRef(userId).collection("agents");
+
+export const getAIAgents = async (userId: string) => {
+    const snapshot = await getAIAgentsRef(userId).get();
+    const agents: Record<string, any> = {};
+    snapshot.forEach((doc) => {
+        agents[doc.id] = doc.data();
+    });
+    return agents;
+};
+
+export const saveAIAgent = async (
+    userId: string,
+    agentId: string,
+    agentData: Record<string, any>,
+) => {
+    return getAIAgentsRef(userId).doc(agentId).set(removeUndefinedDeep(agentData), { merge: true });
+};
+
+export const getAIAgent = async (userId: string, agentId: string) => {
+    const doc = await getAIAgentsRef(userId).doc(agentId).get();
+    return doc.exists ? doc.data() : null;
+};
+
+export const getAIProfilesRef = (userId: string) => getAIRef(userId).collection("profiles");
+
+export const getAIProfiles = async (userId: string) => {
+    const snapshot = await getAIProfilesRef(userId).get();
+    const profiles: Record<string, any> = {};
+    snapshot.forEach((doc) => {
+        profiles[doc.id] = doc.data();
+    });
+    return profiles;
+};
+
+export const getAIProfile = async (userId: string, profileId: string) => {
+    const doc = await getAIProfilesRef(userId).doc(profileId).get();
+    return doc.exists ? doc.data() : null;
+};
+
+export const saveAIProfile = async (
+    userId: string,
+    profileId: string,
+    profileData: Record<string, any>,
+) => {
+    return getAIProfilesRef(userId)
+        .doc(profileId)
+        .set(removeUndefinedDeep(profileData), { merge: true });
+};
+
+export const deleteAIProfile = async (userId: string, profileId: string) => {
+    return getAIProfilesRef(userId).doc(profileId).delete();
+};
+
+export const deleteAIAgent = async (userId: string, agentId: string) => {
+    return getAIAgentsRef(userId).doc(agentId).delete();
+};
+
 export const schema = {
     lms: {
         getCoursesRef: getLMSCoursesRef,
@@ -640,5 +709,20 @@ export const schema = {
         updateClassDetails,
         deleteClass,
         getClass,
+    },
+    ai: {
+        getRef: getAIRef,
+        getConfig: getAIConfig,
+        saveConfig: saveAIConfig,
+        getAgentsRef: getAIAgentsRef,
+        getAgents: getAIAgents,
+        saveAgent: saveAIAgent,
+        getAgent: getAIAgent,
+        deleteAgent: deleteAIAgent,
+        getProfilesRef: getAIProfilesRef,
+        getProfiles: getAIProfiles,
+        getProfile: getAIProfile,
+        saveProfile: saveAIProfile,
+        deleteProfile: deleteAIProfile,
     },
 };

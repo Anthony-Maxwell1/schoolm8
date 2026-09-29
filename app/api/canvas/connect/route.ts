@@ -16,7 +16,7 @@ export async function POST(req: Request) {
         }
 
         // Verify Canvas token
-        const verifyRes = await fetch(`${baseUrl}/api/v1/users/self`, {
+        const verifyRes = await fetch(`https://${baseUrl}/api/v1/users/self`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

@@ -258,7 +258,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
     // state and are excluded. `term` lets us label/verify the year.
     const rawCourses: CanvasCourse[] =
         (await fetchAllPages(
-            `${canvasBaseUrl}/api/v1/courses?enrollment_state=active&include[]=course_image&include[]=term&per_page=100`,
+            `https://${canvasBaseUrl}/api/v1/courses?enrollment_state=active&include[]=course_image&include[]=term&per_page=100`,
         )) || [];
 
     // Canvas returns placeholder objects for courses restricted by date (typically
@@ -276,7 +276,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
     const assignmentPromises: Promise<any>[] = [];
 
     for (const course of courses) {
-        let url = `${canvasBaseUrl}/api/v1/courses/${course.id}/assignments?include[]=submission`;
+        let url = `https://${canvasBaseUrl}/api/v1/courses/${course.id}/assignments?include[]=submission`;
         const promise = fetchAllPages(url).then((assignments) => ({ course, assignments }));
         assignmentPromises.push(promise);
     }
@@ -290,7 +290,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
     const contextCodes = courses.map((c) => `course_${c.id}`).join("&context_codes[]=");
 
     const allAnnouncements = await fetchAllPages(
-        `${canvasBaseUrl}/api/v1/announcements?context_codes[]=${contextCodes}&start_date=2000-01-01T00:00:00Z&end_date=2100-01-01T00:00:00Z&per_page=100`,
+        `https://${canvasBaseUrl}/api/v1/announcements?context_codes[]=${contextCodes}&start_date=2000-01-01T00:00:00Z&end_date=2100-01-01T00:00:00Z&per_page=100`,
     );
 
     /* =========================
@@ -392,7 +392,7 @@ async function syncCanvasForUser(userId: string): Promise<CanvasSyncResult> {
         coursesMap[c.id.toString()] = {
             id: c.id.toString(),
             name: c.name,
-            url: `${canvasBaseUrl}/courses/${c.id}`,
+            url: `https://${canvasBaseUrl}/courses/${c.id}`,
             updatedAt: new Date().toISOString(),
             image_download_url: c.image_download_url || null,
             term: (c as any).term?.name ?? null,
