@@ -30,7 +30,7 @@ import {
 // Event type → badge variant
 // ─────────────────────────────────────────────────────────────────────────────
 
-type EventType = StandardEvent["type"];
+type EventType = NonNullable<StandardEvent["extra"]>["type"];
 
 const EVENT_BADGE: Record<
     EventType,
@@ -54,8 +54,7 @@ function EventCard({
     showDate?: boolean;
 }) {
     console.log(event);
-    console.log("Event type:", event.type); // Debug log to check event type
-    const badge = EVENT_BADGE[event.type] ?? EVENT_BADGE.other;
+    const badge = EVENT_BADGE[event.extra?.type ?? "other"] ?? EVENT_BADGE.other;
 
     return (
         <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] p-4 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow-md)]">
@@ -97,17 +96,17 @@ function EventCard({
                     </span>
                 </div>
 
-                {event.room && (
+                {event.extra?.room && (
                     <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-tertiary)]" />
-                        <span>{event.room}</span>
+                        <span>{event.extra.room}</span>
                     </div>
                 )}
 
-                {event.teacher && (
+                {event.extra?.teacher && (
                     <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                         <Users className="h-3.5 w-3.5 shrink-0 text-[var(--color-text-tertiary)]" />
-                        <span>{event.teacher}</span>
+                        <span>{event.extra.teacher}</span>
                     </div>
                 )}
 
@@ -252,7 +251,7 @@ export default function TimetablePage() {
 
     const applyFilters = (events: (StandardEvent & { date: string })[]) =>
         events.filter((e) => {
-            const matchesType = filterType === "all" || e.type === filterType;
+            const matchesType = filterType === "all" || e.extra?.type === filterType;
             const q = searchQuery.toLowerCase();
             const matchesSearch =
                 q === "" ||

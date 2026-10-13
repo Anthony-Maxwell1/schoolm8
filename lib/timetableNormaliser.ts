@@ -1,60 +1,67 @@
 // /lib/timetableNormaliser.ts
 
+import { calendarDay, calendarEvent, ISODateString } from "./schedule/types";
+import z from "zod";
+
 /* =========================================================
    TYPES
 ========================================================= */
 
-export type StandardTimetable = {
-    source: "edumate" | "ical";
-    date: string; // YYYY-MM-DD
-    label?: string;
-    timezone: string;
-    events: StandardEvent[];
-};
+const timetableExtra = z
+    .object({
+        type: z.enum(["class", "event", "break", "other"]).optional(),
+        period: z.string().optional(),
+        room: z.string().optional(),
+        teacher: z.string().optional(),
+        links: z
+            .array(
+                z.object({
+                    label: z.string(),
+                    url: z.string(),
+                }),
+            )
+            .optional(),
+        status: z.string().optional(),
+        raw: z.unknown().optional(),
+    })
+    .catchall(z.unknown());
 
-export type StandardWeek = {
-    days: StandardTimetable[];
-};
+export const StandardEvent = calendarEvent.extend({
+    extra: timetableExtra.optional(),
+});
 
-export type StandardEvent = {
-    id?: string;
-    type: "class" | "event" | "break" | "other";
-    title: string;
+export const StandardTimetable = calendarDay.extend({
+    date: ISODateString,
+    source: z.enum(["edumate", "ical"]),
+    events: z.array(StandardEvent),
+});
 
-    start: string; // ISO string
-    end: string; // ISO string
+export type StandardTimetable = z.infer<typeof StandardTimetable>;
+export type StandardEvent = z.infer<typeof StandardEvent>;
 
-    period?: string;
-    room?: string;
-    teacher?: string;
+export const StandardWeek = z.object({
+    days: z.array(StandardTimetable),
+});
 
-    description?: string;
-
-    links?: {
-        label: string;
-        url: string;
-    }[];
-
-    raw?: any; // original provider payload
-};
+export type StandardWeek = z.infer<typeof StandardWeek>;
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-export function isValidISODate(input: string) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(input);
+export function isValidISODate(input: string): boolean {
+    return ISODateString.safeParse(input).success;
 }
 
-export function stripHtml(input?: string) {
+export function stripHtml(input?: string): string {
     return input?.replace(/<[^>]*>/g, "") ?? "";
 }
 
-export function toISO(dateStr: string) {
+export function toISO(dateStr: string): string {
     return new Date(dateStr).toISOString();
 }
 
-export function inferEventType(summary?: string): StandardEvent["type"] {
+export function inferEventType(summary?: string): z.infer<typeof timetableExtra>["type"] {
     if (!summary) return "other";
 
     const s = summary.toLowerCase();
@@ -66,7 +73,7 @@ export function inferEventType(summary?: string): StandardEvent["type"] {
     return "event";
 }
 
-export function getWeekDates(startDate: string) {
+export function getWeekDates(startDate: string): string[] {
     const base = new Date(startDate);
     const dates: string[] = [];
 
@@ -95,23 +102,20 @@ export function normaliseEdumateDay(edumate: any): StandardTimetable {
         timezone,
         events: (edumate.events || []).map((event: any, index: number) => ({
             id: `${edumate.SQLDate}-${index}`,
-            type: event.eventType,
-
             title: event.activityName,
-
             start: toISO(event.startDateTime.date),
             end: toISO(event.endDateTime.date),
-
-            period: event.period,
-            room: event.room?.replace(/[()]/g, "").trim(),
             description: event.displayTime,
-
-            links: (event.links || []).map((l: any) => ({
-                label: stripHtml(l.text),
-                url: l.href,
-            })),
-
-            raw: event,
+            extra: {
+                type: event.eventType,
+                period: event.period,
+                room: event.room?.replace(/[()]/g, "").trim(),
+                links: (event.links || []).map((l: any) => ({
+                    label: stripHtml(l.text),
+                    url: l.href,
+                })),
+                raw: event,
+            },
         })),
     };
 }
@@ -151,20 +155,17 @@ export function normaliseICalDay(
         timezone,
         events: parsedEvents.map((event: any) => ({
             id: event.uid,
-            type: inferEventType(event.summary),
-
             title: event.summary,
-
             start: new Date(event.start).toISOString(),
             end: new Date(event.end).toISOString(),
-
-            room: event.location,
-            teacher: event.organizer,
             description: event.description,
-
-            links: event.url ? [{ label: "Open event", url: event.url }] : [],
-
-            raw: event,
+            extra: {
+                type: inferEventType(event.summary),
+                room: event.location,
+                teacher: event.organizer,
+                links: event.url ? [{ label: "Open event", url: event.url }] : [],
+                raw: event,
+            },
         })),
     };
 }

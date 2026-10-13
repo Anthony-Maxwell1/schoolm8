@@ -9,7 +9,7 @@ import {
     UserCircle,
     ListTodo,
     ChevronRight,
-    Sparkles,
+    CalendarRange,
 } from "lucide-react";
 
 const LINKS = [
@@ -25,6 +25,12 @@ const LINKS = [
     //     description: "Add your Gemini key, pick a model, manage AI features.",
     //     icon: Sparkles,
     // },
+    {
+        href: "/settings/schedule",
+        label: "Schedule",
+        description: "Configure timetable layers and schedule processing.",
+        icon: CalendarRange,
+    },
     {
         href: "/settings/appearance",
         label: "Themes & Styles",
@@ -62,7 +68,8 @@ export default function SettingsPage() {
                     Settings
                 </h1>
                 <Text variant="bodyLg" className="mt-3 text-[var(--color-text-secondary)]">
-                    Manage your account, integrations, and <em>personalise</em> every detail of your portal.
+                    Manage your account, integrations, and <em>personalise</em> every detail of your
+                    portal.
                 </Text>
 
                 <Divider className="my-10" />
@@ -78,8 +85,12 @@ export default function SettingsPage() {
                                 <Icon className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium text-[var(--color-text-primary)]">{label}</p>
-                                <p className="text-sm text-[var(--color-text-secondary)]">{description}</p>
+                                <p className="font-medium text-[var(--color-text-primary)]">
+                                    {label}
+                                </p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">
+                                    {description}
+                                </p>
                             </div>
                             <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-disabled)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--color-text-tertiary)]" />
                         </Link>

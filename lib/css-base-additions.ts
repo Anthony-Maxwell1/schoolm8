@@ -1,12 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ADD THIS BLOCK inside defaultCss, at the same level as "tiles", under
-// components: { tiles: {...}, base: { ... } }
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const baseCss = {
     // ── Buttons ────────────────────────────────────────────────────────────────
     button: {
-        // Shared base — applied to every button variant
         root: {
             "ROOT-STYLE":
                 "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all select-none disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2",
@@ -57,6 +51,10 @@ export const baseCss = {
         },
         xl: {
             "ROOT-STYLE": "h-13 px-7 text-base rounded-[var(--radius-lg)]",
+        },
+
+        "w-full": {
+            "ROOT-STYLE": "h-10 px-4 text-sm rounded-[var(--radius-md)] w-full",
         },
 
         // ── Icon-only button

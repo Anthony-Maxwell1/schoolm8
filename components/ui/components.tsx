@@ -53,7 +53,7 @@ export type ButtonVariant =
     | "success"
     | "link";
 
-export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "w-full";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
@@ -84,9 +84,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         const b = css.components?.base?.button ?? {};
 
         const sizeKey = iconOnly
-            ? size === "sm"
-                ? "iconSm"
-                : size === "lg"
+            ? size === "w-full"
+                ? "w-full"
+                : size === "sm"
+                  ? "iconSm"
+                  : size === "lg"
                     ? "iconLg"
                     : "iconMd"
             : size;
@@ -233,10 +235,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                     <select ref={ref} id={id} className={cn(rs(sel.field), className)} {...props}>
                         {options
                             ? options.map((o) => (
-                                <option key={o.value} value={o.value} disabled={o.disabled}>
-                                    {o.label}
-                                </option>
-                            ))
+                                  <option key={o.value} value={o.value} disabled={o.disabled}>
+                                      {o.label}
+                                  </option>
+                              ))
                             : children}
                     </select>
                     {/* Chevron icon */}
@@ -801,10 +803,10 @@ export function Skeleton({
         variant === "text"
             ? "text"
             : variant === "avatar"
-                ? "avatar"
-                : variant === "button"
-                    ? "button"
-                    : "root";
+              ? "avatar"
+              : variant === "button"
+                ? "button"
+                : "root";
 
     if (variant === "text" && lines > 1) {
         return (
@@ -1022,7 +1024,7 @@ interface TabsContextValue {
 
 const TabsContext = createContext<TabsContextValue>({
     active: "",
-    setActive: () => { },
+    setActive: () => {},
     variant: "pill",
 });
 
@@ -1286,8 +1288,8 @@ export function DropdownMenu({ trigger, items, align = "left", className }: Drop
     }, []);
 
     return (
-        <div ref={ref} className="relative inline-flex">
-            <div onClick={() => setOpen((p) => !p)}>{trigger}</div>
+        <div ref={ref} className="relative inline-flex w-full">
+            <div onClick={() => setOpen((p) => !p)} className="w-full">{trigger}</div>
             {open && (
                 <div
                     className={cn(
@@ -1359,7 +1361,7 @@ export function Modal({
     size = "md",
     children,
     footer,
-    zIndex = 400
+    zIndex = 400,
 }: ModalProps) {
     const { css } = useCss();
     const m = css.components?.base?.modal ?? {};
@@ -1526,8 +1528,8 @@ export function Stat({ label, value, delta, icon, className }: StatProps) {
         delta?.direction === "up"
             ? "positive-style"
             : delta?.direction === "down"
-                ? "negative-style"
-                : "neutral-style";
+              ? "negative-style"
+              : "neutral-style";
 
     return (
         <div className={cn(rs(s.root), className)}>

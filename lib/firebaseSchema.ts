@@ -8,6 +8,7 @@
  * lms/{userId}/announcements/{announcementId}
  * timetable/{userId}/config
  * timetable/{userId}/days/{date}
+ * users/{userId}/schedules/{scheduleId}
  */
 
 import { DocumentData, arrayUnion } from "firebase/firestore";
@@ -267,6 +268,32 @@ export const getTimetableConfigRef = (userId: string) =>
  */
 export const getTimetableDaysRef = (userId: string) =>
     db.collection("timetable").doc(userId).collection("days");
+
+/**
+ * Schedule layer storage. A schedule stores its layer definitions, translated
+ * layer data, and the aggregated presentation-ready calendar data.
+ */
+export const getSchedulesRef = (userId: string) =>
+    db.collection("users").doc(userId).collection("schedules");
+
+export const getScheduleRef = (userId: string, scheduleId: string) =>
+    getSchedulesRef(userId).doc(scheduleId);
+
+export const getScheduleLayers = async (userId: string, scheduleId: string) => {
+    const doc = await getScheduleRef(userId, scheduleId).get();
+    return doc.exists ? doc.data() : null;
+};
+
+export const saveScheduleLayers = async (
+    userId: string,
+    scheduleId: string,
+    scheduleData: Record<string, any>,
+) => {
+    return getScheduleRef(userId, scheduleId).set(
+        { ...scheduleData, id: scheduleId, updated: Date.now() },
+        { merge: true },
+    );
+};
 
 /**
  * Save timetable configuration
@@ -682,6 +709,12 @@ export const schema = {
         getDays: getTimetableDays,
         cleanupOldCache: cleanupOldTimetableCache,
         deleteCache: deleteTimetableCache,
+    },
+    schedules: {
+        getRef: getSchedulesRef,
+        getScheduleRef,
+        get: getScheduleLayers,
+        save: saveScheduleLayers,
     },
     themes: {
         getTheme: GetTheme,

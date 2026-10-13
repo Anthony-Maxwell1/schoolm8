@@ -19,5 +19,5 @@ export default async function fetch(...args: Parameters<typeof globalThis.fetch>
         throw new Error(`Fetch error: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    return response;
 }
