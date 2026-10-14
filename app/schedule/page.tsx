@@ -2,6 +2,7 @@
 
 import { ScheduleXCalendar, useNextCalendarApp } from "@schedule-x/react";
 import {
+    CalendarEvent,
     CalendarType,
     createViewDay,
     createViewMonthAgenda,
@@ -68,6 +69,27 @@ function eventCount(schedule: Schedule | { data: Day[] }): number {
     return schedule.data.reduce((count, day) => count + day.events.length, 0);
 }
 
+function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: CalendarEvent }) {
+    return (
+        <div className="bg-white opacity-100 h-full">
+            <div
+                style={{
+                    backgroundColor: `var(--sx-color-layer-${calendarEvent.calendarId}-container)`,
+                    color: `var(--sx-color-on-layer-${calendarEvent.calendarId}-container)`,
+                    borderColor: `var(--sx-color-layer-${calendarEvent.calendarId})`,
+                }}
+                className={`flex flex-col gap-1 p-2 border-l-3 h-full`}
+            >
+                <div className="text-sm font-medium">{calendarEvent.title}</div>
+                <div className="text-xs">
+                    {calendarEvent.start.day}/{calendarEvent.start.month}/{calendarEvent.start.year}{" "}
+                    - {calendarEvent.end.day}/{calendarEvent.end.month}/{calendarEvent.end.year}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function CalendarView({
     schedule,
     onEventClick,
@@ -113,6 +135,9 @@ function CalendarView({
         ],
         calendars: calendars as Record<string, CalendarType>,
         events,
+        // weekOptions: {
+        //     eventOverlap: false,
+        // },
         plugins: [
             eventsService,
             createDragAndDropPlugin(15),
@@ -123,7 +148,14 @@ function CalendarView({
             onEventClick: (event) => onEventClick(String(event.id)),
         },
     });
-    return <ScheduleXCalendar calendarApp={calendar} />;
+    return (
+        <ScheduleXCalendar
+            calendarApp={calendar}
+            customComponents={{
+                timeGridEvent: CustomTimeGridEvent,
+            }}
+        />
+    );
 }
 
 export default function CalendarApp() {
@@ -452,7 +484,7 @@ export default function CalendarApp() {
                 )}
             </aside>
             <main className="min-w-0 flex-1">
-                <div className="schedule-calendar h-full overflow-hidden bg-white [&_.sx-react-calendar-wrapper]:h-full">
+                <div className="h-full overflow-hidden bg-white [&_.sx-react-calendar-wrapper]:h-full">
                     {schedule ? (
                         <CalendarView
                             key={`${schedule.id}-${schedule.updated ?? 0}`}
@@ -474,37 +506,9 @@ export default function CalendarApp() {
                 </div>
             </main>
             <style jsx global>{`
-                .schedule-calendar .sx-react-calendar-wrapper {
+                .sx__calendar {
                     border-radius: 0 !important;
                     border: 0 !important;
-                    box-shadow: none !important;
-                }
-                .schedule-calendar .sx__calendar-header {
-                    min-height: 3.25rem;
-                    padding: 0.5rem 0.75rem;
-                    border-bottom: 1px solid var(--color-border, #e2e8f0);
-                }
-                .schedule-calendar .sx__calendar-header button {
-                    min-height: 2rem;
-                    border-radius: 0.375rem;
-                    font-size: 0.8125rem;
-                }
-                .schedule-calendar .sx__week-grid__date-number {
-                    font-size: 0.75rem;
-                }
-                .schedule-calendar .sx__event {
-                    border-radius: 0.25rem;
-                    box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
-                }
-                @media (max-width: 900px) {
-                    .schedule-calendar .sx__calendar-header {
-                        gap: 0.25rem;
-                        padding: 0.375rem;
-                    }
-                    .schedule-calendar .sx__calendar-header button {
-                        padding-inline: 0.5rem;
-                        font-size: 0.75rem;
-                    }
                 }
             `}</style>
             {showLayerForm && (
@@ -825,17 +829,18 @@ function ScheduleConfigModal({
                                     onClick={() =>
                                         void onRename(item.id, names[item.id] ?? item.name)
                                     }
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
+                                    size="md"
+                                    leftIcon={
+                                        <Pencil className="h-4 w-4 text-[var(--color-on-secondary)] mx-3" />
+                                    }
+                                ></Button>
                                 <Button
-                                    variant="outline"
+                                    variant="danger"
                                     iconOnly
                                     aria-label={`Delete ${item.name}`}
                                     onClick={() => void onDelete(item.id)}
-                                >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                </Button>
+                                    leftIcon={<Trash2 className="h-4 w-4 mx-3" />}
+                                ></Button>
                             </div>
                             <p className="mt-2 text-xs text-slate-500">
                                 {item.eventCount ?? 0} events · {item.layerCount ?? 0} layers
