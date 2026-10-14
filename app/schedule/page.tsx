@@ -13,13 +13,14 @@ import {
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import "temporal-polyfill/global";
 import "@schedule-x/theme-default/dist/index.css";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/authContext";
 import { Button, DropdownMenu, Modal, Text } from "@/components/ui/components";
 import { createDragAndDropPlugin } from "@/lib/calendar/drag-and-drop";
 import { createResizePlugin } from "@/lib/calendar/resize";
 import { ChevronDown, ChevronLeft, ChevronRight, Cog, Lock, Pencil, Trash2 } from "lucide-react";
 import { createEventModalPlugin } from "@schedule-x/event-modal";
+import { createPortal } from "react-dom";
 
 type Extra = Record<string, unknown>;
 type Event = {
@@ -69,23 +70,103 @@ function eventCount(schedule: Schedule | { data: Day[] }): number {
     return schedule.data.reduce((count, day) => count + day.events.length, 0);
 }
 
-function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: CalendarEvent }) {
+function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: any }) {
+    const [isHovered, setIsHovered] = useState(false);
+    const [coords, setCoords] = useState<{ top: number; left: number; height: number } | null>(
+        null,
+    );
+    const triggerRef = useRef<HTMLDivElement>(null);
+
+    const eventStyles = {
+        backgroundColor: `var(--sx-color-layer-${calendarEvent.calendarId}-container)`,
+        color: `var(--sx-color-on-layer-${calendarEvent.calendarId}-container)`,
+        borderColor: `var(--sx-color-layer-${calendarEvent.calendarId})`,
+    };
+
+    const formattedDate = `${calendarEvent.start.day}/${calendarEvent.start.month}/${calendarEvent.start.year} - ${calendarEvent.end.day}/${calendarEvent.end.month}/${calendarEvent.end.year}`;
+
+    const [isMouseDown, setIsMouseDown] = useState(false);
+
+    useEffect(() => {
+        const handleMouseDown = () => {
+            setIsMouseDown(true);
+            setIsHovered(false);
+        };
+        const handleMouseUp = () => setIsMouseDown(false);
+
+        window.addEventListener("mousedown", handleMouseDown, { capture: true });
+        window.addEventListener("mouseup", handleMouseUp, { capture: true });
+
+        return () => {
+            window.removeEventListener("mousedown", handleMouseDown, { capture: true });
+            window.removeEventListener("mouseup", handleMouseUp, { capture: true });
+        };
+    }, []);
+
+    // 1. Accept the native React MouseEvent here
+    const handleMouseEnter = (e: React.MouseEvent) => {
+        // 2. e.buttons === 1 means the primary (left) mouse button is physically held down right now
+        if (isMouseDown || e.buttons === 1) {
+            setIsHovered(false);
+            return;
+        }
+
+        if (triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setCoords({
+                top: rect.top,
+                left: rect.left,
+                height: rect.height,
+            });
+        }
+        setIsHovered(true);
+    };
+
     return (
-        <div className="bg-white opacity-100 h-full">
+        <div
+            ref={triggerRef}
+            className="relative h-full w-full bg-white opacity-100"
+            onMouseEnter={handleMouseEnter} // Pass the mouse event up
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {/* 1. Main visual element */}
             <div
-                style={{
-                    backgroundColor: `var(--sx-color-layer-${calendarEvent.calendarId}-container)`,
-                    color: `var(--sx-color-on-layer-${calendarEvent.calendarId}-container)`,
-                    borderColor: `var(--sx-color-layer-${calendarEvent.calendarId})`,
-                }}
-                className={`flex flex-col gap-1 p-2 border-l-3 h-full`}
+                style={eventStyles}
+                className="flex h-full flex-col gap-1 overflow-visible border-l-3 p-2"
             >
                 <div className="text-sm font-medium">{calendarEvent.title}</div>
-                <div className="text-xs">
-                    {calendarEvent.start.day}/{calendarEvent.start.month}/{calendarEvent.start.year}{" "}
-                    - {calendarEvent.end.day}/{calendarEvent.end.month}/{calendarEvent.end.year}
-                </div>
+                <div className="text-xs">{formattedDate}</div>
             </div>
+
+            {!isMouseDown &&
+                isHovered &&
+                coords &&
+                createPortal(
+                    <div
+                        className="bg-white opacity-100 min-w-80 pointer-events-none"
+                        style={{
+                            position: "fixed",
+                            top: `${coords.top}px`,
+                            left: `${coords.left}px`,
+                            minHeight: `${coords.height}px`,
+                            zIndex: 99999,
+                        }}
+                    >
+                        <div
+                            style={{
+                                ...eventStyles,
+                                minHeight: `${coords.height}px`,
+                            }}
+                            className="min-w-80 flex flex-col gap-1 rounded-r border-l-3 p-2 shadow-2xl pointer-events-none duration-150 animate-fade-in"
+                        >
+                            <div className="break-words text-sm font-medium whitespace-normal">
+                                {calendarEvent.title}
+                            </div>
+                            <div className="text-xs">{formattedDate}</div>
+                        </div>
+                    </div>,
+                    document.body,
+                )}
         </div>
     );
 }
@@ -509,6 +590,12 @@ export default function CalendarApp() {
                 .sx__calendar {
                     border-radius: 0 !important;
                     border: 0 !important;
+                }
+                // .sx__time-grid-event {
+                //     position: relative !important;
+                // }
+                :root {
+                    --sx-z-index-week-header: 10 !important;
                 }
             `}</style>
             {showLayerForm && (

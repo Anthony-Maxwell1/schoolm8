@@ -31,11 +31,12 @@ type LayoutContextType = {
 const LayoutContext = createContext<LayoutContextType | null>(null);
 
 const getGridSize = (): GridSize => {
-    if (typeof window === "undefined") return { cols: 20, rows: 10 };
-    const w = window.innerWidth;
-    if (w > 1200) return { cols: 20, rows: 10 };
-    if (w > 800) return { cols: 10, rows: 5 };
-    return { cols: 5, rows: 10 };
+    // if (typeof window === "undefined") return { cols: 20, rows: 10 };
+    // const w = window.innerWidth;
+    // if (w > 1200) return { cols: 20, rows: 10 };
+    // if (w > 800) return { cols: 10, rows: 5 };
+    // return { cols: 5, rows: 10 };
+    return { cols: 20, rows: 10 };
 };
 
 export const LayoutProvider = ({ children }: { children: React.ReactNode }) => {
