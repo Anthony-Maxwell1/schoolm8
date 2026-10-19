@@ -2,7 +2,6 @@
 
 import { ScheduleXCalendar, useNextCalendarApp } from "@schedule-x/react";
 import {
-    CalendarEvent,
     CalendarType,
     createViewDay,
     createViewMonthAgenda,
@@ -18,8 +17,16 @@ import { useAuth } from "@/context/authContext";
 import { Button, DropdownMenu, Modal, Text } from "@/components/ui/components";
 import { createDragAndDropPlugin } from "@/lib/calendar/drag-and-drop";
 import { createResizePlugin } from "@/lib/calendar/resize";
-import { ChevronDown, ChevronLeft, ChevronRight, Cog, Lock, Pencil, Trash2 } from "lucide-react";
-import { createEventModalPlugin } from "@schedule-x/event-modal";
+import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Cog,
+    Lock,
+    MousePointer2,
+    Pencil,
+    Trash2,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 
 type Extra = Record<string, unknown>;
@@ -44,6 +51,12 @@ type Layer = {
     source?: { name: string; source?: string };
 };
 type Schedule = { id: string; name: string; layers: Layer[]; data: Day[]; updated?: number };
+type CustomCalendarEvent = {
+    calendarId: string;
+    title: string;
+    start: { day: number; month: number; year: number };
+    end: { day: number; month: number; year: number };
+};
 
 const colors = ["#4f46e5", "#16a34a", "#db2777", "#ea580c", "#0891b2", "#7c3aed"];
 const inputClass =
@@ -70,11 +83,14 @@ function eventCount(schedule: Schedule | { data: Day[] }): number {
     return schedule.data.reduce((count, day) => count + day.events.length, 0);
 }
 
-function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: any }) {
+function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: CustomCalendarEvent }) {
     const [isHovered, setIsHovered] = useState(false);
-    const [coords, setCoords] = useState<{ top: number; left: number; height: number } | null>(
-        null,
-    );
+    const [coords, setCoords] = useState<{
+        top: number;
+        left: number;
+        height: number;
+        width: number;
+    } | null>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
 
     const eventStyles = {
@@ -86,6 +102,7 @@ function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: any }) {
     const formattedDate = `${calendarEvent.start.day}/${calendarEvent.start.month}/${calendarEvent.start.year} - ${calendarEvent.end.day}/${calendarEvent.end.month}/${calendarEvent.end.year}`;
 
     const [isMouseDown, setIsMouseDown] = useState(false);
+    const previewWidth = 320;
 
     useEffect(() => {
         const handleMouseDown = () => {
@@ -117,6 +134,7 @@ function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: any }) {
                 top: rect.top,
                 left: rect.left,
                 height: rect.height,
+                width: rect.width,
             });
         }
         setIsHovered(true);
@@ -125,16 +143,15 @@ function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: any }) {
     return (
         <div
             ref={triggerRef}
-            className="relative h-full w-full bg-white opacity-100"
+            className={`schedule-event group relative h-full w-full cursor-grab select-none bg-white opacity-100 transition-[filter,transform] duration-150 ease-out ${isMouseDown ? "cursor-grabbing" : "hover:brightness-[1.02]"}`}
             onMouseEnter={handleMouseEnter} // Pass the mouse event up
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* 1. Main visual element */}
             <div
                 style={eventStyles}
-                className="flex h-full flex-col gap-1 overflow-visible border-l-3 p-2"
+                className="schedule-event-card flex h-full flex-col gap-1 overflow-visible rounded-r border-l-3 p-2 shadow-sm transition-[box-shadow,transform] duration-150 ease-out group-hover:-translate-y-px group-hover:shadow-md"
             >
-                <div className="text-sm font-medium">{calendarEvent.title}</div>
+                <div className="text-sm font-medium leading-tight">{calendarEvent.title}</div>
                 <div className="text-xs">{formattedDate}</div>
             </div>
 
@@ -143,26 +160,45 @@ function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: any }) {
                 coords &&
                 createPortal(
                     <div
-                        className="bg-white opacity-100 min-w-80 pointer-events-none"
+                        className="schedule-event-preview min-h-50 min-w-80 overflow-clip rounded-lg bg-white opacity-100 shadow-xl ring-1 ring-slate-200/80"
                         style={{
                             position: "fixed",
-                            top: `${coords.top}px`,
-                            left: `${coords.left}px`,
-                            minHeight: `${coords.height}px`,
+                            top: `${Math.max(8, Math.min(coords.top, window.innerHeight - 208))}px`,
+                            left: `${coords.left + coords.width + previewWidth + 16 <= window.innerWidth ? coords.left + coords.width + 8 : Math.max(8, coords.left - previewWidth - 8)}px`,
                             zIndex: 99999,
                         }}
                     >
                         <div
                             style={{
                                 ...eventStyles,
-                                minHeight: `${coords.height}px`,
+                                height: `${coords.height}px`,
+                                width: `${coords.width}px`,
                             }}
-                            className="min-w-80 flex flex-col gap-1 rounded-r border-l-3 p-2 shadow-2xl pointer-events-none duration-150 animate-fade-in"
+                            className="min-h-50 min-w-80 flex flex-col gap-1 rounded-r border-l-3 p-3 shadow-2xl transition-transform duration-150 ease-out pointer-events-none"
                         >
-                            <div className="break-words text-sm font-medium whitespace-normal">
+                            <div className="wrap-break-word text-sm font-semibold leading-tight whitespace-normal">
                                 {calendarEvent.title}
                             </div>
                             <div className="text-xs">{formattedDate}</div>
+                            <div
+                                className="mt-auto flex items-center justify-end gap-1 border-t pt-1.5"
+                                style={{
+                                    borderColor: eventStyles.borderColor,
+                                    color: eventStyles.color,
+                                }}
+                            >
+                                <MousePointer2
+                                    className="h-3.5 w-3.5 opacity-70"
+                                    style={{
+                                        color: eventStyles.borderColor,
+                                    }}
+                                />
+                                <span className="text-[11px] opacity-80">Click to edit</span>
+                            </div>
+                            {/* <div className="absolute inset-x-3 top-1 flex justify-between opacity-70">
+                                <span className="h-1 w-8 rounded-full bg-slate-400/50" />
+                                <span className="h-1 w-8 rounded-full bg-slate-400/50" />
+                            </div> */}
                         </div>
                     </div>,
                     document.body,
@@ -223,7 +259,7 @@ function CalendarView({
             eventsService,
             createDragAndDropPlugin(15),
             createResizePlugin(15),
-            createEventModalPlugin(),
+            // createEventModalPlugin(),
         ],
         callbacks: {
             onEventClick: (event) => onEventClick(String(event.id)),
@@ -404,14 +440,14 @@ export default function CalendarApp() {
     };
 
     return (
-        <div className="flex h-screen min-h-[700px] flex-row-reverse bg-slate-50 text-slate-900">
+        <div className="schedule-shell flex h-screen min-h-[700px] flex-row-reverse bg-slate-50 text-slate-900">
             <aside
-                className={`flex shrink-0 flex-col border-l border-slate-200 bg-white transition-[width] ${
+                className={`schedule-sidebar flex shrink-0 flex-col border-l border-slate-200 bg-white transition-[width] ${
                     sidebarOpen ? "w-80" : "w-12"
                 }`}
             >
                 <button
-                    className="flex h-10 items-center justify-center border-b border-slate-200 text-slate-500 hover:bg-slate-50"
+                    className="schedule-sidebar-toggle flex h-10 items-center justify-center border-b border-slate-200 text-slate-500 hover:bg-slate-50"
                     onClick={() => setSidebarOpen((open) => !open)}
                     aria-label={
                         sidebarOpen ? "Collapse schedule sidebar" : "Expand schedule sidebar"
@@ -496,7 +532,7 @@ export default function CalendarApp() {
                             {schedule?.layers.map((layer, index) => (
                                 <div
                                     key={layer.id}
-                                    className="mb-2 rounded-lg border border-slate-200 p-3"
+                                    className="schedule-layer-card mb-2 rounded-lg border border-slate-200 p-3"
                                 >
                                     <label className="flex items-center gap-2 text-sm font-medium">
                                         <input
@@ -564,7 +600,7 @@ export default function CalendarApp() {
                     </>
                 )}
             </aside>
-            <main className="min-w-0 flex-1">
+            <main className="schedule-main min-w-0 flex-1">
                 <div className="h-full overflow-hidden bg-white [&_.sx-react-calendar-wrapper]:h-full">
                     {schedule ? (
                         <CalendarView
@@ -587,15 +623,95 @@ export default function CalendarApp() {
                 </div>
             </main>
             <style jsx global>{`
+                @keyframes schedule-event-in {
+                    from {
+                        opacity: 0;
+                        transform: translateY(3px) scale(0.985);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                @keyframes schedule-preview-in {
+                    from {
+                        opacity: 0;
+                        transform: translateY(4px) scale(0.98);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                .schedule-event-card {
+                    animation: schedule-event-in 220ms var(--ease-default) both;
+                    will-change: transform, box-shadow;
+                }
+
+                .schedule-event-preview {
+                    animation: schedule-preview-in 150ms var(--ease-default) both;
+                    transform-origin: top left;
+                }
+
+                .schedule-sidebar-toggle,
+                .schedule-layer-card,
+                .schedule-main {
+                    transition-timing-function: var(--ease-default);
+                }
+
+                .schedule-sidebar-toggle {
+                    transition:
+                        background-color var(--duration-base) var(--ease-default),
+                        color var(--duration-base) var(--ease-default);
+                }
+
+                .schedule-layer-card {
+                    background: linear-gradient(135deg, #ffffff 0%, #fffdfa 100%);
+                    box-shadow: var(--shadow-sm);
+                    transition:
+                        border-color var(--duration-base) var(--ease-default),
+                        box-shadow var(--duration-base) var(--ease-default),
+                        transform var(--duration-base) var(--ease-default);
+                }
+
+                .schedule-layer-card:hover {
+                    border-color: var(--color-apache-300);
+                    box-shadow: var(--shadow-md);
+                    transform: translateY(-1px);
+                }
+
+                .schedule-main {
+                    animation: schedule-main-in 360ms var(--ease-default) both;
+                }
+
+                @keyframes schedule-main-in {
+                    from {
+                        opacity: 0;
+                    }
+                    to {
+                        opacity: 1;
+                    }
+                }
+
                 .sx__calendar {
                     border-radius: 0 !important;
                     border: 0 !important;
                 }
-                // .sx__time-grid-event {
-                //     position: relative !important;
-                // }
                 :root {
                     --sx-z-index-week-header: 10 !important;
+                }
+                .sx__time-grid-event-resize-handle {
+                    z-index: 1 !important;
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .schedule-event-card,
+                    .schedule-event-preview,
+                    .schedule-main {
+                        animation: none;
+                    }
                 }
             `}</style>
             {showLayerForm && (

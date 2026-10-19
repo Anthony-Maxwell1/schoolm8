@@ -80,7 +80,6 @@ export async function ObtainAuthCredentials(
 
     authCookies = mergeCookies(authCookies, loginRes.headers.get("set-cookie"));
     let location = loginRes.headers.get("location");
-    console.log("Step 1 -> login-check:", loginRes.status, location);
 
     // STEP 3+ — follow all redirects until dashboard
     while (location) {
@@ -92,18 +91,15 @@ export async function ObtainAuthCredentials(
 
         const { res, mergedCookies, location: nextLoc } = await fetchWithRedirect(url, authCookies);
 
-        console.log(`Redirect -> ${res.status} ${nextLoc || "final page"}`);
         authCookies = mergedCookies;
         location = nextLoc;
 
         // Last page
         if (!location) {
             const finalHtml = await res.text();
-            console.log("✅ Final dashboard HTML length:", finalHtml.length);
             break;
         }
     }
-    console.log("✅ Fully authenticated cookies:", authCookies);
     return authCookies; // ready to use for any future requests
 }
 
@@ -125,6 +121,5 @@ export async function FetchTimetableDay(authCookies: string, BASE_DOMAIN: string
         };
     }
     const data = await res.json();
-    console.log("Timetable data:", data);
     return data;
 }

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/firebaseAdmin";
-import { assertAccess, getRequiredScopesForApiPath } from "@/lib/access/serverAccessControl";
+import {
+    assertAccess,
+    getRequiredScopesForApiPath,
+    requiresRevocationCheck,
+} from "@/lib/access/serverAccessControl";
 import { pageAccessControl, normalizePageKey } from "@/lib/access/pageAccessControl";
 import { looksLikeOAuthAccessToken, verifyOAuthAccessToken } from "@/lib/oauth/jwt";
 import { SESSION_COOKIE_NAME } from "@/lib/access/sessionCookie";
-import { cached } from "@/lib/cache";
 
 const excludeRegex = /^\/(_next\/static|_next\/image|.*\..*)/;
 
@@ -25,7 +28,10 @@ function isPublicPath(pathname: string): boolean {
 
 type Credential = { uid: string; oauth: { clientId: string; scopes: string[] } | null };
 
-async function resolveCredential(req: NextRequest): Promise<Credential | null> {
+async function resolveCredential(
+    req: NextRequest,
+    checkRevoked: boolean,
+): Promise<Credential | null> {
     const authHeader = req.headers.get("authorization");
     const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : null;
 
@@ -39,7 +45,7 @@ async function resolveCredential(req: NextRequest): Promise<Credential | null> {
         }
 
         if (bearer) {
-            const decoded = await auth.verifyIdToken(bearer);
+            const decoded = await auth.verifyIdToken(bearer, checkRevoked);
             return { uid: decoded.uid, oauth: null };
         }
 
@@ -48,7 +54,7 @@ async function resolveCredential(req: NextRequest): Promise<Credential | null> {
             // Revocation checks require a network request and make every dev request wait on Firebase.
             const decoded = await auth.verifySessionCookie(
                 sessionCookie,
-                process.env.NODE_ENV === "production",
+                checkRevoked,
             );
             return { uid: decoded.uid, oauth: null };
         }
@@ -75,7 +81,10 @@ export async function proxy(req: NextRequest) {
     }
 
     const isApi = pathname.startsWith("/api/");
-    const credential = await resolveCredential(req);
+    const credential = await resolveCredential(
+        req,
+        requiresRevocationCheck(pathname, req.method),
+    );
 
     if (!credential) {
         if (isApi) {
@@ -92,7 +101,10 @@ export async function proxy(req: NextRequest) {
         const requiredScopes = getRequiredScopesForApiPath(pathname);
 
         if (requiredScopes.length > 0) {
-            const access = await assertAccess(uid, requiredScopes);
+            const access = await assertAccess(uid, requiredScopes, {
+                // Sensitive routes must not use a stale allow/deny decision.
+                cacheTtl: requiresRevocationCheck(pathname, req.method) ? 0 : undefined,
+            });
             if (access.status !== 200) {
                 return NextResponse.json(access.body ?? { error: "Forbidden" }, {
                     status: access.status,

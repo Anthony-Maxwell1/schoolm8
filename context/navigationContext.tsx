@@ -50,6 +50,13 @@ const DEFAULT_ITEMS: NavigationItem[] = [
         visible: true,
     },
     {
+        id: "schedule",
+        label: "Schedule",
+        href: "/schedule",
+        icon: "CalendarClock",
+        visible: true,
+    },
+    {
         id: "notes",
         label: "Quick Notes",
         href: "/notes",
