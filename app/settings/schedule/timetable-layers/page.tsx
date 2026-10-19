@@ -28,6 +28,17 @@ const OPTIONS: { key: SettingKey; label: string; description: string }[] = [
         label: "Mark predicted classes",
         description: "Label generated events as Predicted.",
     },
+    {
+        key: "detectFortnightlyPatterns",
+        label: "Detect fortnightly patterns",
+        description:
+            "Prefer a two-week pattern when events support it instead of incorrectly repeating them weekly.",
+    },
+    {
+        key: "avoidWeekendPredictions",
+        label: "Avoid weekend predictions",
+        description: "Do not predict school classes on Saturday or Sunday.",
+    },
 ];
 
 export default function TimetableLayersSettingsPage() {

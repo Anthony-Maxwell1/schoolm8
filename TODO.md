@@ -13,6 +13,8 @@
 - Remove border when editing a page in knowledge base
 - Show tags in sidebar in knowledge base
 
+- improve speed and usability of schedule with timetable layer
+
 PRIORITY - Add and Improve tiles
 
 - Improve UI consistency
@@ -22,8 +24,8 @@ PRIORITY - Add and Improve tiles
 - Prevent UI elements being dragged
   PRIORITY - Move themes settings and similar from local storage to firebase
 
-        BUGS
+          BUGS
 
 - Fix Note delete not actually deleting
-      <!-- - Fix styling when you go home from the docs. -->
+  <!-- - Fix styling when you go home from the docs. -->
 - Debug why data is {} for themes

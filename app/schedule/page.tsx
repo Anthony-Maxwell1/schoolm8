@@ -28,6 +28,8 @@ import {
     Trash2,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import { toast } from "react-toastify";
+import { defaultSettings, TimetableLayerSettings } from "@/lib/schedule/layers";
 
 type Extra = Record<string, unknown>;
 type Event = {
@@ -47,10 +49,13 @@ type Layer = {
     type: "timetable" | "none";
     enabled: boolean;
     color?: string;
+    settings?: Partial<TimetableLayerSettings>;
     data?: Day[];
     source?: { name: string; source?: string };
 };
 type Schedule = { id: string; name: string; layers: Layer[]; data: Day[]; updated?: number };
+type CalendarDate = { toPlainDate: () => { toString: () => string } };
+type CalendarRange = { start: CalendarDate; end: CalendarDate };
 type CustomCalendarEvent = {
     calendarId: string;
     title: string;
@@ -160,7 +165,7 @@ function CustomTimeGridEvent({ calendarEvent }: { calendarEvent: CustomCalendarE
                 coords &&
                 createPortal(
                     <div
-                        className="schedule-event-preview min-h-50 min-w-80 overflow-clip rounded-lg bg-white opacity-100 shadow-xl ring-1 ring-slate-200/80"
+                        className="schedule-event-preview min-h-50 min-w-80 overflow-clip rounded-lg bg-white opacity-100 shadow-xl ring-1 ring-slate-200/80 pointer-events-none"
                         style={{
                             position: "fixed",
                             top: `${Math.max(8, Math.min(coords.top, window.innerHeight - 208))}px`,
@@ -211,10 +216,12 @@ function CalendarView({
     schedule,
     onEventClick,
     overrides,
+    onRangeUpdate,
 }: {
     schedule: Schedule;
     onEventClick: (eventId: string) => void;
     overrides: Record<string, Event>;
+    onRangeUpdate: (range: CalendarRange) => void;
 }) {
     const eventsService = useState(() => createEventsServicePlugin())[0];
     const calendars = useMemo(() => {
@@ -243,6 +250,7 @@ function CalendarView({
         [schedule, overrides],
     );
     const calendar = useNextCalendarApp({
+        timezone: "Australia/Sydney",
         views: [
             createViewDay(),
             createViewWeekAgenda(),
@@ -263,6 +271,7 @@ function CalendarView({
         ],
         callbacks: {
             onEventClick: (event) => onEventClick(String(event.id)),
+            onRangeUpdate,
         },
     });
     return (
@@ -290,6 +299,8 @@ export default function CalendarApp() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [error, setError] = useState("");
     const [overrides, setOverrides] = useState<Record<string, Event>>({});
+    const requestedRanges = useRef(new Set<string>());
+    const rangeTimers = useRef(new Map<string, number>());
 
     const request = useCallback(
         async (url: string, options?: RequestInit) => {
@@ -321,6 +332,50 @@ export default function CalendarApp() {
         setSchedule(body.schedule);
         setSelectedLayerId((current) => current || body.schedule.layers[0]?.id || "");
     }, [request, scheduleId]);
+
+    const ensureCalendarRange = useCallback(
+        async (range: CalendarRange) => {
+            if (!scheduleId) return;
+            const from = range.start.toPlainDate().toString();
+            const visibleTo = range.end.toPlainDate().toString();
+            const toDate = new Date(`${visibleTo}T00:00:00Z`);
+            toDate.setUTCDate(toDate.getUTCDate() + 7);
+            const to = toDate.toISOString().slice(0, 10);
+            const key = `${scheduleId}:${from}:${to}`;
+            if (requestedRanges.current.has(key)) return;
+            requestedRanges.current.add(key);
+
+            const existingTimer = rangeTimers.current.get(key);
+            if (existingTimer) window.clearTimeout(existingTimer);
+            const timer = window.setTimeout(async () => {
+                const toastId = toast.loading("Loading timetable data…");
+                try {
+                    await request(
+                        `/api/schedule/events?scheduleId=${encodeURIComponent(scheduleId)}&from=${from}&to=${to}`,
+                    );
+                    await loadSchedule();
+                    toast.update(toastId, {
+                        render: "Timetable updated",
+                        type: "success",
+                        isLoading: false,
+                        autoClose: 1800,
+                    });
+                } catch (e) {
+                    requestedRanges.current.delete(key);
+                    toast.update(toastId, {
+                        render: e instanceof Error ? e.message : "Could not load timetable",
+                        type: "error",
+                        isLoading: false,
+                        autoClose: 4000,
+                    });
+                } finally {
+                    rangeTimers.current.delete(key);
+                }
+            }, 250);
+            rangeTimers.current.set(key, timer);
+        },
+        [loadSchedule, request, scheduleId],
+    );
 
     useEffect(() => {
         if (!scheduleId) return;
@@ -363,7 +418,14 @@ export default function CalendarApp() {
         try {
             const body = await request("/api/schedule/layers", {
                 method: "POST",
-                body: JSON.stringify({ name }),
+                body: JSON.stringify({
+                    name,
+                    layer: {
+                        name: "Timetable",
+                        type: "timetable",
+                        enabled: true,
+                    },
+                }),
             });
             setScheduleId(body.schedule.id);
             await refresh();
@@ -440,7 +502,7 @@ export default function CalendarApp() {
     };
 
     return (
-        <div className="schedule-shell flex h-screen min-h-[700px] flex-row-reverse bg-slate-50 text-slate-900">
+        <div className="schedule-shell relative flex h-screen min-h-[700px] flex-row-reverse bg-slate-50 text-slate-900">
             <aside
                 className={`schedule-sidebar flex shrink-0 flex-col border-l border-slate-200 bg-white transition-[width] ${
                     sidebarOpen ? "w-80" : "w-12"
@@ -505,14 +567,32 @@ export default function CalendarApp() {
                                     className="mt-3"
                                     variant="secondary"
                                     size="w-full"
-                                    onClick={() =>
-                                        request(`/api/schedule/sync`, {
-                                            method: "POST",
-                                            body: JSON.stringify({ scheduleId }),
-                                        })
-                                            .then(loadSchedule)
-                                            .catch((e) => setError(e.message))
-                                    }
+                                    onClick={async () => {
+                                        const toastId = toast.loading("Refreshing timetable data…");
+                                        try {
+                                            await request(`/api/schedule/sync`, {
+                                                method: "POST",
+                                                body: JSON.stringify({ scheduleId }),
+                                            });
+                                            await loadSchedule();
+                                            toast.update(toastId, {
+                                                render: "Timetable refreshed",
+                                                type: "success",
+                                                isLoading: false,
+                                                autoClose: 1800,
+                                            });
+                                        } catch (e) {
+                                            toast.update(toastId, {
+                                                render:
+                                                    e instanceof Error
+                                                        ? e.message
+                                                        : "Could not refresh timetable",
+                                                type: "error",
+                                                isLoading: false,
+                                                autoClose: 4000,
+                                            });
+                                        }
+                                    }}
                                 >
                                     Sync non-live layers
                                 </Button>
@@ -614,6 +694,7 @@ export default function CalendarApp() {
                                 setSelectedEvent(match.event);
                                 setShowEventForm(true);
                             }}
+                            onRangeUpdate={ensureCalendarRange}
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center text-slate-500">
@@ -772,6 +853,46 @@ function LayerForm({
     const [name, setName] = useState(layer?.name ?? "New layer");
     const [type, setType] = useState<Layer["type"]>(layer?.type ?? "none");
     const [color, setColor] = useState(layer?.color ?? colors[0]);
+    const [settings, setSettings] = useState<TimetableLayerSettings>({
+        ...defaultSettings,
+        ...layer?.settings,
+    });
+    const timetableOptions: {
+        key: keyof TimetableLayerSettings;
+        label: string;
+        description: string;
+    }[] = [
+        {
+            key: "combineDoublePeriods",
+            label: "Combine double periods",
+            description: "Merge adjacent matching periods.",
+        },
+        {
+            key: "locateRepeatingClasses",
+            label: "Detect repeating classes",
+            description: "Find established timetable patterns.",
+        },
+        {
+            key: "predictMissingClasses",
+            label: "Predict missing classes",
+            description: "Show pattern-based events while data is unavailable.",
+        },
+        {
+            key: "markPredictedClasses",
+            label: "Mark predictions",
+            description: "Label generated events as Predicted.",
+        },
+        {
+            key: "detectFortnightlyPatterns",
+            label: "Detect fortnightly patterns",
+            description: "Prefer two-week patterns when supported by the data.",
+        },
+        {
+            key: "avoidWeekendPredictions",
+            label: "Avoid weekend predictions",
+            description: "Do not predict classes on Saturday or Sunday.",
+        },
+    ];
     return (
         <Modal open title={layer ? "Edit layer" : "Add layer"} onClose={onClose}>
             <input
@@ -797,10 +918,51 @@ function LayerForm({
                     className="h-9 w-14 cursor-pointer rounded border border-slate-300"
                 />
             </label>
+            {type === "timetable" && (
+                <div className="mt-4 rounded-lg border border-slate-200 p-3">
+                    <p className="text-sm font-medium text-slate-800">Timetable behaviour</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                        Balanced defaults are recommended. Predictions never replace actual events.
+                    </p>
+                    <div className="mt-3 space-y-3">
+                        {timetableOptions.map(({ key, label, description }) => (
+                            <label
+                                key={key}
+                                className="flex items-start gap-2 text-sm text-slate-700"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={settings[key]}
+                                    onChange={(event) =>
+                                        setSettings((current) => ({
+                                            ...current,
+                                            [key]: event.target.checked,
+                                        }))
+                                    }
+                                    className="mt-0.5 h-4 w-4 accent-indigo-600"
+                                />
+                                <span>
+                                    <span className="block">{label}</span>
+                                    <span className="block text-xs text-slate-500">
+                                        {description}
+                                    </span>
+                                </span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+            )}
             <button
                 className="mt-4 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white"
                 onClick={() =>
-                    onSave({ id: layer?.id, name, type, color, enabled: layer?.enabled ?? true })
+                    onSave({
+                        id: layer?.id,
+                        name,
+                        type,
+                        color,
+                        enabled: layer?.enabled ?? true,
+                        settings: type === "timetable" ? settings : undefined,
+                    })
                 }
             >
                 Save layer

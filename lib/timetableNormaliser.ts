@@ -57,8 +57,46 @@ export function stripHtml(input?: string): string {
     return input?.replace(/<[^>]*>/g, "") ?? "";
 }
 
-export function toISO(dateStr: string): string {
-    return new Date(dateStr).toISOString();
+export function toISO(dateStr: string, timezone = "Australia/Sydney"): string {
+    const value = dateStr.trim();
+    if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(value)) {
+        return new Date(value).toISOString();
+    }
+
+    const match = value.match(
+        /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,6}))?)?$/,
+    );
+    if (!match) {
+        throw new Error(`Invalid timetable date-time: ${dateStr}`);
+    }
+
+    const [, year, month, day, hour, minute, second = "0", milliseconds = "0"] = match;
+    const localMilliseconds = Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second),
+        Number(milliseconds.slice(0, 3).padEnd(3, "0")),
+    );
+
+    const getOffset = (timestamp: number): number => {
+        const parts = new Intl.DateTimeFormat("en-US", {
+            timeZone: timezone,
+            timeZoneName: "longOffset",
+            year: "numeric",
+        }).formatToParts(new Date(timestamp));
+        const offset = parts.find((part) => part.type === "timeZoneName")?.value ?? "GMT";
+        const offsetMatch = offset.match(/GMT([+-])(\d{2}):?(\d{2})/);
+        if (!offsetMatch) return 0;
+        const minutes = Number(offsetMatch[2]) * 60 + Number(offsetMatch[3]);
+        return offsetMatch[1] === "+" ? minutes : -minutes;
+    };
+
+    const firstGuess = localMilliseconds - getOffset(localMilliseconds) * 60_000;
+    const corrected = localMilliseconds - getOffset(firstGuess) * 60_000;
+    return new Date(corrected).toISOString();
 }
 
 export function inferEventType(summary?: string): z.infer<typeof timetableExtra>["type"] {
@@ -74,13 +112,14 @@ export function inferEventType(summary?: string): z.infer<typeof timetableExtra>
 }
 
 export function getWeekDates(startDate: string): string[] {
-    const base = new Date(startDate);
+    const [year, month, day] = startDate.split("-").map(Number);
+    const base = new Date(Date.UTC(year, month - 1, day));
     const dates: string[] = [];
 
     for (let i = 0; i < 7; i++) {
         const d = new Date(base);
-        d.setDate(base.getDate() + i);
-        dates.push(d.toISOString().split("T")[0]);
+        d.setUTCDate(day + i);
+        dates.push(d.toISOString().slice(0, 10));
     }
 
     return dates;
@@ -101,8 +140,9 @@ export function normaliseEdumateDay(edumate: any): StandardTimetable {
         events: (edumate.events || []).map((event: any, index: number) => ({
             id: `${edumate.SQLDate}-${index}`,
             title: event.activityName,
-            start: toISO(event.startDateTime.date),
-            end: toISO(event.endDateTime.date),
+            start: toISO(event.startDateTime.date, timezone),
+            end: toISO(event.endDateTime.date, timezone),
+            timezone,
             description: event.displayTime,
             extra: {
                 type: event.eventType,

@@ -1,8 +1,10 @@
 import { db } from "@/lib/firebaseAdmin";
+import { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
-import { calendarDay, calendarEvent, source } from "./types";
-import { translateTimetableData } from "./layers";
+import { GET as fetchTimetable } from "@/app/api/timetable/fetch/route";
+import { calendarDay, calendarEvent, source, SourceActions, SourceCoverage } from "./types";
+import { rangeFromDates, sourceCoversRange, translateTimetableData } from "./layers";
 
 export const StoredLayerSchema = z.object({
     id: z.string(),
@@ -47,6 +49,78 @@ function removeUndefined<T>(value: T): T {
 
 function scheduleField(userId: string, scheduleId: string) {
     return db.collection("users").doc(userId).collection("schedules").doc(scheduleId);
+}
+
+function enumerateDates(range: SourceCoverage): string[] {
+    if (!range.from || !range.to) return [];
+    const dates: string[] = [];
+    const current = new Date(`${range.from}T00:00:00Z`);
+    const end = new Date(`${range.to}T00:00:00Z`);
+    while (current <= end) {
+        dates.push(current.toISOString().slice(0, 10));
+        current.setUTCDate(current.getUTCDate() + 1);
+    }
+    return dates;
+}
+
+function defaultTimetableRange(): SourceCoverage {
+    const from = new Date();
+    from.setUTCHours(0, 0, 0, 0);
+    const start = new Date(from);
+    start.setUTCDate(start.getUTCDate() - 14);
+    const to = new Date(from);
+    to.setUTCDate(to.getUTCDate() + 14);
+    return {
+        from: start.toISOString().slice(0, 10),
+        to: to.toISOString().slice(0, 10),
+    };
+}
+
+async function fetchTimetableRange(userId: string, range: SourceCoverage): Promise<void> {
+    const dates = enumerateDates(range);
+    const today = new Date().toISOString().slice(0, 10);
+    const todayTimestamp = Date.parse(`${today}T00:00:00Z`);
+    dates.sort((left, right) => {
+        const rank = (date: string) => {
+            const difference = (Date.parse(`${date}T00:00:00Z`) - todayTimestamp) / 86_400_000;
+            if (difference >= 0 && difference <= 6) return difference;
+            if (difference > 6) return 7 + difference;
+            return 22 + Math.abs(difference);
+        };
+        return rank(left) - rank(right);
+    });
+
+    for (let index = 0; index < dates.length; index += 3) {
+        const batch = dates.slice(index, index + 3);
+        const responses = await Promise.all(
+            batch.map((date) => {
+                const request = new NextRequest(
+                    new URL(`/api/timetable/fetch?day=${date}`, "http://internal.local"),
+                    {
+                        method: "GET",
+                        headers: { "x-schoolm8-uid": userId },
+                    },
+                );
+                return fetchTimetable(request);
+            }),
+        );
+        const failedDate = responses.findIndex((response) => !response.ok);
+        if (failedDate !== -1) {
+            throw new Error(`Failed to load timetable data for ${batch[failedDate]}`);
+        }
+    }
+}
+
+export async function getMissingTimetableDates(
+    userId: string,
+    range: SourceCoverage,
+): Promise<string[]> {
+    const dates = enumerateDates(range);
+    if (!dates.length) return [];
+
+    const snapshot = await db.collection("timetable").doc(userId).collection("days").get();
+    const available = new Set(snapshot.docs.map((document) => document.id));
+    return dates.filter((date) => !available.has(date));
 }
 
 export async function getStoredSchedule(
@@ -97,7 +171,9 @@ export async function deleteStoredSchedule(userId: string, scheduleId: string): 
 export async function syncStoredSchedule(
     userId: string,
     schedule: StoredSchedule,
+    range?: SourceCoverage,
 ): Promise<StoredSchedule> {
+    await fetchTimetableRange(userId, range?.from && range?.to ? range : defaultTimetableRange());
     const timetableSnapshot = await db.collection("timetable").doc(userId).collection("days").get();
     const days = timetableSnapshot.docs.map((document) => ({
         id: document.id,
@@ -106,9 +182,16 @@ export async function syncStoredSchedule(
     const updatedLayers = schedule.layers.map((layer) => {
         if (layer.type !== "timetable" || !layer.enabled) return layer;
         const translated = translateTimetableData(layer.id, { days }, layer.settings, layer.name);
+        const intervalMs = layer.source?.updateSchedule?.intervalMs;
+        const source = {
+            ...translated.source,
+            updateSchedule: intervalMs
+                ? { intervalMs, nextRunAt: Date.now() + intervalMs }
+                : layer.source?.updateSchedule,
+        };
         return {
             ...layer,
-            source: translated.source,
+            source,
             data: translated.data,
             updated: Date.now(),
         };
@@ -118,6 +201,59 @@ export async function syncStoredSchedule(
         layers: updatedLayers,
         data: aggregateScheduleData(updatedLayers),
     });
+}
+
+export function getStoredLayerSourceActions(
+    userId: string,
+    schedule: StoredSchedule,
+    layerId: string,
+): SourceActions | null {
+    const layer = schedule.layers.find((item) => item.id === layerId);
+    if (!layer?.source || layer.source.live) return null;
+
+    const syncSource = async (range?: SourceCoverage) => {
+        const updatedSchedule = await syncStoredSchedule(userId, schedule, range);
+        const updatedLayer = updatedSchedule.layers.find((item) => item.id === layerId);
+        if (!updatedLayer?.source) {
+            throw new Error(`Source for layer ${layerId} was not produced during sync`);
+        }
+        return updatedLayer.source;
+    };
+    const updateTo = async (range: SourceCoverage) => {
+        const updatedSchedule = await updateStoredScheduleTo(userId, schedule, range);
+        const updatedLayer = updatedSchedule.layers.find((item) => item.id === layerId);
+        if (!updatedLayer?.source) {
+            throw new Error(`Source for layer ${layerId} was not produced during update`);
+        }
+        return updatedLayer.source;
+    };
+
+    return {
+        sync: syncSource,
+        updateTo,
+    };
+}
+
+export async function updateStoredScheduleTo(
+    userId: string,
+    schedule: StoredSchedule,
+    range: SourceCoverage,
+): Promise<StoredSchedule> {
+    const now = Date.now();
+    const needsUpdate = schedule.layers.some((layer) => {
+        if (!layer.enabled || layer.type !== "timetable") return false;
+        if (!layer.source) return true;
+        const scheduled = layer.source.updateSchedule?.nextRunAt;
+        return (
+            !sourceCoversRange(layer.source.coverage, range) ||
+            (!layer.source.live && scheduled !== undefined && scheduled <= now)
+        );
+    });
+    return needsUpdate ? syncStoredSchedule(userId, schedule, range) : schedule;
+}
+
+export function parseScheduleRange(params: URLSearchParams): SourceCoverage {
+    return rangeFromDates(params.get("from") ?? undefined, params.get("to") ?? undefined);
 }
 
 export function flattenLayerEvents(layer: StoredLayer): z.infer<typeof calendarEvent>[] {

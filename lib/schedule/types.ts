@@ -35,24 +35,52 @@ export const calendarDay = z.object({
     events: z.array(calendarEvent),
 });
 
+export const sourceCoverage = z.object({
+    from: ISODateString.optional(),
+    to: ISODateString.optional(),
+});
+
+export const sourceUpdateSchedule = z.object({
+    intervalMs: z.number().int().positive().optional(),
+    nextRunAt: z.number().int().positive().optional(),
+});
+
 export const source = z.object({
     id: z.string(),
     name: z.string(),
     data: z.array(calendarEvent),
     source: z.string().optional(),
-    update: z.function().optional(), // If the source is not live
+    live: z.boolean().default(false),
+    coverage: sourceCoverage.default({}),
+    lastSyncedAt: z.number().int().positive().optional(),
+    updateSchedule: sourceUpdateSchedule.optional(),
 });
+
+export type Source = z.infer<typeof source>;
+export type SourceCoverage = z.infer<typeof sourceCoverage>;
+
+export type SourceActions = {
+    sync: (range?: SourceCoverage) => Promise<Source>;
+    updateTo: (range: SourceCoverage) => Promise<Source>;
+};
+
+export type RuntimeSource = Source & SourceActions;
 
 export const layer = z.object({
     id: z.string(),
     name: z.string(),
-    color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
     pull: z.array(source),
     push: z.array(source),
     extra: source.optional().default({
         id: "extra",
         name: "Extra",
         data: [],
+        live: false,
+        coverage: {},
     }),
     data: z.array(calendarDay).optional(),
 });

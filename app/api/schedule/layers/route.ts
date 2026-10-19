@@ -7,6 +7,7 @@ import {
     getStoredSchedule,
     listStoredSchedules,
     saveStoredSchedule,
+    syncStoredSchedule,
 } from "@/lib/schedule/storage";
 import { v4 as uuidv4 } from "uuid";
 
@@ -42,13 +43,20 @@ export async function POST(req: Request) {
             enabled: body.layer?.enabled ?? true,
             ...(body.layer?.color ? { color: body.layer.color } : {}),
             ...(body.layer?.settings ? { settings: body.layer.settings } : {}),
+            ...(body.layer?.source ? { source: body.layer.source } : {}),
         };
         const layer = StoredLayerSchema.parse(layerInput);
         schedule = await saveStoredSchedule(userId, {
             ...schedule,
             layers: [...schedule.layers.filter((item) => item.id !== layer.id), layer],
         });
-        return NextResponse.json({ schedule, layer });
+        if (layer.type === "timetable" && layer.enabled) {
+            schedule = await syncStoredSchedule(userId, schedule);
+        }
+        return NextResponse.json({
+            schedule,
+            layer: schedule.layers.find((item) => item.id === layer.id) ?? layer,
+        });
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : "Failed to save layer" },

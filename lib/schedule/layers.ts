@@ -1,8 +1,7 @@
 import { DocumentSnapshot } from "firebase/firestore";
-import { Frequency } from "rrule";
 import z from "zod";
 import { StandardEvent, StandardTimetable, StandardWeek } from "../timetableNormaliser";
-import { calendarDay, calendarEvent, layer, source as sourceSchema } from "./types";
+import { calendarDay, calendarEvent, layer, source as sourceSchema, SourceCoverage } from "./types";
 
 // Timetable layer
 
@@ -11,11 +10,37 @@ export const defaultSettings = {
     locateRepeatingClasses: true,
     predictMissingClasses: true,
     markPredictedClasses: true,
+    detectFortnightlyPatterns: true,
+    avoidWeekendPredictions: true,
 };
 
 export type TimetableLayerSettings = typeof defaultSettings;
 export type TimetableSource = z.infer<typeof sourceSchema>;
 type Event = z.infer<typeof StandardEvent>;
+
+function dateCoverage(dates: string[]): SourceCoverage {
+    if (!dates.length) return {};
+    const sorted = [...dates].sort();
+    return { from: sorted[0], to: sorted.at(-1) };
+}
+
+export function sourceCoversRange(coverage: SourceCoverage, range: SourceCoverage): boolean {
+    if (!range.from && !range.to) return true;
+    if (!coverage.from || !coverage.to) return false;
+    return (!range.from || coverage.from <= range.from) && (!range.to || coverage.to >= range.to);
+}
+
+export function rangeFromDates(from?: string, to?: string): SourceCoverage {
+    for (const date of [from, to]) {
+        if (date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            throw new Error("Source range dates must use YYYY-MM-DD format");
+        }
+    }
+    if (from && to && from > to) {
+        throw new Error("Source range start must not be after its end");
+    }
+    return { from, to };
+}
 
 function dayDifference(left: string, right: string): number {
     return Math.round(
@@ -24,7 +49,9 @@ function dayDifference(left: string, right: string): number {
 }
 
 function identity(event: Event): string {
-    return `${event.title}|${event.extra?.period ?? ""}`.toLowerCase();
+    const start = event.start.slice(11, 16);
+    const end = event.end.slice(11, 16);
+    return `${event.title}|${event.extra?.type ?? ""}|${event.extra?.period ?? ""}|${start}|${end}`.toLowerCase();
 }
 
 function sameClassProperties(left: Event, right: Event): boolean {
@@ -82,31 +109,69 @@ function predictedEvent(
 ): Event {
     const startTime = event.start.slice(11);
     const endTime = event.end.slice(11);
+    const timezone = event.timezone ?? "Australia/Sydney";
     return {
         ...event,
         id: `${event.id}-${date}`,
-        start: new Date(Date.parse(`${date}T${startTime}`)).toISOString(),
-        end: new Date(Date.parse(`${date}T${endTime}`)).toISOString(),
+        start: localDateTimeToISO(`${date}T${startTime}`, timezone),
+        end: localDateTimeToISO(`${date}T${endTime}`, timezone),
         extra: {
             ...event.extra,
             status: settings.markPredictedClasses ? "Predicted" : event.extra?.status,
-        },
-        recurrence: {
-            freq: interval === 7 ? Frequency.WEEKLY : Frequency.DAILY,
-            interval,
+            predictionReason: "Repeated timetable pattern",
+            patternIntervalDays: interval,
         },
     } satisfies z.infer<typeof calendarEvent>;
+}
+
+function localDateTimeToISO(value: string, timezone: string): string {
+    const match = value.match(
+        /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,6}))?)?/,
+    );
+    if (!match) throw new Error(`Invalid local timetable date-time: ${value}`);
+    const [, year, month, day, hour, minute, second = "0", milliseconds = "0"] = match;
+    const localMilliseconds = Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second),
+        Number(milliseconds.slice(0, 3).padEnd(3, "0")),
+    );
+    const offsetAt = (timestamp: number): number => {
+        const name = new Intl.DateTimeFormat("en-US", {
+            timeZone: timezone,
+            timeZoneName: "longOffset",
+            year: "numeric",
+        })
+            .formatToParts(new Date(timestamp))
+            .find((part) => part.type === "timeZoneName")?.value;
+        const offset = name?.match(/GMT([+-])(\d{2}):?(\d{2})/);
+        if (!offset) return 0;
+        const minutes = Number(offset[2]) * 60 + Number(offset[3]);
+        return (offset[1] === "+" ? 1 : -1) * minutes;
+    };
+    const guess = localMilliseconds - offsetAt(localMilliseconds) * 60_000;
+    return new Date(localMilliseconds - offsetAt(guess) * 60_000).toISOString();
 }
 
 function locateRepeatingClasses(
     eventsByDate: Map<string, Event[]>,
     settings: TimetableLayerSettings,
 ): void {
+    for (const [date, events] of eventsByDate) {
+        eventsByDate.set(
+            date,
+            events.filter((event) => event.extra?.status !== "Predicted"),
+        );
+    }
+
     const occurrences = new Map<string, { date: string; event: Event }[]>();
 
     for (const [date, events] of eventsByDate) {
         for (const event of events) {
-            if (event.extra?.type === "event") continue;
+            if (event.extra?.status === "Predicted") continue;
             const entries = occurrences.get(identity(event)) ?? [];
             entries.push({ date, event });
             occurrences.set(identity(event), entries);
@@ -117,18 +182,54 @@ function locateRepeatingClasses(
         if (entries.length < 2) continue;
         entries.sort((left, right) => left.date.localeCompare(right.date));
 
-        const intervals = entries
-            .slice(1)
-            .map((entry, index) => dayDifference(entries[index].date, entry.date))
-            .filter((interval) => interval > 0);
-        if (!intervals.length) continue;
+        const dates = new Set(entries.map((entry) => entry.date));
+        const weeklyPairs = entries.filter((entry) => dates.has(addDays(entry.date, 7))).length;
+        const fortnightlyPairs = entries.filter((entry) =>
+            dates.has(addDays(entry.date, 14)),
+        ).length;
+        const interval =
+            settings.detectFortnightlyPatterns && fortnightlyPairs > weeklyPairs
+                ? 14
+                : weeklyPairs > 0
+                  ? 7
+                  : 0;
+        if (!interval) continue;
 
-        const interval = intervals.sort((left, right) => left - right)[
-            Math.floor(intervals.length / 2)
-        ];
         const actualDates = new Set(entries.map((entry) => entry.date));
-        const first = Date.parse(entries[0].date + "T00:00:00Z");
-        const last = Date.parse(entries.at(-1)!.date + "T00:00:00Z");
+        const loadedDates = [...eventsByDate.keys()].sort();
+        const loadedFrom = loadedDates[0];
+        const loadedTo = loadedDates.at(-1);
+        const templateForDate = (date: string) =>
+            entries.find((entry) => dayDifference(entry.date, date) % interval === 0)?.event;
+        const hasContradiction =
+            loadedFrom && loadedTo
+                ? (() => {
+                      for (
+                          let timestamp = Date.parse(`${loadedFrom}T00:00:00Z`);
+                          timestamp <= Date.parse(`${loadedTo}T00:00:00Z`);
+                          timestamp += 86_400_000
+                      ) {
+                          const date = new Date(timestamp).toISOString().slice(0, 10);
+                          if (actualDates.has(date)) continue;
+                          const template = templateForDate(date);
+                          if (!template) continue;
+                          if (
+                              (eventsByDate.get(date) ?? []).some(
+                                  (event) =>
+                                      event.extra?.status !== "Predicted" &&
+                                      timesOverlap(event, template),
+                              )
+                          ) {
+                              return true;
+                          }
+                      }
+                      return false;
+                  })()
+                : false;
+        if (hasContradiction) continue;
+
+        const first = Date.parse(addDays(entries[0].date, -14) + "T00:00:00Z");
+        const last = Date.parse(addDays(entries.at(-1)!.date, 14) + "T00:00:00Z");
 
         for (
             let timestamp = first + interval * 86_400_000;
@@ -137,17 +238,44 @@ function locateRepeatingClasses(
         ) {
             const date = new Date(timestamp).toISOString().slice(0, 10);
             if (actualDates.has(date)) continue;
+            const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+            const template = templateForDate(date);
+            if (settings.avoidWeekendPredictions && (weekday === 0 || weekday === 6)) continue;
 
-            const template = entries.find(
-                (entry) => dayDifference(entry.date, date) % interval === 0,
-            )?.event;
             if (!template) continue;
 
             const events = eventsByDate.get(date) ?? [];
+            const hasActualOverlap = events.some(
+                (existing) =>
+                    existing.extra?.status !== "Predicted" && timesOverlap(existing, template),
+            );
+            if (hasActualOverlap) continue;
+            if (
+                events.some(
+                    (existing) =>
+                        existing.extra?.status === "Predicted" && timesOverlap(existing, template),
+                )
+            )
+                continue;
             events.push(predictedEvent(template, date, interval, settings));
             eventsByDate.set(date, events);
         }
     }
+}
+
+function minutes(value: string): number {
+    const [hours, minute] = value.slice(11, 16).split(":").map(Number);
+    return hours * 60 + minute;
+}
+
+function timesOverlap(left: Event, right: Event): boolean {
+    return minutes(left.start) < minutes(right.end) && minutes(right.start) < minutes(left.end);
+}
+
+function addDays(date: string, days: number): string {
+    const value = new Date(`${date}T00:00:00Z`);
+    value.setUTCDate(value.getUTCDate() + days);
+    return value.toISOString().slice(0, 10);
 }
 
 export function translateTimetable(
@@ -210,6 +338,9 @@ export function translateTimetableData(
         name,
         data: sourceData,
         source: "firebase-live",
+        live: false,
+        coverage: dateCoverage(days.map((day) => day.date)),
+        lastSyncedAt: Date.now(),
     };
     return {
         source: sourceSchema.parse(timetableSource),

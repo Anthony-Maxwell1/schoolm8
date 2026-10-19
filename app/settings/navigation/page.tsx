@@ -1,22 +1,10 @@
 "use client";
 
 import { useNavigation } from "@/context/navigationContext";
-import { Trash, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import { Trash, ChevronDown, ChevronRight, GripVertical, Plus } from "lucide-react";
 import Link from "next/link";
 import { createElement, useState } from "react";
-import {
-    Button,
-    Text,
-    Divider,
-    Alert,
-    Badge,
-    Toggle,
-    TextInput,
-} from "@/components/ui/components";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-item row
-// ─────────────────────────────────────────────────────────────────────────────
+import { Button, Text, Divider, Alert, Badge, Toggle, TextInput } from "@/components/ui/components";
 
 function SubItemRow({
     child,
@@ -107,10 +95,13 @@ function NavItemRow({
             >
                 <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)]">
-                        {item.icon && ICON_MAP[item.icon]
-                            ? createElement(ICON_MAP[item.icon], { className: "w-4 h-4 text-[var(--color-primary)]" })
-                            : <span className="text-sm">🔹</span>
-                        }
+                        {item.icon && ICON_MAP[item.icon] ? (
+                            createElement(ICON_MAP[item.icon], {
+                                className: "w-4 h-4 text-[var(--color-primary)]",
+                            })
+                        ) : (
+                            <span className="text-sm">🔹</span>
+                        )}
                     </div>
                     <div>
                         <p className="text-sm font-medium text-[var(--color-text-primary)]">
@@ -123,20 +114,21 @@ function NavItemRow({
                     <Badge variant={item.visible ? "success" : "default"}>
                         {item.visible ? "Visible" : "Hidden"}
                     </Badge>
-                    {isOpen
-                        ? <ChevronDown className="h-4 w-4 text-[var(--color-text-tertiary)]" />
-                        : <ChevronRight className="h-4 w-4 text-[var(--color-text-tertiary)]" />
-                    }
+                    {isOpen ? (
+                        <ChevronDown className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                    ) : (
+                        <ChevronRight className="h-4 w-4 text-[var(--color-text-tertiary)]" />
+                    )}
                 </div>
             </button>
 
-            {/* Expanded body */}
             {isOpen && (
                 <div className="border-t border-[var(--color-border-subtle)] px-4 pb-4 pt-4 space-y-4">
-                    {/* Fields */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="flex flex-col gap-1">
-                            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">Icon</span>
+                            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">
+                                Icon
+                            </span>
                             <input
                                 className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
                                 value={item.icon}
@@ -145,7 +137,9 @@ function NavItemRow({
                             />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">Label</span>
+                            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">
+                                Label
+                            </span>
                             <input
                                 className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
                                 value={item.label}
@@ -155,7 +149,9 @@ function NavItemRow({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">Href</span>
+                        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">
+                            Href
+                        </span>
                         <input
                             className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[var(--color-focus)]"
                             value={item.href}
@@ -164,7 +160,6 @@ function NavItemRow({
                         />
                     </div>
 
-                    {/* Controls row */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <Button
                             size="sm"
@@ -186,9 +181,16 @@ function NavItemRow({
                                 {item.collapsible ? "Expandable" : "Unexpandable"}
                             </Button>
                         )}
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={onAddChild}
+                            leftIcon={<Plus className="h-3.5 w-3.5" />}
+                        >
+                            Add Child
+                        </Button>
                     </div>
 
-                    {/* Sub-items */}
                     {item.children && (
                         <div className="space-y-2 border-l border-[var(--color-border-subtle)] pl-4">
                             <p className="text-[11px] font-medium tracking-[0.1em] uppercase text-[var(--color-text-tertiary)]">
@@ -200,7 +202,9 @@ function NavItemRow({
                                     child={child}
                                     onIconChange={(v) => onUpdateChild(childIndex, { icon: v })}
                                     onLabelChange={(v) => onUpdateChild(childIndex, { label: v })}
-                                    onVisibleChange={(v) => onUpdateChild(childIndex, { visible: v })}
+                                    onVisibleChange={(v) =>
+                                        onUpdateChild(childIndex, { visible: v })
+                                    }
                                     onRemove={() => onRemoveChild(childIndex)}
                                 />
                             ))}
@@ -209,7 +213,14 @@ function NavItemRow({
                                 variant="outline"
                                 onClick={onAddChild}
                                 leftIcon={
-                                    <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
+                                    <svg
+                                        className="h-3.5 w-3.5"
+                                        viewBox="0 0 16 16"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth={1.5}
+                                        strokeLinecap="round"
+                                    >
                                         <path d="M8 2v12M2 8h12" />
                                     </svg>
                                 }
@@ -260,6 +271,9 @@ export default function NavigationSettings() {
 
     const addChild = (itemIndex: number) => {
         const newItems = [...items];
+        if (!newItems[itemIndex].children) {
+            newItems[itemIndex].children = [];
+        }
         newItems[itemIndex].children!.push({
             id: `child-${Date.now()}`,
             icon: "",
@@ -279,7 +293,6 @@ export default function NavigationSettings() {
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
             <div className="mx-auto max-w-2xl">
-
                 {/* ── Header ── */}
                 <Text variant="label" className="mb-2 block">
                     Settings
@@ -288,7 +301,9 @@ export default function NavigationSettings() {
                     Navigation
                 </h1>
                 <p className="mt-3 text-lg leading-[1.7] text-[var(--color-text-secondary)]">
-                    Edit labels, icons, and links. Reorder items and control <em className="italic text-[var(--color-text-tertiary)]">what shows</em> in your sidebar.
+                    Edit labels, icons, and links. Reorder items and control{" "}
+                    <em className="italic text-[var(--color-text-tertiary)]">what shows</em> in your
+                    sidebar.
                 </p>
 
                 <Divider className="my-10" />
@@ -296,24 +311,21 @@ export default function NavigationSettings() {
                 {/* ── Sidebar hideable toggle ── */}
                 <div className="mb-8 flex items-center justify-between">
                     <div>
-                        <p className="font-medium text-[var(--color-text-primary)]">Hideable sidebar</p>
+                        <p className="font-medium text-[var(--color-text-primary)]">
+                            Hideable sidebar
+                        </p>
                         <p className="text-sm text-[var(--color-text-secondary)]">
                             Sidebar only appears when you hover over it.
                         </p>
                     </div>
-                    <Toggle
-                        checked={sidebarHideable}
-                        onChange={(v) => setSidebarHideable(v)}
-                    />
+                    <Toggle checked={sidebarHideable} onChange={(v) => setSidebarHideable(v)} />
                 </div>
 
                 <Divider className="my-8" />
 
                 {/* ── Nav items ── */}
                 <div className="mb-4 flex items-center justify-between">
-                    <Text variant="label">
-                        Navigation items
-                    </Text>
+                    <Text variant="label">Navigation items</Text>
                     <Button
                         size="sm"
                         variant="outline"
@@ -328,11 +340,7 @@ export default function NavigationSettings() {
                                 },
                             ])
                         }
-                        leftIcon={
-                            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
-                                <path d="M8 2v12M2 8h12" />
-                            </svg>
-                        }
+                        leftIcon={<Plus className="h-3.5 w-3.5" />}
                     >
                         Add item
                     </Button>
@@ -340,7 +348,9 @@ export default function NavigationSettings() {
 
                 {items.length === 0 ? (
                     <div className="rounded-[var(--radius-lg)] border border-[var(--color-border-subtle)] bg-[var(--color-muted)] px-6 py-8 text-center">
-                        <p className="text-sm text-[var(--color-text-tertiary)]">No navigation items. Add one above.</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">
+                            No navigation items. Add one above.
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -350,7 +360,9 @@ export default function NavigationSettings() {
                                 item={item}
                                 index={index}
                                 isOpen={openIndex === index}
-                                onToggle={() => setOpenIndex((prev) => prev === index ? null : index)}
+                                onToggle={() =>
+                                    setOpenIndex((prev) => (prev === index ? null : index))
+                                }
                                 onUpdate={(patch) => updateItem(index, patch)}
                                 onRemove={() => removeItem(index)}
                                 onAddChild={() => addChild(index)}
