@@ -10,6 +10,7 @@ import {
     ListTodo,
     ChevronRight,
     CalendarRange,
+    Sparkles,
 } from "lucide-react";
 
 const LINKS = [
@@ -19,12 +20,12 @@ const LINKS = [
         description: "Connect your LMS, timetable, and other services.",
         icon: Puzzle,
     },
-    // {
-    //     href: "/settings/ai",
-    //     label: "AI & API keys",
-    //     description: "Add your Gemini key, pick a model, manage AI features.",
-    //     icon: Sparkles,
-    // },
+    {
+        href: "/settings/ai",
+        label: "AI & API keys",
+        description: "Choose an AI provider, model, and API key.",
+        icon: Sparkles,
+    },
     {
         href: "/settings/schedule",
         label: "Schedule",

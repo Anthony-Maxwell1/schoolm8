@@ -7,18 +7,7 @@ import { getUid } from "@/lib/access/auth";
 export async function POST(req: Request) {
     try {
         // ---------- AUTH CHECK ----------
-        const authedUserId = getUid(req);
-
-        // ---------- QUERY PARAMS ----------
-        const url = new URL(req.url);
-        const userId = url.searchParams.get("userId");
-
-        if (!userId) throw new Error("Missing userId");
-
-        // Prevent a user from writing to another user's document
-        if (userId !== authedUserId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
+        const userId = getUid(req);
 
         // ---------- BODY ----------
         const { title, content, projects, assignments } = await req.json();

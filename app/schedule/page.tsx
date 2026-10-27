@@ -15,8 +15,6 @@ import "@schedule-x/theme-default/dist/index.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/context/authContext";
 import { Button, DropdownMenu, Modal, Text } from "@/components/ui/components";
-import { createDragAndDropPlugin } from "@/lib/calendar/drag-and-drop";
-import { createResizePlugin } from "@/lib/calendar/resize";
 import {
     ChevronDown,
     ChevronLeft,
@@ -30,6 +28,8 @@ import {
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import { defaultSettings, TimetableLayerSettings } from "@/lib/schedule/layers";
+import { createDragAndDropPlugin } from "@/lib/calendar/drag-and-drop";
+import { createResizePlugin } from "@/lib/calendar/resize";
 
 type Extra = Record<string, unknown>;
 type Event = {
@@ -249,6 +249,15 @@ function CalendarView({
                 ),
         [schedule, overrides],
     );
+    const lockedLayerIds = useMemo(
+        () =>
+            new Set(
+                schedule.layers
+                    .filter((layer) => layer.type === "timetable")
+                    .map((layer) => layer.id),
+            ),
+        [schedule.layers],
+    );
     const calendar = useNextCalendarApp({
         timezone: "Australia/Sydney",
         views: [
@@ -263,14 +272,16 @@ function CalendarView({
         // weekOptions: {
         //     eventOverlap: false,
         // },
-        plugins: [
-            eventsService,
-            createDragAndDropPlugin(15),
-            createResizePlugin(15),
-            // createEventModalPlugin(),
-        ],
+        plugins: [eventsService, createDragAndDropPlugin(), createResizePlugin()],
         callbacks: {
             onEventClick: (event) => onEventClick(String(event.id)),
+            onBeforeEventUpdate: (_oldEvent, newEvent) => {
+                if (lockedLayerIds.has(String(newEvent.calendarId))) {
+                    toast.info("Timetable events are locked");
+                    return false;
+                }
+                return true;
+            },
             onRangeUpdate,
         },
     });
@@ -330,16 +341,32 @@ export default function CalendarApp() {
         if (!scheduleId) return;
         const body = await request(`/api/schedule/layers?scheduleId=${scheduleId}`);
         setSchedule(body.schedule);
-        setSelectedLayerId((current) => current || body.schedule.layers[0]?.id || "");
+        setSelectedLayerId((current) =>
+            body.schedule.layers.some((layer: Layer) => layer.id === current)
+                ? current
+                : body.schedule.layers[0]?.id || "",
+        );
     }, [request, scheduleId]);
 
     const ensureCalendarRange = useCallback(
         async (range: CalendarRange) => {
             if (!scheduleId) return;
-            const from = range.start.toPlainDate().toString();
+            const visibleFrom = range.start.toPlainDate().toString();
             const visibleTo = range.end.toPlainDate().toString();
+            const visibleDays = Math.max(
+                1,
+                Math.round(
+                    (Date.parse(`${visibleTo}T00:00:00Z`) -
+                        Date.parse(`${visibleFrom}T00:00:00Z`)) /
+                        86_400_000,
+                ),
+            );
+            const preloadDays = Math.min(7, visibleDays);
+            const fromDate = new Date(`${visibleFrom}T00:00:00Z`);
+            fromDate.setUTCDate(fromDate.getUTCDate() - preloadDays);
             const toDate = new Date(`${visibleTo}T00:00:00Z`);
-            toDate.setUTCDate(toDate.getUTCDate() + 7);
+            toDate.setUTCDate(toDate.getUTCDate() + preloadDays);
+            const from = fromDate.toISOString().slice(0, 10);
             const to = toDate.toISOString().slice(0, 10);
             const key = `${scheduleId}:${from}:${to}`;
             if (requestedRanges.current.has(key)) return;
@@ -350,10 +377,10 @@ export default function CalendarApp() {
             const timer = window.setTimeout(async () => {
                 const toastId = toast.loading("Loading timetable data…");
                 try {
-                    await request(
+                    const body = await request(
                         `/api/schedule/events?scheduleId=${encodeURIComponent(scheduleId)}&from=${from}&to=${to}`,
                     );
-                    await loadSchedule();
+                    if (body.schedule) setSchedule(body.schedule);
                     toast.update(toastId, {
                         render: "Timetable updated",
                         type: "success",
@@ -374,8 +401,38 @@ export default function CalendarApp() {
             }, 250);
             rangeTimers.current.set(key, timer);
         },
-        [loadSchedule, request, scheduleId],
+        [request, scheduleId],
     );
+
+    useEffect(() => {
+        requestedRanges.current.clear();
+        for (const timer of rangeTimers.current.values()) window.clearTimeout(timer);
+        rangeTimers.current.clear();
+    }, [scheduleId]);
+
+    useEffect(() => {
+        if (!scheduleId) return;
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+        const fromDate = new Date(today);
+        fromDate.setUTCDate(fromDate.getUTCDate() - 7);
+        const toDate = new Date(today);
+        toDate.setUTCDate(toDate.getUTCDate() + 7);
+        const from = fromDate.toISOString().slice(0, 10);
+        const to = toDate.toISOString().slice(0, 10);
+        const key = `${scheduleId}:${from}:${to}`;
+        requestedRanges.current.add(key);
+        request(
+            `/api/schedule/events?scheduleId=${encodeURIComponent(scheduleId)}&from=${from}&to=${to}`,
+        )
+            .then((body) => {
+                if (body.schedule) setSchedule(body.schedule);
+            })
+            .catch((error) => {
+                setError(error instanceof Error ? error.message : "Could not load timetable");
+                requestedRanges.current.delete(key);
+            });
+    }, [request, scheduleId]);
 
     useEffect(() => {
         if (!scheduleId) return;
@@ -400,16 +457,24 @@ export default function CalendarApp() {
         return () => window.clearTimeout(timer);
     }, [authLoading, token, loadSchedules]);
 
-    useEffect(() => {
-        const timer = window.setTimeout(() => {
-            loadSchedule().catch((e) => setError(e.message));
-        }, 0);
-        return () => window.clearTimeout(timer);
-    }, [loadSchedule]);
-
-    const refresh = async () => {
-        await loadSchedules();
-        await loadSchedule();
+    const refresh = async (nextScheduleId = scheduleId) => {
+        const body = await request("/api/schedule/list");
+        setSchedules(body.schedules);
+        if (!nextScheduleId) {
+            setSchedule(null);
+            setScheduleId("");
+            return;
+        }
+        const scheduleBody = await request(
+            `/api/schedule/layers?scheduleId=${encodeURIComponent(nextScheduleId)}`,
+        );
+        setScheduleId(nextScheduleId);
+        setSchedule(scheduleBody.schedule);
+        setSelectedLayerId((current) =>
+            scheduleBody.schedule.layers.some((layer: Layer) => layer.id === current)
+                ? current
+                : scheduleBody.schedule.layers[0]?.id || "",
+        );
     };
 
     const createSchedule = async (requestedName = "My Schedule") => {
@@ -420,15 +485,9 @@ export default function CalendarApp() {
                 method: "POST",
                 body: JSON.stringify({
                     name,
-                    layer: {
-                        name: "Timetable",
-                        type: "timetable",
-                        enabled: true,
-                    },
                 }),
             });
-            setScheduleId(body.schedule.id);
-            await refresh();
+            await refresh(body.schedule.id);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Could not create schedule");
         }
@@ -453,15 +512,7 @@ export default function CalendarApp() {
                 (layer.data ?? []).some((day) => day.events.some((item) => item.id === event.id)),
             );
             if (sourceLayer?.type === "timetable") {
-                const next = { ...overrides, [event.id]: event };
-                window.localStorage.setItem(
-                    `schoolm8:schedule-overrides:${scheduleId}`,
-                    JSON.stringify(next),
-                );
-                setOverrides(next);
-                setShowEventForm(false);
-                setSelectedEvent(null);
-                return;
+                throw new Error("Timetable events are locked and cannot be edited");
             }
             await request(`/api/schedule/event`, {
                 method: event.id ? "PATCH" : "POST",
@@ -665,6 +716,35 @@ export default function CalendarApp() {
                                         >
                                             Edit
                                         </button>
+                                        <button
+                                            className="text-xs text-red-600"
+                                            onClick={async () => {
+                                                if (
+                                                    !window.confirm(
+                                                        `Delete the "${layer.name}" layer?`,
+                                                    )
+                                                )
+                                                    return;
+                                                try {
+                                                    await request(
+                                                        `/api/schedule/layers?scheduleId=${encodeURIComponent(scheduleId)}&layerId=${encodeURIComponent(layer.id)}`,
+                                                        { method: "DELETE" },
+                                                    );
+                                                    if (selectedLayerId === layer.id) {
+                                                        setSelectedLayerId("");
+                                                    }
+                                                    await loadSchedule();
+                                                } catch (e) {
+                                                    setError(
+                                                        e instanceof Error
+                                                            ? e.message
+                                                            : "Could not delete layer",
+                                                    );
+                                                }
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
                                     </div>
                                     <p className="mt-3 pl-6 text-xs text-slate-500">
                                         {eventCount({ data: layer.data ?? [] })} events
@@ -690,6 +770,10 @@ export default function CalendarApp() {
                             onEventClick={(eventId) => {
                                 const match = findEvent(eventId);
                                 if (!match) return;
+                                if (match.layer.type === "timetable") {
+                                    toast.info("Timetable events are locked");
+                                    return;
+                                }
                                 setSelectedLayerId(match.layer.id);
                                 setSelectedEvent(match.event);
                                 setShowEventForm(true);
@@ -828,13 +912,13 @@ export default function CalendarApp() {
                         method: "PATCH",
                         body: JSON.stringify({ scheduleId: id, schedule: { name } }),
                     });
-                    await refresh();
+                    await refresh(id);
                 }}
                 onDelete={async (id) => {
                     if (!window.confirm("Delete this schedule and all of its layers?")) return;
                     await request(`/api/schedule/layers?scheduleId=${id}`, { method: "DELETE" });
-                    if (scheduleId === id) setScheduleId("");
-                    await refresh();
+                    const remaining = schedules.filter((item) => item.id !== id);
+                    await refresh(scheduleId === id ? (remaining[0]?.id ?? "") : scheduleId);
                 }}
             />
         </div>

@@ -31,10 +31,14 @@ export async function POST(req: Request) {
     try {
         const userId = getUid(req);
         const body = await req.json();
-        let schedule = body.scheduleId
-            ? await getStoredSchedule(userId, body.scheduleId)
-            : await createStoredSchedule(userId, body.name ?? "My Schedule");
+        const creatingSchedule = !body.scheduleId;
+        let schedule = creatingSchedule
+            ? await createStoredSchedule(userId, body.name ?? "My Schedule")
+            : await getStoredSchedule(userId, body.scheduleId);
         if (!schedule) return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
+        if (creatingSchedule && !body.layer) {
+            return NextResponse.json({ schedule });
+        }
 
         const layerInput = {
             id: body.layer?.id ?? uuidv4(),

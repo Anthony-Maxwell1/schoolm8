@@ -3,7 +3,7 @@ import { db } from "@/lib/firebaseAdmin";
 import { parseICalData } from "@/lib/ical";
 import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
 
-import { isValidISODate, standardiseDay, standardiseWeek } from "@/lib/timetableNormaliser";
+import { getWeekDates, isValidISODate, standardiseDay } from "@/lib/timetableNormaliser";
 import {
     getTimetableConfig,
     saveTimetableConfig,
@@ -76,6 +76,14 @@ export async function GET(req: NextRequest) {
         if (timetableFetchData.type === "ical") {
             const { url: icalUrl, username, password } = timetableFetchData;
 
+            if (mode === "day") {
+                const date = resolveDate(value);
+                const cached = await getTimetableDay(userId, date);
+                if (isCacheValid(cached)) {
+                    return NextResponse.json({ timetable: cached, cached: true });
+                }
+            }
+
             const result = await fetch(icalUrl, {
                 method: "GET",
                 headers: {
@@ -122,15 +130,7 @@ export async function GET(req: NextRequest) {
             }
 
             if (mode === "week") {
-                const startDate = value;
-                const days: string[] = [];
-
-                // build 7-day range
-                for (let i = 0; i < 7; i++) {
-                    const d = new Date(startDate);
-                    d.setDate(d.getDate() + i);
-                    days.push(d.toISOString().split("T")[0]);
-                }
+                const days = getWeekDates(value);
 
                 const results: Record<string, any> = {};
 
@@ -266,14 +266,9 @@ export async function GET(req: NextRequest) {
             }
 
             if (mode === "week") {
-                const startDate = value;
                 const results: Record<string, any> = {};
 
-                for (let i = 0; i < 7; i++) {
-                    const d = new Date(startDate);
-                    d.setDate(d.getDate() + i);
-                    const date = d.toISOString().split("T")[0];
-
+                for (const date of getWeekDates(value)) {
                     const cached = await getTimetableDay(userId, date);
 
                     if (isCacheValid(cached)) {

@@ -1,348 +1,405 @@
 "use client";
 
-/**
- * Settings → AI
- *
- * The student pastes their own Google Gemini API key. We validate it with a
- * live test call server-side, store it encrypted, show its status, let them
- * pick a model, and delete it. The key is never returned to the browser.
- */
-
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { toast } from "react-toastify";
-import { Sparkles, KeyRound, Trash2, ExternalLink, CheckCircle2 } from "lucide-react";
-import {
-    Text,
-    Divider,
-    Badge,
-    Button,
-    TextInput,
-    Select,
-    Card,
-    Alert,
-    Spinner,
-} from "@/components/ui/components";
+import { SiAnthropic, SiGooglegemini } from "@icons-pack/react-simple-icons";
+import { BrainCircuit, Bot, Check, KeyRound, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/authContext";
-import type { PublicAiSettings, KeyStatus } from "@/lib/ai/geminiKey";
+import { Badge, Button, Card, Divider, Select, Text, TextInput } from "@/components/ui/components";
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
+import { toast } from "react-toastify";
 
-interface GeminiModel {
+type Provider = "claude" | "gemini" | "chatgpt" | "deepseek";
+type Model = { id: string; label: string; description: string };
+type Settings = {
+    provider: Provider;
+    model: string;
+    hasApiKey: boolean;
+    keyLast4: string | null;
+};
+type Icon = ComponentType<{ className?: string }>;
+type PersonalizationItem = {
     id: string;
-    label: string;
-    description: string;
-}
+    name: string;
+    context?: string;
+    instructions?: string;
+    enabled?: boolean;
+};
 
-const STATUS_META: Record<
-    KeyStatus,
-    { label: string; variant: "success" | "danger" | "warning" | "default" }
+const providerInfo: Record<
+    Provider,
+    { name: string; Icon: Icon; chips: string[]; description: string }
 > = {
-    valid: { label: "Connected", variant: "success" },
-    invalid: { label: "Invalid key", variant: "danger" },
-    quota: { label: "Rate limited", variant: "warning" },
-    error: { label: "Needs checking", variant: "warning" },
-    unset: { label: "Not connected", variant: "default" },
+    claude: {
+        name: "Claude",
+        Icon: SiAnthropic,
+        chips: ["Good at problem solving", "Expensive"],
+        description: "Careful, thoughtful answers and strong reasoning.",
+    },
+    gemini: {
+        name: "Gemini",
+        Icon: SiGooglegemini,
+        chips: [
+            "Good at research",
+            "Cheap",
+            "Free plan that covers almost all learners",
+            "Recommended",
+        ],
+        description: "A balanced choice for everyday school work.",
+    },
+    chatgpt: {
+        name: "ChatGPT",
+        Icon: Bot,
+        chips: ["Fast", "Multifunction", "Hallucinates often"],
+        description: "Fast general-purpose assistance.",
+    },
+    deepseek: {
+        name: "DeepSeek",
+        Icon: BrainCircuit,
+        chips: ["Good value", "Reasoning"],
+        description: "Affordable general chat and reasoning.",
+    },
 };
 
 export default function AiSettingsPage() {
-    const { user, loading: authLoading, token } = useAuth();
-    const [settings, setSettings] = useState<PublicAiSettings | null>(null);
+    const { token, loading: authLoading } = useAuth();
+    const [settings, setSettings] = useState<Settings | null>(null);
+    const [models, setModels] = useState<Model[]>([]);
+    const [key, setKey] = useState("");
     const [loading, setLoading] = useState(true);
-    const [keyInput, setKeyInput] = useState("");
     const [saving, setSaving] = useState(false);
-    const [savingModel, setSavingModel] = useState(false);
-    const [models, setModels] = useState<GeminiModel[]>([]);
+    const [profiles, setProfiles] = useState<PersonalizationItem[]>([]);
+    const [skills, setSkills] = useState<PersonalizationItem[]>([]);
+    const [profileDraft, setProfileDraft] = useState({ name: "", context: "" });
+    const [skillDraft, setSkillDraft] = useState({ name: "", instructions: "" });
 
+    const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
+    const loadModels = useCallback(
+        async (provider: Provider) => {
+            const response = await fetch(`/api/ai/models?provider=${provider}`, { headers });
+            if (!response.ok) throw new Error("Could not load provider models");
+            const data = await response.json();
+            setModels(data.models ?? []);
+            return data.models as Model[];
+        },
+        [headers],
+    );
     const load = useCallback(async () => {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch("/api/ai/key", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error((await res.json()).error ?? "Failed to load");
-            setSettings(await res.json());
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Failed to load AI settings");
+            const response = await fetch("/api/ai/settings", { headers });
+            if (!response.ok) throw new Error("Could not load AI settings");
+            const data = (await response.json()) as Settings;
+            setSettings(data);
+            await loadModels(data.provider);
+            const [profileResponse, skillResponse] = await Promise.all([
+                fetch("/api/ai/profiles", { headers }),
+                fetch("/api/ai/skills", { headers }),
+            ]);
+            if (profileResponse.ok) setProfiles((await profileResponse.json()).profiles ?? []);
+            if (skillResponse.ok) setSkills((await skillResponse.json()).skills ?? []);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Could not load AI settings");
         } finally {
             setLoading(false);
         }
-    }, [token]);
+    }, [headers, loadModels, token]);
 
-    const fetchModels = useCallback(async () => {
-        if (!token) return;
-        try {
-            const res = await fetch("/api/ai/models", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error((await res.json()).error ?? "Failed to load models");
-            const data = await res.json();
-            setModels(data.models);
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Failed to load models");
-        }
-    }, [token]);
-
-    useEffect(() => {
-        if (!authLoading && token) {
-            load();
-            fetchModels();
-        }
-    }, [authLoading, token, load, fetchModels]);
-
-    const saveKey = async () => {
-        const trimmed = keyInput.trim();
-        if (!trimmed) {
-            toast.error("Paste your Gemini API key first.");
+    const addPersonalization = async (kind: "profiles" | "skills") => {
+        const draft = kind === "profiles" ? profileDraft : skillDraft;
+        const response = await fetch(`/api/ai/${kind}`, {
+            method: "POST",
+            headers: { ...headers, "Content-Type": "application/json" },
+            body: JSON.stringify(draft),
+        });
+        if (!response.ok) {
+            toast.error("Could not save personalization");
             return;
         }
+        if (kind === "profiles") setProfileDraft({ name: "", context: "" });
+        else setSkillDraft({ name: "", instructions: "" });
+        await load();
+    };
+
+    const removePersonalization = async (kind: "profiles" | "skills", id: string) => {
+        await fetch(`/api/ai/${kind}?id=${encodeURIComponent(id)}`, { method: "DELETE", headers });
+        await load();
+    };
+
+    useEffect(() => {
+        if (authLoading || !token) return;
+        const timer = window.setTimeout(() => void load(), 0);
+        return () => window.clearTimeout(timer);
+    }, [authLoading, load, token]);
+
+    const selectProvider = async (provider: Provider) => {
+        if (!settings) return;
+        try {
+            const availableModels = await loadModels(provider);
+            setSettings({
+                ...settings,
+                provider,
+                model: availableModels[0]?.id ?? settings.model,
+            });
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Could not load models");
+        }
+    };
+
+    const save = async () => {
+        if (!settings) return;
         setSaving(true);
         try {
-            const res = await fetch("/api/ai/key", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ apiKey: trimmed }),
+            const response = await fetch("/api/ai/settings", {
+                method: "PUT",
+                headers: { ...headers, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    provider: settings.provider,
+                    model: settings.model,
+                    apiKey: key,
+                }),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error ?? "Could not save key");
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error ?? "Could not save AI settings");
             setSettings(data);
-            setKeyInput("");
-            toast.success("Gemini key verified and saved.");
-
-            // Auto-select first model if none set yet
-            if (!data.model && models.length > 0) {
-                await changeModel(models[0].id);
-            }
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Could not save key");
+            setKey("");
+            toast.success("AI settings saved");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Could not save AI settings");
         } finally {
             setSaving(false);
         }
     };
 
-    const changeModel = async (model: string) => {
-        setSavingModel(true);
-        try {
-            const res = await fetch("/api/ai/key", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ model }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error ?? "Could not update model");
-            setSettings(data);
-            toast.success("Model updated.");
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Could not update model");
-        } finally {
-            setSavingModel(false);
-        }
-    };
-
     const removeKey = async () => {
-        if (
-            !confirm(
-                "Remove your Gemini key? AI features will stop working until you add a new one.",
-            )
-        ) {
+        const response = await fetch("/api/ai/settings", { method: "DELETE", headers });
+        if (!response.ok) {
+            toast.error("Could not remove API key");
             return;
         }
-        try {
-            const res = await fetch("/api/ai/key", {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error ?? "Could not remove key");
-            setSettings(data);
-            toast.success("Gemini key removed.");
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Could not remove key");
-        }
+        setSettings(await response.json());
+        setKey("");
+        toast.success("API key removed");
     };
 
-    const status = settings?.keyStatus ?? "unset";
-    const statusMeta = STATUS_META[status];
+    if (authLoading || loading) {
+        return <div className="p-8">Loading AI settings…</div>;
+    }
+    if (!settings) {
+        return <div className="p-8">Sign in to configure AI.</div>;
+    }
 
     return (
         <div className="min-h-screen bg-[var(--color-surface)] px-6 py-20">
-            <div className="mx-auto max-w-lg">
+            <div className="mx-auto max-w-4xl">
                 <Text variant="label" className="mb-2 block">
-                    Settings
+                    Configuration
                 </Text>
-                <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] tracking-[-0.01em] font-normal text-[var(--color-text-primary)]">
-                    AI &amp; API keys
+                <h1 className="font-[family-name:var(--font-display)] text-[42px] leading-[1.1] font-normal text-[var(--color-text-primary)]">
+                    AI provider
                 </h1>
                 <Text variant="bodyLg" className="mt-3 text-[var(--color-text-secondary)]">
-                    SchoolMate&apos;s tutor, scheduler, and study tools run on your own{" "}
-                    <em>Google Gemini</em> key — free to create, and used only for your account.
+                    Choose the assistant that powers your schoolwork and planning tools.
                 </Text>
-
                 <Divider className="my-10" />
 
-                {authLoading || loading ? (
-                    <div className="flex items-center gap-3 py-8 text-[var(--color-text-secondary)]">
-                        <Spinner size="sm" /> Loading your AI settings…
-                    </div>
-                ) : !user ? (
-                    <Alert
-                        variant="warning"
-                        title="Sign in required"
-                        description="Sign in to manage your Gemini key."
-                    />
-                ) : (
-                    <>
-                        {/* Current status */}
-                        <Card className="mb-8 p-4">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] text-[var(--color-primary)]">
-                                        <Sparkles className="h-5 w-5" />
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    {(Object.keys(providerInfo) as Provider[]).map((provider) => {
+                        const info = providerInfo[provider];
+                        const selected = settings.provider === provider;
+                        return (
+                            <Card
+                                key={provider}
+                                variant={selected ? "hoverable" : "default"}
+                                className={`relative aspect-square cursor-pointer overflow-hidden p-4 transition ${
+                                    selected
+                                        ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
+                                        : "hover:-translate-y-0.5"
+                                }`}
+                                onClick={() => void selectProvider(provider)}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div className="flex max-w-[85%] flex-wrap gap-1">
+                                        {info.chips.slice(0, 2).map((chip) => (
+                                            <Badge
+                                                key={chip}
+                                                variant={
+                                                    chip === "Recommended" ? "primary" : "default"
+                                                }
+                                                pill
+                                                className="text-[10px]"
+                                            >
+                                                {chip}
+                                            </Badge>
+                                        ))}
                                     </div>
-                                    <div>
-                                        <p className="font-medium text-[var(--color-text-primary)]">
-                                            Gemini API key
-                                        </p>
-                                        <p className="text-sm text-[var(--color-text-secondary)]">
-                                            {settings?.hasKey
-                                                ? `Saved key ${settings.keyLast4 ?? ""}`
-                                                : "No key on file yet"}
-                                        </p>
-                                    </div>
+                                    {selected && (
+                                        <Check className="h-5 w-5 text-[var(--color-primary)]" />
+                                    )}
                                 </div>
-                                <Badge variant={statusMeta.variant} dot>
-                                    {statusMeta.label}
-                                </Badge>
-                            </div>
-
-                            {settings?.hasKey && (
-                                <div className="mt-4 flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-4">
-                                    <p className="text-xs text-[var(--color-text-tertiary)]">
-                                        {settings.lastCheckedAt
-                                            ? `Last checked ${new Date(settings.lastCheckedAt).toLocaleString()}`
-                                            : "Not checked yet"}
+                                <div className="absolute inset-x-4 bottom-4">
+                                    <info.Icon className="mb-4 h-16 w-16 text-[var(--color-primary)]" />
+                                    <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+                                        {info.name}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                                        {info.description}
                                     </p>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        leftIcon={<Trash2 className="h-4 w-4" />}
-                                        onClick={removeKey}
-                                    >
-                                        Remove
-                                    </Button>
                                 </div>
-                            )}
-                        </Card>
+                                {selected && (
+                                    <div
+                                        className="absolute inset-x-2 bottom-2 rounded-[var(--radius-md)] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 shadow-lg"
+                                        onClick={(event) => event.stopPropagation()}
+                                    >
+                                        <TextInput
+                                            type="password"
+                                            value={key}
+                                            onChange={(event) => setKey(event.target.value)}
+                                            placeholder={
+                                                settings.hasApiKey
+                                                    ? (settings.keyLast4 ?? "Saved key")
+                                                    : "API key"
+                                            }
+                                            inputSize="sm"
+                                            aria-label={`${info.name} API key`}
+                                        />
+                                        <Select
+                                            className="mt-2"
+                                            value={settings.model}
+                                            onChange={(event) =>
+                                                setSettings({
+                                                    ...settings,
+                                                    model: event.target.value,
+                                                })
+                                            }
+                                            options={models.map((model) => ({
+                                                value: model.id,
+                                                label: model.label,
+                                            }))}
+                                        />
+                                        <Button
+                                            className="mt-2 w-full"
+                                            size="sm"
+                                            loading={saving}
+                                            leftIcon={<KeyRound className="h-3.5 w-3.5" />}
+                                            onClick={() => void save()}
+                                        >
+                                            Save
+                                        </Button>
+                                    </div>
+                                )}
+                            </Card>
+                        );
+                    })}
+                </div>
 
-                        {status === "invalid" && (
-                            <Alert
-                                variant="danger"
-                                title="Key rejected"
-                                description="Google rejected this key. Paste a fresh one from AI Studio below."
-                                className="mb-6"
-                            />
-                        )}
-                        {status === "quota" && (
-                            <Alert
-                                variant="warning"
-                                title="Rate limited"
-                                description="Your key works but recently hit a free-tier limit. Wait a moment, or switch to a faster model below."
-                                className="mb-6"
-                            />
-                        )}
-
-                        {/* Key entry */}
-                        <Text variant="label" className="mb-1 block">
-                            {settings?.hasKey ? "Replace key" : "Add your key"}
-                        </Text>
-                        <Text variant="bodySm" className="mb-3">
-                            Paste the key from{" "}
-                            <Link
-                                href="https://aistudio.google.com/app/apikey"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[var(--color-primary)] underline underline-offset-2"
-                            >
-                                Google AI Studio
-                            </Link>
-                            . Most keys look like{" "}
-                            <code className="rounded bg-[var(--color-muted)] px-1 py-0.5 text-[0.85em]">
-                                AIzaSy…
-                            </code>{" "}
-                            but yours may differ — we verify it for you, so just paste what AI
-                            Studio gave you.
-                        </Text>
-                        <div className="flex items-start gap-2">
-                            <TextInput
-                                type="password"
-                                autoComplete="off"
-                                placeholder="AIzaSy…"
-                                value={keyInput}
-                                onChange={(e) => setKeyInput(e.target.value)}
-                                className="flex-1"
-                                aria-label="Gemini API key"
-                            />
-                            <Button
-                                onClick={saveKey}
-                                loading={saving}
-                                leftIcon={!saving ? <KeyRound className="h-4 w-4" /> : undefined}
-                            >
-                                {saving ? "Verifying…" : "Validate & save"}
-                            </Button>
-                        </div>
-
-                        {/* Model selection */}
-                        <Divider className="my-8" />
-                        <Text variant="label" className="mb-1 block">
-                            Model
-                        </Text>
-                        <Text variant="bodySm" className="mb-3">
-                            Choose which Gemini model powers your tutor, scheduler, and study tools.
-                        </Text>
-                        <Select
-                            value={settings?.model ?? models[0]?.id}
-                            disabled={savingModel}
-                            onChange={(e) => changeModel(e.target.value)}
-                            options={models.map((m) => ({ value: m.id, label: m.label }))}
-                        />
-                        <p className="mt-2 text-xs text-[var(--color-text-tertiary)]">
-                            {
-                                models.find((m) => m.id === (settings?.model ?? models[0]?.id))
-                                    ?.description
-                            }
-                        </p>
-
-                        {/* Help */}
-                        <Divider className="my-8" />
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Link href="/docs/gemini-setup">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    rightIcon={<ExternalLink className="h-3.5 w-3.5" />}
-                                >
-                                    Step-by-step setup guide
-                                </Button>
-                            </Link>
-                            {status === "valid" && (
-                                <span className="inline-flex items-center gap-1.5 text-sm text-[var(--color-success)]">
-                                    <CheckCircle2 className="h-4 w-4" /> Ready to use
-                                </span>
-                            )}
-                        </div>
-
-                        <p className="mt-6 text-xs text-[var(--color-text-tertiary)]">
-                            Your key is encrypted at rest and scoped to your account. It is only
-                            used to make Gemini requests on your behalf and is never shown in the
-                            browser.
-                        </p>
-                    </>
+                {settings.hasApiKey && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-6"
+                        leftIcon={<Trash2 className="h-4 w-4" />}
+                        onClick={() => void removeKey()}
+                    >
+                        Remove saved API key
+                    </Button>
                 )}
+                <Divider className="my-10" />
+                <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+                    Personalization
+                </h2>
+                <Text variant="body" className="mt-2 text-[var(--color-text-secondary)]">
+                    Profiles and skills are included in every AI conversation.
+                </Text>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <Card className="p-4">
+                        <h3 className="font-semibold">Profiles</h3>
+                        <div className="mt-3 space-y-2">
+                            {profiles.map((profile) => (
+                                <div
+                                    key={profile.id}
+                                    className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] p-2 text-sm"
+                                >
+                                    <span>{profile.name}</span>
+                                    <button
+                                        onClick={() =>
+                                            void removePersonalization("profiles", profile.id)
+                                        }
+                                        className="text-slate-400"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <TextInput
+                            className="mt-3"
+                            placeholder="Profile name"
+                            value={profileDraft.name}
+                            onChange={(event) =>
+                                setProfileDraft({ ...profileDraft, name: event.target.value })
+                            }
+                        />
+                        <TextInput
+                            className="mt-2"
+                            placeholder="About you or your preferences"
+                            value={profileDraft.context}
+                            onChange={(event) =>
+                                setProfileDraft({ ...profileDraft, context: event.target.value })
+                            }
+                        />
+                        <Button
+                            className="mt-3"
+                            size="sm"
+                            onClick={() => void addPersonalization("profiles")}
+                        >
+                            Add profile
+                        </Button>
+                    </Card>
+                    <Card className="p-4">
+                        <h3 className="font-semibold">Skills</h3>
+                        <div className="mt-3 space-y-2">
+                            {skills.map((skill) => (
+                                <div
+                                    key={skill.id}
+                                    className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] p-2 text-sm"
+                                >
+                                    <span>{skill.name}</span>
+                                    <button
+                                        onClick={() =>
+                                            void removePersonalization("skills", skill.id)
+                                        }
+                                        className="text-slate-400"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <TextInput
+                            className="mt-3"
+                            placeholder="Skill name"
+                            value={skillDraft.name}
+                            onChange={(event) =>
+                                setSkillDraft({ ...skillDraft, name: event.target.value })
+                            }
+                        />
+                        <TextInput
+                            className="mt-2"
+                            placeholder="Instructions for this skill"
+                            value={skillDraft.instructions}
+                            onChange={(event) =>
+                                setSkillDraft({ ...skillDraft, instructions: event.target.value })
+                            }
+                        />
+                        <Button
+                            className="mt-3"
+                            size="sm"
+                            onClick={() => void addPersonalization("skills")}
+                        >
+                            Add skill
+                        </Button>
+                    </Card>
+                </div>
             </div>
         </div>
     );

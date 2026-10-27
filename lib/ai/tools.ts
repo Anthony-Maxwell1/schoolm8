@@ -1,10 +1,14 @@
 import { parseICalData } from "@/lib/ical";
 import { FetchTimetableDay, ObtainAuthCredentials } from "@/lib/edumateClient";
 import {
+    getLMSAnnouncements,
+    getLMSAssignments,
+    getLMSCourses,
     getTimetableConfig,
     getTimetableDay,
     saveTimetableConfig,
     saveTimetableDay,
+    schema,
 } from "@/lib/firebaseSchema";
 import { standardiseDay, getWeekDates } from "@/lib/timetableNormaliser";
 import { tool } from "ai";
@@ -143,27 +147,401 @@ async function fetchTimetable(
 }
 
 async function fetchLMSClasses(userId: string, authToken?: string) {
-    // TODO: Implement fetching LMS
-    return {
-        success: false,
-        message: "Not Implemented",
-        classes: null,
-        status: 501,
-    };
+    if (authToken) {
+        // prefer api route
+        const res = await fetch(`/api/lms/courses`, {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to fetch LMS classes: ${res.statusText}`,
+                classes: null,
+                status: res.status,
+            };
+        }
+        const data = await res.json();
+        return {
+            success: true,
+            message: "LMS classes fetched successfully",
+            classes: data.courses,
+            status: 200,
+        };
+    } else {
+        try {
+            const courses = await getLMSCourses(userId);
+            return {
+                success: true,
+                message: "LMS classes fetched successfully",
+                classes: courses,
+                status: 200,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : "Failed to fetch LMS classes",
+                classes: null,
+                status: 500,
+            };
+        }
+    }
+}
+
+async function fetchLMSClass(userId: string, classId: string, authToken?: string) {
+    if (authToken) {
+        // prefer api route
+        const resAssignments = await fetch(`/api/lms/assignments`, {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        });
+        const resAnnouncements = await fetch(`/api/lms/announcements`, {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        });
+        if (!resAssignments.ok || !resAnnouncements.ok) {
+            return {
+                success: false,
+                message: `Failed to fetch LMS class: Assignments Res Status: ${resAssignments.statusText} / Announcements Res Status: ${resAnnouncements.statusText}`,
+                class: null,
+                status: resAssignments.status,
+            };
+        }
+        const assignmentsData = await resAssignments.json();
+        const announcementsData = await resAnnouncements.json();
+        const filteredAssignments = assignmentsData.assignments.filter(
+            (assignment: any) => assignment.courseId === classId,
+        );
+        const filteredAnnouncements = announcementsData.announcements.filter(
+            (announcement: any) => announcement.courseId === classId,
+        );
+        return {
+            success: true,
+            message: "LMS class fetched successfully",
+            class: {
+                assignments: filteredAssignments,
+                announcements: filteredAnnouncements,
+            },
+            status: 200,
+        };
+    } else {
+        const assignments = await getLMSAssignments(userId);
+        const announcements = await getLMSAnnouncements(userId);
+        const filteredAssignments = assignments.filter(
+            (assignment: any) => assignment.courseId === classId,
+        );
+        const filteredAnnouncements = announcements.filter(
+            (announcement: any) => announcement.courseId === classId,
+        );
+        return {
+            success: true,
+            message: "LMS class fetched successfully",
+            class: {
+                assignments: filteredAssignments,
+                announcements: filteredAnnouncements,
+            },
+            status: 200,
+        };
+    }
+}
+
+async function fetchLMSAnnouncements(userId: string, authToken?: string) {
+    if (authToken) {
+        // prefer api route
+        const res = await fetch(`/api/lms/announcements`, {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to fetch LMS announcements: ${res.statusText}`,
+                announcements: [],
+                status: res.status,
+            };
+        }
+        const data = await res.json();
+        return {
+            success: true,
+            message: "LMS announcements fetched successfully",
+            announcements: data.announcements,
+            status: 200,
+        };
+    } else {
+        const announcements = await getLMSAnnouncements(userId);
+        return {
+            success: true,
+            message: "LMS announcements fetched successfully",
+            announcements,
+            status: 200,
+        };
+    }
+}
+
+async function fetchLMSAssignments(userId: string, authToken?: string) {
+    if (authToken) {
+        // prefer api route
+        const res = await fetch(`/api/lms/assignments`, {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to fetch LMS assignments: ${res.statusText}`,
+                assignments: [],
+                status: res.status,
+            };
+        }
+        const data = await res.json();
+        return {
+            success: true,
+            message: "LMS assignments fetched successfully",
+            assignments: data.assignments,
+            status: 200,
+        };
+    } else {
+        const assignments = await getLMSAssignments(userId);
+        return {
+            success: true,
+            message: "LMS assignments fetched successfully",
+            assignments,
+            status: 200,
+        };
+    }
+}
+
+async function createQuickNote(
+    userId: string,
+    title: string,
+    content: string,
+    projects?: string[],
+    assignments?: string[],
+    authToken?: string,
+) {
+    if (authToken) {
+        // prefer the api route
+        const res = await fetch(`/api/notes/create`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+                title,
+                content,
+                projects: projects || [],
+                assignments: assignments || [],
+            }),
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to create quick note: ${res.statusText}`,
+                noteId: null,
+                status: res.status,
+            };
+        }
+        return {
+            success: true,
+            message: `Quick note created successfully`,
+            noteId: (await res.json()).noteId,
+            status: 200,
+        };
+    } else {
+        const res = await schema.notes.create(
+            userId,
+            title,
+            content,
+            projects || [],
+            assignments || [],
+        );
+        const noteId = res.noteId;
+        if (!noteId || res.status != "ok") {
+            return {
+                success: false,
+                message: `Failed to create quick note`,
+                noteId: null,
+                status: res.status,
+            };
+        }
+        return {
+            success: true,
+            message: `Quick note created successfully`,
+            noteId,
+            status: 200,
+        };
+    }
+}
+
+async function updateQuickNote(
+    userId: string,
+    noteId: string,
+    title?: string,
+    content?: string,
+    projects?: string[],
+    assignments?: string[],
+    authToken?: string,
+) {
+    if (authToken) {
+        // prefer the api route
+        const res = await fetch(`/api/notes/update`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+                noteId,
+                title,
+                content,
+                projects: projects || undefined,
+                assignments: assignments || undefined,
+            }),
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to update quick note: ${res.statusText}`,
+                status: res.status,
+            };
+        }
+        return {
+            success: true,
+            message: `Quick note updated successfully`,
+            status: 200,
+        };
+    } else {
+        // fallback to the direct schema call
+        const res = await schema.notes.update(
+            userId,
+            noteId,
+            title,
+            content,
+            projects || undefined,
+            assignments || undefined,
+        );
+        if (res.status != "ok") {
+            return {
+                success: false,
+                message: `Failed to update quick note: ${res.status}`,
+                status: res.status,
+            };
+        }
+        return {
+            success: true,
+            message: `Quick note updated successfully`,
+            status: 200,
+        };
+    }
+}
+
+async function deleteQuickNote(userId: string, noteId: string, authToken?: string) {
+    if (authToken) {
+        // prefer the api route
+        const res = await fetch(`/api/notes/delete`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({
+                noteId,
+            }),
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to delete quick note: ${res.statusText}`,
+                status: res.status,
+            };
+        }
+        return {
+            success: true,
+            message: `Quick note deleted successfully`,
+            status: 200,
+        };
+    } else {
+        const res = await schema.notes.delete(userId, noteId);
+        if (res.status != "ok") {
+            return {
+                success: false,
+                message: `Failed to delete quick note: ${res.status}`,
+                status: res.status,
+            };
+        }
+        return {
+            success: true,
+            message: `Quick note deleted successfully`,
+            status: 200,
+        };
+    }
+}
+
+async function fetchQuickNotes(userId: string, authToken?: string) {
+    if (authToken) {
+        // prefer the api route
+        const res = await fetch(`/api/notes`, {
+            headers: {
+                Authorization: `Bearer ${authToken}`,
+            },
+        });
+        if (!res.ok) {
+            return {
+                success: false,
+                message: `Failed to fetch quick notes: ${res.statusText}`,
+                notes: null,
+                status: res.status,
+            };
+        }
+        const data = await res.json();
+        return {
+            success: true,
+            message: "Quick notes fetched successfully",
+            notes: data.notes,
+            status: 200,
+        };
+    } else {
+        try {
+            const notes = await schema.notes.fetchAll(userId);
+            return {
+                success: true,
+                message: "Quick notes fetched successfully",
+                notes,
+                status: 200,
+            };
+        } catch (error: any) {
+            return {
+                success: false,
+                message: `Failed to fetch quick notes: ${error.message}`,
+                notes: null,
+                status: 500,
+            };
+        }
+    }
 }
 
 export const tools = (uid: string, authToken?: string) => {
     // uid for server, auth for client
     /*
+    - Fetch task(s) from metadata (e.g. get project that contains assignment)  BLOCKED
     - Fetch Timetable (Fetch day or week at a time)                             DONE
     - Fetch classes                                                             BLOCKED
     - Fetch class                                                               BLOCKED
-    - Fetch LMS classes                                                         IN PROGRESS
+    - Fetch LMS classes                                                         DONE
     - Fetch LMS unlinked (not in class) classes                                 BLOCKED
-    - Fetch LMS class                                                           TODO
-    - Fetch LMS class assignments                                               TODO
-    - Fetch LMS class assignment                                                TODO
-    - Fetch LMS class assignment submissions                                    TODO
+    - Fetch LMS announcements                                                   DONE
+    - Fetch LMS assignments                                                     DONE
+    - Fetch LMS class                                                           DONE
+    // - Fetch LMS class assignments                                            not doing
+    // - Fetch LMS class assignment                                             not doing
+    - Fetch LMS class assignment submissions                                    included in assignment
+    - Fetch all tasks                                                           BLOCKED
     - Fetch class tasks                                                         BLOCKED
     - Fetch task                                                                BLOCKED
     - Create class                                                              BLOCKED
@@ -173,10 +551,10 @@ export const tools = (uid: string, authToken?: string) => {
     - Update task                                                               BLOCKED
     - Delete task                                                               BLOCKED
     - Fetch tasks                                                               BLOCKED
-    - Create quick note                                                         TODO
-    - Update quick note                                                         TODO
-    - Delete quick note                                                         TODO
-    - Fetch quick notes                                                         TODO
+    - Create quick note                                                         DONE
+    - Update quick note                                                         DONE
+    - Delete quick note                                                         DONE
+    - Fetch quick notes                                                         Done
     - Fetch knowledge base tree                                                 TODO
     - Fetch knowledge base page                                                 TODO
     - Create knowledge base page                                                TODO
@@ -274,9 +652,87 @@ export const tools = (uid: string, authToken?: string) => {
             execute: async ({ type, value }) => await fetchTimetable(uid, authToken, type, value),
         }),
         fetchLMSClasses: tool({
-            description: "Fetch LMS classes for the user",
+            description: "Fetch LMS classes for the user.",
             inputSchema: z.object({}),
             execute: async () => await fetchLMSClasses(uid, authToken),
+        }),
+        fetchLMSAnnouncements: tool({
+            description: "Fetch LMS announcements for the user.",
+            inputSchema: z.object({}),
+            execute: async () => await fetchLMSAnnouncements(uid, authToken),
+        }),
+        fetchLMSAssignments: tool({
+            description: "Fetch LMS assignments for the user.",
+            inputSchema: z.object({}),
+            execute: async () => await fetchLMSAssignments(uid, authToken),
+        }),
+        fetchLMSClass: tool({
+            description: "Fetch a specific LMS class announcements and assignments for the user.",
+            inputSchema: z.object({
+                classId: z.string().describe("The ID of the class to fetch."),
+            }),
+            execute: async ({ classId }) => await fetchLMSClass(uid, classId, authToken),
+        }),
+        createQuickNote: tool({
+            description: "Create a quick note for the user.",
+            inputSchema: z.object({
+                title: z.string().describe("The title of the note."),
+                content: z.string().describe("The content of the note."),
+                projects: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        "An optional array of project IDs to associate with the note. (Details available in the projects skill)",
+                    ), // todo: implement projects skill
+                assignments: z
+                    .array(z.string())
+                    .optional()
+                    .describe("An optional array of assignment IDs to associate with the note."),
+            }),
+            execute: async ({ title, content, projects, assignments }) =>
+                await createQuickNote(uid, title, content, projects, assignments, authToken),
+        }),
+        updateQuickNote: tool({
+            description: "Update a quick note for the user.",
+            inputSchema: z.object({
+                noteId: z.string().describe("The ID of the note to update."),
+                title: z.string().optional().describe("The new title of the note."),
+                content: z.string().optional().describe("The new content of the note."),
+                projects: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        "An optional array of project IDs to associate with the note. (Overwrites existing associated projects list) (Details available in the projects skill)",
+                    ),
+                assignments: z
+                    .array(z.string())
+                    .optional()
+                    .describe(
+                        "An optional array of assignment IDs to associate with the note. (Overwrites existing associated assignments list)",
+                    ),
+            }),
+            execute: async ({ noteId, title, content, projects, assignments }) =>
+                await updateQuickNote(
+                    uid,
+                    noteId,
+                    title,
+                    content,
+                    projects,
+                    assignments,
+                    authToken,
+                ),
+        }),
+        deleteQuickNote: tool({
+            description: "Delete a quick note for the user.",
+            inputSchema: z.object({
+                noteId: z.string().describe("The ID of the note to delete."),
+            }),
+            execute: async ({ noteId }) => await deleteQuickNote(uid, noteId, authToken),
+        }),
+        fetchQuickNotes: tool({
+            description: "Fetch all quick notes for the user.",
+            inputSchema: z.object({}),
+            execute: async () => await fetchQuickNotes(uid, authToken),
         }),
     };
 };
@@ -288,5 +744,6 @@ export const systemTools = {
     - Push notification via 3rd party service (e.g. email, ntfy.sh, sms)    BLOCKED
     - Time-sensitive alert                                                  BLOCKED
     - Send network request to authorized endpoint                           TODO
+    - Toast notification (Only available when running client side)          TODO
     */
 };

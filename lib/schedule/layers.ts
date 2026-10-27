@@ -49,8 +49,9 @@ function dayDifference(left: string, right: string): number {
 }
 
 function identity(event: Event): string {
-    const start = event.start.slice(11, 16);
-    const end = event.end.slice(11, 16);
+    const timezone = event.timezone ?? "Australia/Sydney";
+    const start = localTimeInZone(event.start, timezone);
+    const end = localTimeInZone(event.end, timezone);
     return `${event.title}|${event.extra?.type ?? ""}|${event.extra?.period ?? ""}|${start}|${end}`.toLowerCase();
 }
 
@@ -107,9 +108,9 @@ function predictedEvent(
     interval: number,
     settings: TimetableLayerSettings,
 ): Event {
-    const startTime = event.start.slice(11);
-    const endTime = event.end.slice(11);
     const timezone = event.timezone ?? "Australia/Sydney";
+    const startTime = localTimeInZone(event.start, timezone);
+    const endTime = localTimeInZone(event.end, timezone);
     return {
         ...event,
         id: `${event.id}-${date}`,
@@ -122,6 +123,18 @@ function predictedEvent(
             patternIntervalDays: interval,
         },
     } satisfies z.infer<typeof calendarEvent>;
+}
+
+function localTimeInZone(value: string, timezone: string): string {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: timezone,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23",
+    }).formatToParts(new Date(value));
+    const values = new Map(parts.map((part) => [part.type, part.value]));
+    return `${values.get("hour") ?? "00"}:${values.get("minute") ?? "00"}:${values.get("second") ?? "00"}`;
 }
 
 function localDateTimeToISO(value: string, timezone: string): string {
@@ -263,13 +276,18 @@ function locateRepeatingClasses(
     }
 }
 
-function minutes(value: string): number {
-    const [hours, minute] = value.slice(11, 16).split(":").map(Number);
+function minutes(value: string, timezone = "Australia/Sydney"): number {
+    const time = value.includes("T") ? localTimeInZone(value, timezone) : value;
+    const [hours, minute] = time.slice(0, 5).split(":").map(Number);
     return hours * 60 + minute;
 }
 
 function timesOverlap(left: Event, right: Event): boolean {
-    return minutes(left.start) < minutes(right.end) && minutes(right.start) < minutes(left.end);
+    const timezone = left.timezone ?? right.timezone ?? "Australia/Sydney";
+    return (
+        minutes(left.start, timezone) < minutes(right.end, timezone) &&
+        minutes(right.start, timezone) < minutes(left.end, timezone)
+    );
 }
 
 function addDays(date: string, days: number): string {

@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { GET as fetchTimetable } from "@/app/api/timetable/fetch/route";
+import { getTimetableConfig } from "@/lib/firebaseSchema";
+import { StandardTimetable } from "../timetableNormaliser";
 import { calendarDay, calendarEvent, source, SourceActions, SourceCoverage } from "./types";
 import { rangeFromDates, sourceCoversRange, translateTimetableData } from "./layers";
 
@@ -31,6 +33,23 @@ export const StoredScheduleSchema = z.object({
 
 export type StoredLayer = z.infer<typeof StoredLayerSchema>;
 export type StoredSchedule = z.infer<typeof StoredScheduleSchema>;
+
+function compactSchedule(schedule: StoredSchedule): StoredSchedule {
+    const layers = schedule.layers.map((layer) =>
+        layer.type === "timetable"
+            ? {
+                  ...layer,
+                  data: undefined,
+                  source: layer.source ? { ...layer.source, data: [] } : undefined,
+              }
+            : layer,
+    );
+    return {
+        ...schedule,
+        layers,
+        data: aggregateScheduleData(layers.filter((layer) => layer.type !== "timetable")),
+    };
+}
 
 function removeUndefined<T>(value: T): T {
     if (value === undefined) return undefined as T;
@@ -67,9 +86,9 @@ function defaultTimetableRange(): SourceCoverage {
     const from = new Date();
     from.setUTCHours(0, 0, 0, 0);
     const start = new Date(from);
-    start.setUTCDate(start.getUTCDate() - 14);
+    start.setUTCDate(start.getUTCDate() - 7);
     const to = new Date(from);
-    to.setUTCDate(to.getUTCDate() + 14);
+    to.setUTCDate(to.getUTCDate() + 7);
     return {
         from: start.toISOString().slice(0, 10),
         to: to.toISOString().slice(0, 10),
@@ -77,36 +96,26 @@ function defaultTimetableRange(): SourceCoverage {
 }
 
 async function fetchTimetableRange(userId: string, range: SourceCoverage): Promise<void> {
-    const dates = enumerateDates(range);
-    const today = new Date().toISOString().slice(0, 10);
-    const todayTimestamp = Date.parse(`${today}T00:00:00Z`);
-    dates.sort((left, right) => {
-        const rank = (date: string) => {
-            const difference = (Date.parse(`${date}T00:00:00Z`) - todayTimestamp) / 86_400_000;
-            if (difference >= 0 && difference <= 6) return difference;
-            if (difference > 6) return 7 + difference;
-            return 22 + Math.abs(difference);
-        };
-        return rank(left) - rank(right);
-    });
+    const requestedDates = enumerateDates(range);
+    if (!requestedDates.length) return;
 
-    for (let index = 0; index < dates.length; index += 3) {
-        const batch = dates.slice(index, index + 3);
-        const responses = await Promise.all(
-            batch.map((date) => {
-                const request = new NextRequest(
-                    new URL(`/api/timetable/fetch?day=${date}`, "http://internal.local"),
-                    {
-                        method: "GET",
-                        headers: { "x-schoolm8-uid": userId },
-                    },
-                );
-                return fetchTimetable(request);
-            }),
+    for (let index = 0; index < requestedDates.length; index += 7) {
+        const batch = requestedDates.slice(index, index + 7);
+        const request = new NextRequest(
+            new URL(
+                batch.length === 7
+                    ? `/api/timetable/fetch?week=${batch[0]}`
+                    : `/api/timetable/fetch?day=${batch[0]}`,
+                "http://internal.local",
+            ),
+            {
+                method: "GET",
+                headers: { "x-schoolm8-uid": userId },
+            },
         );
-        const failedDate = responses.findIndex((response) => !response.ok);
-        if (failedDate !== -1) {
-            throw new Error(`Failed to load timetable data for ${batch[failedDate]}`);
+        const response = await fetchTimetable(request);
+        if (!response.ok) {
+            throw new Error(`Failed to load timetable data for ${batch[0]}`);
         }
     }
 }
@@ -119,7 +128,15 @@ export async function getMissingTimetableDates(
     if (!dates.length) return [];
 
     const snapshot = await db.collection("timetable").doc(userId).collection("days").get();
-    const available = new Set(snapshot.docs.map((document) => document.id));
+    const now = Date.now();
+    const available = new Set(
+        snapshot.docs
+            .filter((document) => {
+                const expiry = document.data().expiry;
+                return typeof expiry !== "number" || expiry > now;
+            })
+            .map((document) => document.id),
+    );
     return dates.filter((date) => !available.has(date));
 }
 
@@ -129,13 +146,13 @@ export async function getStoredSchedule(
 ): Promise<StoredSchedule | null> {
     const document = await scheduleField(userId, scheduleId).get();
     if (!document.exists) return null;
-    return StoredScheduleSchema.parse({ id: document.id, ...document.data() });
+    return compactSchedule(StoredScheduleSchema.parse({ id: document.id, ...document.data() }));
 }
 
 export async function listStoredSchedules(userId: string): Promise<StoredSchedule[]> {
     const snapshot = await db.collection("users").doc(userId).collection("schedules").get();
     return snapshot.docs.map((document) =>
-        StoredScheduleSchema.parse({ id: document.id, ...document.data() }),
+        compactSchedule(StoredScheduleSchema.parse({ id: document.id, ...document.data() })),
     );
 }
 
@@ -160,7 +177,8 @@ export async function saveStoredSchedule(
         data: aggregateScheduleData(schedule.layers),
         updated: Date.now(),
     };
-    await scheduleField(userId, schedule.id).set(removeUndefined(updated), { merge: true });
+    const persisted = compactSchedule(updated);
+    await scheduleField(userId, schedule.id).set(removeUndefined(persisted));
     return updated;
 }
 
@@ -173,12 +191,28 @@ export async function syncStoredSchedule(
     schedule: StoredSchedule,
     range?: SourceCoverage,
 ): Promise<StoredSchedule> {
+    const timetableConfig = await getTimetableConfig(userId);
+    if (
+        !timetableConfig ||
+        !schedule.layers.some((layer) => layer.enabled && layer.type === "timetable")
+    ) {
+        return schedule;
+    }
     await fetchTimetableRange(userId, range?.from && range?.to ? range : defaultTimetableRange());
     const timetableSnapshot = await db.collection("timetable").doc(userId).collection("days").get();
-    const days = timetableSnapshot.docs.map((document) => ({
-        id: document.id,
-        ...document.data(),
-    }));
+    const requestedDates = new Set(enumerateDates(range?.from && range?.to ? range : {}));
+    const days = timetableSnapshot.docs.flatMap((document) => {
+        if (requestedDates.size && !requestedDates.has(document.id)) return [];
+        const parsed = StandardTimetable.safeParse(document.data());
+        if (!parsed.success) {
+            console.warn(`Ignoring invalid timetable document ${document.id}`);
+            return [];
+        }
+        return [parsed.data];
+    });
+    if (!days.length) {
+        return schedule;
+    }
     const updatedLayers = schedule.layers.map((layer) => {
         if (layer.type !== "timetable" || !layer.enabled) return layer;
         const translated = translateTimetableData(layer.id, { days }, layer.settings, layer.name);
@@ -245,6 +279,7 @@ export async function updateStoredScheduleTo(
         if (!layer.source) return true;
         const scheduled = layer.source.updateSchedule?.nextRunAt;
         return (
+            !layer.data?.length ||
             !sourceCoversRange(layer.source.coverage, range) ||
             (!layer.source.live && scheduled !== undefined && scheduled <= now)
         );

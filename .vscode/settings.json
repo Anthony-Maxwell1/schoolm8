@@ -1,1 +1,28 @@
-{}
+{
+  "workbench.colorCustomizations": {
+    "[Tokyo Night Light]": {
+      "panelTitle.activeForeground": "#FFFFFF",
+      "panelTitle.inactiveForeground": "#E1E7F5",
+      "sideBar.foreground": "#F5F7FF",
+      "sideBarTitle.foreground": "#FFFFFF",
+      "activityBar.foreground": "#F5F7FF",
+      "activityBar.inactiveForeground": "#C7D2E8",
+      "statusBar.foreground": "#E8EEFF",
+      "terminal.foreground": "#F5F7FF",
+      "terminalCursor.foreground": "#FFFFFF",
+      "terminalCursor.background": "#C7D2E8",
+      "terminal.tab.inactiveForeground": "#C7D2E8",
+      "terminal.tab.activeForeground": "#FFFFFF",
+      "list.activeSelectionForeground": "#FFFFFF",
+      "list.inactiveSelectionForeground": "#E8EEFF",
+      "editorLineNumber.foreground": "#C7D2E8",
+      "editorLineNumber.activeForeground": "#FFFFFF",
+      "breadcrumb.foreground": "#C7D2E8",
+      "breadcrumb.focusForeground": "#FFFFFF",
+      "tab.activeForeground": "#FFFFFF",
+      "tab.inactiveForeground": "#C7D2E8",
+      "tab.unfocusedActiveForeground": "#E1E7F5",
+      "tab.unfocusedInactiveForeground": "#B8C5DE"
+    }
+  }
+}

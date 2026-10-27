@@ -1,3 +1,15 @@
+- URGENT: replace projects with tasks in codebase
+- fix bug on schedule where creating layer replaces existing layer and creates a new one at the same time
+- fix schedule drag and drop and resize not saving
+- todo: fix ai stuff that copilot implemented
+- implement proper dev-only gating for old/non-public pages
+- implement tasks system
+- implement classes system
+- schedule should update/refresh schedules after rename/delete/create
+- remove add event for locked (e.g. timetable) layers
+- add overrides for locked (e.g. timetable) layers
+- implement ai skills
+    - implement projects skill
 - Add reporting to UGC Themes
 - Add editing and deleting for themes
 - Add proper study tools
@@ -15,6 +27,8 @@
 
 - improve speed and usability of schedule with timetable layer
 
+- Improve knowledge base to add database and similar functionality to sub pages inside databases
+
 PRIORITY - Add and Improve tiles
 
 - Improve UI consistency
@@ -24,7 +38,7 @@ PRIORITY - Add and Improve tiles
 - Prevent UI elements being dragged
   PRIORITY - Move themes settings and similar from local storage to firebase
 
-          BUGS
+                            BUGS
 
 - Fix Note delete not actually deleting
   <!-- - Fix styling when you go home from the docs. -->

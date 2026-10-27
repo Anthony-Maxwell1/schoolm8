@@ -16,6 +16,9 @@ export async function POST(req: Request) {
         if (!schedule) return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
         const layer = schedule.layers.find((item) => item.id === body.layerId);
         if (!layer) return NextResponse.json({ error: "Layer not found" }, { status: 404 });
+        if (layer.type === "timetable") {
+            return NextResponse.json({ error: "Timetable layers are locked" }, { status: 403 });
+        }
         const event = calendarEvent.parse({ ...body.event, id: body.event?.id ?? uuidv4() });
         const data = [...(layer.data ?? [])];
         const date = eventDay(event);
@@ -45,6 +48,9 @@ export async function PATCH(req: Request) {
         if (!schedule) return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
         const layer = schedule.layers.find((item) => item.id === body.layerId);
         if (!layer) return NextResponse.json({ error: "Layer not found" }, { status: 404 });
+        if (layer.type === "timetable") {
+            return NextResponse.json({ error: "Timetable layers are locked" }, { status: 403 });
+        }
         const replacement = calendarEvent.parse(body.event);
         const data = (layer.data ?? [])
             .map((day) => ({
@@ -83,6 +89,9 @@ export async function DELETE(req: Request) {
         if (!schedule) return NextResponse.json({ error: "Schedule not found" }, { status: 404 });
         const layer = schedule.layers.find((item) => item.id === params.get("layerId"));
         if (!layer) return NextResponse.json({ error: "Layer not found" }, { status: 404 });
+        if (layer.type === "timetable") {
+            return NextResponse.json({ error: "Timetable layers are locked" }, { status: 403 });
+        }
         const data = (layer.data ?? [])
             .map((day) => ({
                 ...day,

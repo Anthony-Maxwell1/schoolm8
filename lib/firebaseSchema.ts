@@ -675,8 +675,127 @@ export const deleteAIProfile = async (userId: string, profileId: string) => {
     return getAIProfilesRef(userId).doc(profileId).delete();
 };
 
+export const getAIChatsRef = (userId: string) => getAIRef(userId).collection("chats");
+export const getAIChats = async (userId: string) => {
+    const snapshot = await getAIChatsRef(userId).orderBy("updatedAt", "desc").get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+export const getAIChat = async (userId: string, chatId: string) => {
+    const doc = await getAIChatsRef(userId).doc(chatId).get();
+    return doc.exists ? { id: doc.id, ...doc.data() } : null;
+};
+export const saveAIChat = async (userId: string, chatId: string, chatData: Record<string, any>) =>
+    getAIChatsRef(userId).doc(chatId).set(removeUndefinedDeep(chatData), { merge: true });
+export const deleteAIChat = async (userId: string, chatId: string) =>
+    getAIChatsRef(userId).doc(chatId).delete();
+
+export const getAISkillsRef = (userId: string) => getAIRef(userId).collection("skills");
+export const getAISkills = async (userId: string) => {
+    const snapshot = await getAISkillsRef(userId).orderBy("updatedAt", "desc").get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+export const saveAISkill = async (
+    userId: string,
+    skillId: string,
+    skillData: Record<string, any>,
+) => getAISkillsRef(userId).doc(skillId).set(removeUndefinedDeep(skillData), { merge: true });
+export const deleteAISkill = async (userId: string, skillId: string) =>
+    getAISkillsRef(userId).doc(skillId).delete();
+
 export const deleteAIAgent = async (userId: string, agentId: string) => {
     return getAIAgentsRef(userId).doc(agentId).delete();
+};
+
+/* client side note creation/editing*/
+export const createNote = async (
+    userId: string,
+    title: string,
+    content: string,
+    projects?: any[],
+    assignments?: any[],
+) => {
+    const noteId = uuidv4();
+    const now = Date.now();
+
+    const newNote = {
+        title,
+        content,
+        projects: projects || [],
+        assignments: assignments || [],
+        created: now,
+        updated: now,
+    };
+
+    const userRef = db.collection("users").doc(userId);
+    const docSnap = await userRef.get();
+
+    if (!docSnap.exists) throw new Error("User not found");
+
+    // ---------- UPDATE ----------
+    await userRef.update({
+        [`data.notes.${noteId}`]: newNote,
+    });
+
+    return { status: "ok", noteId };
+};
+
+export const fetchNotes = async (userId: string) => {
+    const userRef = db.collection("users").doc(userId);
+    const docSnap = await userRef.get();
+
+    if (!docSnap.exists) throw new Error("User not found");
+
+    const notes = docSnap.data()?.data?.notes || {};
+    return notes;
+};
+
+export const updateNote = async (
+    userId: string,
+    noteId: string,
+    title?: string,
+    content?: string,
+    projects?: any[],
+    assignments?: any[],
+) => {
+    const now = Date.now();
+
+    const updatedNote: any = {
+        updated: now,
+    };
+
+    if (title !== undefined) updatedNote.title = title;
+    if (content !== undefined) updatedNote.content = content;
+    if (projects !== undefined) updatedNote.projects = projects;
+    if (assignments !== undefined) updatedNote.assignments = assignments;
+
+    const userRef = db.collection("users").doc(userId);
+    const docSnap = await userRef.get();
+
+    if (!docSnap.exists) throw new Error("User not found");
+
+    // ---------- UPDATE ----------
+    await userRef.update({
+        [`data.notes.${noteId}`]: {
+            ...docSnap.data()?.data?.notes?.[noteId],
+            ...updatedNote,
+        },
+    });
+
+    return { status: "ok", noteId };
+};
+
+export const deleteNote = async (userId: string, noteId: string) => {
+    const userRef = db.collection("users").doc(userId);
+    const docSnap = await userRef.get();
+
+    if (!docSnap.exists) throw new Error("User not found");
+
+    // ---------- DELETE ----------
+    await userRef.update({
+        [`data.notes.${noteId}`]: null,
+    });
+
+    return { status: "ok", noteId };
 };
 
 export const schema = {
@@ -731,6 +850,12 @@ export const schema = {
         save: saveKnowledgeBase,
         get: getKnowledgeBase,
     },
+    notes: {
+        create: createNote,
+        update: updateNote,
+        delete: deleteNote,
+        fetchAll: fetchNotes,
+    },
     classes: {
         getRef: getClassesRef,
         getClassRef: getClassRef,
@@ -757,5 +882,12 @@ export const schema = {
         getProfile: getAIProfile,
         saveProfile: saveAIProfile,
         deleteProfile: deleteAIProfile,
+        getChats: getAIChats,
+        getChat: getAIChat,
+        saveChat: saveAIChat,
+        deleteChat: deleteAIChat,
+        getSkills: getAISkills,
+        saveSkill: saveAISkill,
+        deleteSkill: deleteAISkill,
     },
 };
