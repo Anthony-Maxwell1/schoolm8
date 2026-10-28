@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/themeContext";
 import ClientAuthGuard from "./ClientAuthGuard";
 import { ToastContainer, toast } from "react-toastify";
 import { TaskManager } from "@/components/TaskManager";
+import AgentTriggers from "@/components/ai/AgentTriggers";
 import { Navigation } from "@/components/Navigation";
 import { NavigationProvider } from "@/context/navigationContext";
 
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <ThemeProvider>
                             <AuthProvider>
                                 <TaskManager />
+                                <AgentTriggers />
                                 <ToastContainer position="top-right" />
                                 <ClientAuthGuard>
                                     <Navigation>{children}</Navigation>

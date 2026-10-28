@@ -16,13 +16,6 @@ type Settings = {
     keyLast4: string | null;
 };
 type Icon = ComponentType<{ className?: string }>;
-type PersonalizationItem = {
-    id: string;
-    name: string;
-    context?: string;
-    instructions?: string;
-    enabled?: boolean;
-};
 
 const providerInfo: Record<
     Provider,
@@ -66,10 +59,6 @@ export default function AiSettingsPage() {
     const [key, setKey] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [profiles, setProfiles] = useState<PersonalizationItem[]>([]);
-    const [skills, setSkills] = useState<PersonalizationItem[]>([]);
-    const [profileDraft, setProfileDraft] = useState({ name: "", context: "" });
-    const [skillDraft, setSkillDraft] = useState({ name: "", instructions: "" });
 
     const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
     const loadModels = useCallback(
@@ -90,40 +79,14 @@ export default function AiSettingsPage() {
             if (!response.ok) throw new Error("Could not load AI settings");
             const data = (await response.json()) as Settings;
             setSettings(data);
-            await loadModels(data.provider);
-            const [profileResponse, skillResponse] = await Promise.all([
-                fetch("/api/ai/profiles", { headers }),
-                fetch("/api/ai/skills", { headers }),
-            ]);
-            if (profileResponse.ok) setProfiles((await profileResponse.json()).profiles ?? []);
-            if (skillResponse.ok) setSkills((await skillResponse.json()).skills ?? []);
+            if (data.hasApiKey) await loadModels(data.provider);
+            else setModels([]);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Could not load AI settings");
         } finally {
             setLoading(false);
         }
     }, [headers, loadModels, token]);
-
-    const addPersonalization = async (kind: "profiles" | "skills") => {
-        const draft = kind === "profiles" ? profileDraft : skillDraft;
-        const response = await fetch(`/api/ai/${kind}`, {
-            method: "POST",
-            headers: { ...headers, "Content-Type": "application/json" },
-            body: JSON.stringify(draft),
-        });
-        if (!response.ok) {
-            toast.error("Could not save personalization");
-            return;
-        }
-        if (kind === "profiles") setProfileDraft({ name: "", context: "" });
-        else setSkillDraft({ name: "", instructions: "" });
-        await load();
-    };
-
-    const removePersonalization = async (kind: "profiles" | "skills", id: string) => {
-        await fetch(`/api/ai/${kind}?id=${encodeURIComponent(id)}`, { method: "DELETE", headers });
-        await load();
-    };
 
     useEffect(() => {
         if (authLoading || !token) return;
@@ -133,16 +96,16 @@ export default function AiSettingsPage() {
 
     const selectProvider = async (provider: Provider) => {
         if (!settings) return;
-        try {
-            const availableModels = await loadModels(provider);
-            setSettings({
-                ...settings,
-                provider,
-                model: availableModels[0]?.id ?? settings.model,
-            });
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Could not load models");
-        }
+        if (provider === settings.provider) return;
+        setModels([]);
+        setKey("");
+        setSettings({
+            ...settings,
+            provider,
+            model: "",
+            hasApiKey: false,
+            keyLast4: null,
+        });
     };
 
     const save = async () => {
@@ -160,7 +123,16 @@ export default function AiSettingsPage() {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error ?? "Could not save AI settings");
-            setSettings(data);
+            const availableModels = await loadModels(data.provider);
+            const selectedModel = availableModels[0]?.id ?? data.model;
+            setSettings({ ...data, model: selectedModel });
+            if (selectedModel && selectedModel !== data.model) {
+                await fetch("/api/ai/settings", {
+                    method: "PUT",
+                    headers: { ...headers, "Content-Type": "application/json" },
+                    body: JSON.stringify({ provider: data.provider, model: selectedModel }),
+                });
+            }
             setKey("");
             toast.success("AI settings saved");
         } catch (error) {
@@ -210,14 +182,19 @@ export default function AiSettingsPage() {
                             <Card
                                 key={provider}
                                 variant={selected ? "hoverable" : "default"}
-                                className={`relative aspect-square cursor-pointer overflow-hidden p-4 transition ${
+                                className={`relative aspect-square overflow-hidden p-4 transition ${
                                     selected
                                         ? "border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20"
                                         : "hover:-translate-y-0.5"
                                 }`}
-                                onClick={() => void selectProvider(provider)}
                             >
-                                <div className="flex items-start justify-between">
+                                <button
+                                    type="button"
+                                    aria-label={`Select ${info.name}`}
+                                    onClick={() => void selectProvider(provider)}
+                                    className="absolute inset-0 z-0 cursor-pointer"
+                                />
+                                <div className="pointer-events-none flex items-start justify-between">
                                     <div className="flex max-w-[85%] flex-wrap gap-1">
                                         {info.chips.slice(0, 2).map((chip) => (
                                             <Badge
@@ -236,7 +213,7 @@ export default function AiSettingsPage() {
                                         <Check className="h-5 w-5 text-[var(--color-primary)]" />
                                     )}
                                 </div>
-                                <div className="absolute inset-x-4 bottom-4">
+                                <div className="pointer-events-none absolute inset-x-4 bottom-4">
                                     <info.Icon className="mb-4 h-16 w-16 text-[var(--color-primary)]" />
                                     <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
                                         {info.name}
@@ -247,7 +224,7 @@ export default function AiSettingsPage() {
                                 </div>
                                 {selected && (
                                     <div
-                                        className="absolute inset-x-2 bottom-2 rounded-[var(--radius-md)] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 shadow-lg"
+                                        className="absolute inset-x-2 bottom-2 z-10 rounded-[var(--radius-md)] border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 shadow-lg"
                                         onClick={(event) => event.stopPropagation()}
                                     >
                                         <TextInput
@@ -303,103 +280,6 @@ export default function AiSettingsPage() {
                         Remove saved API key
                     </Button>
                 )}
-                <Divider className="my-10" />
-                <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
-                    Personalization
-                </h2>
-                <Text variant="body" className="mt-2 text-[var(--color-text-secondary)]">
-                    Profiles and skills are included in every AI conversation.
-                </Text>
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    <Card className="p-4">
-                        <h3 className="font-semibold">Profiles</h3>
-                        <div className="mt-3 space-y-2">
-                            {profiles.map((profile) => (
-                                <div
-                                    key={profile.id}
-                                    className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] p-2 text-sm"
-                                >
-                                    <span>{profile.name}</span>
-                                    <button
-                                        onClick={() =>
-                                            void removePersonalization("profiles", profile.id)
-                                        }
-                                        className="text-slate-400"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <TextInput
-                            className="mt-3"
-                            placeholder="Profile name"
-                            value={profileDraft.name}
-                            onChange={(event) =>
-                                setProfileDraft({ ...profileDraft, name: event.target.value })
-                            }
-                        />
-                        <TextInput
-                            className="mt-2"
-                            placeholder="About you or your preferences"
-                            value={profileDraft.context}
-                            onChange={(event) =>
-                                setProfileDraft({ ...profileDraft, context: event.target.value })
-                            }
-                        />
-                        <Button
-                            className="mt-3"
-                            size="sm"
-                            onClick={() => void addPersonalization("profiles")}
-                        >
-                            Add profile
-                        </Button>
-                    </Card>
-                    <Card className="p-4">
-                        <h3 className="font-semibold">Skills</h3>
-                        <div className="mt-3 space-y-2">
-                            {skills.map((skill) => (
-                                <div
-                                    key={skill.id}
-                                    className="flex items-center justify-between rounded-lg bg-[var(--color-surface)] p-2 text-sm"
-                                >
-                                    <span>{skill.name}</span>
-                                    <button
-                                        onClick={() =>
-                                            void removePersonalization("skills", skill.id)
-                                        }
-                                        className="text-slate-400"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <TextInput
-                            className="mt-3"
-                            placeholder="Skill name"
-                            value={skillDraft.name}
-                            onChange={(event) =>
-                                setSkillDraft({ ...skillDraft, name: event.target.value })
-                            }
-                        />
-                        <TextInput
-                            className="mt-2"
-                            placeholder="Instructions for this skill"
-                            value={skillDraft.instructions}
-                            onChange={(event) =>
-                                setSkillDraft({ ...skillDraft, instructions: event.target.value })
-                            }
-                        />
-                        <Button
-                            className="mt-3"
-                            size="sm"
-                            onClick={() => void addPersonalization("skills")}
-                        >
-                            Add skill
-                        </Button>
-                    </Card>
-                </div>
             </div>
         </div>
     );

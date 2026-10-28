@@ -25,6 +25,14 @@
 - Remove border when editing a page in knowledge base
 - Show tags in sidebar in knowledge base
 
+- ai page: make enter send message, shift+enter newline
+- improve ai settings page, make it more spread out and usable with good UX, improve the UI.
+
+- create utilities page with calc, etc.
+- add ai tools for the utils page
+- add md rendering to ai page
+- improve ai context (the ai needs to know schoolm8 refers to the app, not ai)
+
 - improve speed and usability of schedule with timetable layer
 
 - Improve knowledge base to add database and similar functionality to sub pages inside databases
@@ -38,8 +46,10 @@ PRIORITY - Add and Improve tiles
 - Prevent UI elements being dragged
   PRIORITY - Move themes settings and similar from local storage to firebase
 
-                            BUGS
+                                  BUGS
 
 - Fix Note delete not actually deleting
   <!-- - Fix styling when you go home from the docs. -->
 - Debug why data is {} for themes
+
+- add syncing for currently local stuff such as dashboard pages and themes

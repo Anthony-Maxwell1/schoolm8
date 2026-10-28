@@ -22,7 +22,11 @@ export function ConnectGeminiCTA({
     return (
         <EmptyState
             icon={<Sparkles className="h-6 w-6" />}
-            title={invalid ? "Your Gemini key needs attention" : `Connect your Gemini key to unlock ${feature}`}
+            title={
+                invalid
+                    ? "Your Gemini key needs attention"
+                    : `Connect your Gemini key to unlock ${feature}`
+            }
             description={
                 invalid
                     ? "Google rejected the saved key. Re-enter a valid key to keep using the tutor, scheduler, and study tools."

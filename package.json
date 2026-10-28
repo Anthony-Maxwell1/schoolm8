@@ -13,7 +13,10 @@
         "postinstall": "node ./postinstall.js"
     },
     "dependencies": {
+        "@ai-sdk/anthropic": "^4.0.89",
+        "@ai-sdk/deepseek": "^3.0.74",
         "@ai-sdk/google": "^4.0.82",
+        "@ai-sdk/openai": "^4.0.103",
         "@ai-sdk/react": "^4.0.157",
         "@babel/parser": "^7.29.2",
         "@blocknote/core": "^0.54.0",
